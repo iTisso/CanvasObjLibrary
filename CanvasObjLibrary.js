@@ -43,6 +43,7 @@ function newC_GUI() {
 		setrelPosition: function() {
 			switch (C_GUI.tools.getBrowser()) {
 			case "msie":
+			case "trident":
 			case "opera":
 				{
 					C_GUI.mousePosition.fun = C_GUI.mousePosition.ie;
@@ -903,7 +904,9 @@ function newC_GUI() {
 				}
 			},
 			getBrowser: function() {
-				var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome/i)[0];
+				var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome|trident/i);
+				if(b.length)b=b[0];
+				else b="unknow";
 				return b;
 			},
 			rand: function(min, max) {
