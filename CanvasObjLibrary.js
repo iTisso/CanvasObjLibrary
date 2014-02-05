@@ -6,9 +6,11 @@ member:LuoJia
 function newC_GUI() {
 	var C_GUI = {
 		keys: new Array(),
-		/*主canvas*//*The main canvas*/
+		/*主canvas*/
+		/*The main canvas*/
 		canvas: null,
-		/*canvas的绘图上下文*//*Canvas' context*/
+		/*canvas的绘图上下文*/
+		/*Canvas' context*/
 		context: null,
 		buffercanvas: null,
 		buffercontext: null,
@@ -90,7 +92,8 @@ function newC_GUI() {
 			}
 		},
 
-		/*设置主画布*//*set main canvas*/
+		/*设置主画布*/
+		/*set main canvas*/
 		setCanvas: function(canvas_dom) {
 			C_GUI.canvas = canvas_dom;
 			C_GUI.setrelPosition();
@@ -235,7 +238,9 @@ function newC_GUI() {
 					opacity: null,
 					beforedrawfun: null,
 					afterdrawfun: null,
-					drawtype: "function",//function、image、text
+					overflow: null,
+					drawtype: "function",
+					//function、image、text
 					drawfunction: null,
 					backgroundColor: null,
 					eventable: false,
@@ -301,11 +306,11 @@ function newC_GUI() {
 
 					},
 					New: function() {
-						var newobj=Object.create(this);
-						newobj.parentNode=null;
-						newobj.childNode=new Array;
-						newobj.drawlist=null;
-						
+						var newobj = Object.create(this);
+						newobj.parentNode = null;
+						newobj.childNode = new Array;
+						newobj.drawlist = null;
+
 						return newobj;
 					},
 					addChild: function(graph) {
@@ -334,8 +339,8 @@ function newC_GUI() {
 				t.text = text || " ";
 				t.baseline = "middle";
 				t.fontStyle = null;
-				t.fontWeight = null ;
-				t.textInput=null;
+				t.fontWeight = null;
+				t.textInput = null;
 				t.fontVariant = null;
 				t.lineHeight = null;
 				t.fontSize = fontsize || "15px";
@@ -584,14 +589,18 @@ function newC_GUI() {
 		drawElement: function(d, ct) {
 			for (var i = 0; i < d.length; i++) {
 				if (d[i].display) {
-
 					ct.save();
 					ct.translate(d[i].left + d[i].rotatecenter.x, d[i].top + d[i].rotatecenter.y);
 					ct.beginPath();
 					ct.rotate(d[i].rotate * 0.017453292519943295);
 					ct.scale(d[i].zoom.x, d[i].zoom.y);
 					if (d[i].opacity != null) ct.globalAlpha = d[i].opacity;
+					if (d[i].overflow=="hidden") {
+						ct.rect( - d[i].rotatecenter.x, -d[i].rotatecenter.y, d[i].width, d[i].height);
+						ct.clip();
+					}
 					ct.save();
+
 					ct.save();
 					if (d[i].beforedrawfun) d[i].beforedrawfun(ct);
 					ct.restore();
@@ -749,7 +758,8 @@ function newC_GUI() {
 			}
 		},
 
-		/*把队列中的图形按index绘制出来*//*draw all graphs[display=true]*/
+		/*把队列中的图形按index绘制出来*/
+		/*draw all graphs[display=true]*/
 		draw: function() {
 			C_GUI.newonoverElement = null;
 			C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
@@ -920,7 +930,8 @@ function newC_GUI() {
 			}
 		},
 
-		/*在当前基础上新建一个对象*//*Create a new gui obj based on the current obj*/
+		/*在当前基础上新建一个对象*/
+		/*Create a new gui obj based on the current obj*/
 		New: function() {
 			return Object.create(this);
 		}
