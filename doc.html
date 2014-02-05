@@ -1,0 +1,507 @@
+
+<div align="left">
+	<table width="100%" border="1" cellspacing="0" cellpadding="0">
+		<tr>
+			<th width="16%" scope="row"><p>Debug</p>
+			<p>(调试对象)</p></th>
+			<td width="84%"><table width="100%" border="1" cellspacing="0" cellpadding="0">
+					<tr>
+						<th width="14%" scope="row">eleinfo</th>
+						<td width="86%">是否显示详细信息</td>
+					</tr>
+					<tr>
+						<th scope="row">off()</th>
+						<td>关闭调试</td>
+					</tr>
+					<tr>
+						<th scope="row">on()</th>
+						<td>打开调试</td>
+					</tr>
+					<tr>
+						<th scope="row">stat</th>
+						<td>调试开闭状态</td>
+					</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row"><p>Graph</p>
+			<p>(图形对象)</p></th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="14%" scope="row">Delete()</th>
+					<td width="86%">删除图形对象(暂时没用)</td>
+				</tr>
+				<tr>
+					<th scope="row">Eventable()</th>
+					<td>使一个图形对象可以处理事件</td>
+				</tr>
+				<tr>
+					<th scope="row">New()</th>
+					<td>新建一个图形对象</td>
+				</tr>
+				<tr>
+					<th scope="row">NewTextObj()</th>
+					<td>新建一个文本(图形)对象</td>
+				</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row">New</th>
+			<td>新建整个GUI对象</td>
+		</tr>
+		<tr>
+			<th scope="row">buffercanvas</th>
+			<td>被设置的缓冲canvas</td>
+		</tr>
+		<tr>
+			<th scope="row">buffercontext</th>
+			<td>缓冲canvas的cantext</td>
+		</tr>
+		<tr>
+			<th scope="row">canvas</th>
+			<td>被设置的canvas</td>
+		</tr>
+		<tr>
+			<th scope="row">canvasonfocus</th>
+			<td>标识当前canvas是否是焦点状态(鼠标指针在canvas上)</td>
+		</tr>
+		<tr>
+			<th scope="row">context</th>
+			<td>canvas的context</td>
+		</tr>
+		<tr>
+			<th scope="row">currentcontext</th>
+			<td>当前的绘图上下文，如果没有缓冲canvas，那么就是主canvas的context</td>
+		</tr>
+		<tr>
+			<th scope="row">document</th>
+			<td>虚拟文档对象，所有新建的图形要显示都应被添加为此对象的子节点(这也是一个图形对象)</td>
+		</tr>
+		<tr>
+			<th scope="row">draw</th>
+			<td>此函数用来绘制当前帧</td>
+		</tr>
+		<tr>
+			<th scope="row">drawElement</th>
+			<td>按z_index绘制所有显示的元素</td>
+		</tr>
+		<tr>
+			<th scope="row">e</th>
+			<td>事件处理中间层，子对象被用来事件分发和预处理</td>
+		</tr>
+		<tr>
+			<th scope="row">eve</th>
+			<td>当前的事件对象</td>
+		</tr>
+		<tr>
+			<th scope="row">focus</th>
+			<td>当前拥有焦点的图形</td>
+		</tr>
+		<tr>
+			<th scope="row"><p>imageSmoothing</p>
+			<p>(图像平滑设置)</p></th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="15%" scope="row">on()</th>
+					<td width="85%">打开图像平滑(默认)</td>
+				</tr>
+				<tr>
+					<th scope="row">off()</th>
+					<td>关闭图像平滑</td>
+				</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row"><p>imagecreater</p>
+			<p>(图片创建器)</p></th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="17%" scope="row">creatercanvas</th>
+					<td width="83%">图片创建器的canvas</td>
+				</tr>
+				<tr>
+					<th scope="row">creatercontext</th>
+					<td>图片创建器canvas的context</td>
+				</tr>
+				<tr>
+					<th scope="row">drawpic()</th>
+					<td>使用参数里的函数绘制一张图片</td>
+				</tr>
+				<tr>
+					<th scope="row">init()</th>
+					<td>初始化(正确设置创建器)</td>
+				</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row">keys</th>
+			<td>记录按键状态的数组</td>
+		</tr>
+		<tr>
+			<th scope="row"><p>mousePosition</p>
+			<p>(鼠标定位处理)</p></th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="14%" scope="row">fun</th>
+					<td width="86%">处理鼠标坐标的函数</td>
+				</tr>
+				<tr>
+					<th scope="row">chrome</th>
+					<td>浏览器针对型处理函数(包括有同样蛋疼特性的浏览器也使用此函数)</td>
+				</tr>
+				<tr>
+					<th scope="row">ie</th>
+					<td>同上</td>
+				</tr>
+				<tr>
+					<th scope="row">firefox</th>
+					<td>同上上</td>
+				</tr>
+				<tr>
+					<th scope="row">offsetx</th>
+					<td>由setrelPosition函数计算出的坐标偏移量</td>
+				</tr>
+				<tr>
+					<th scope="row">offsety</th>
+					<td>同上</td>
+				</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row">mouseX</th>
+			<td>当前鼠标指针在canvas中的绝对位置X</td>
+		</tr>
+		<tr>
+			<th scope="row">mouseY</th>
+			<td>当前鼠标指针在canvas中的绝对位置Y</td>
+		</tr>
+		<tr>
+			<th scope="row">mousecenter</th>
+			<td>鼠标中键被按下的状态</td>
+		</tr>
+		<tr>
+			<th scope="row">mouseleft</th>
+			<td>鼠标左键被按下的状态</td>
+		</tr>
+		<tr>
+			<th scope="row">mouseright</th>
+			<td>鼠标右键被按下的状态</td>
+		</tr>
+		<tr>
+			<th scope="row">onoverElement</th>
+			<td>当前鼠标悬浮于的最上层元素</td>
+		</tr>
+		<tr>
+			<th scope="row">setBuffCanvas()</th>
+			<td>设置缓冲canvas</td>
+		</tr>
+		<tr>
+			<th scope="row">setCanvas()</th>
+			<td>设置canvas</td>
+		</tr>
+		<tr>
+			<th scope="row">setrelPosition()</th>
+			<td>计算鼠标坐标需要偏移的量</td>
+		</tr>
+		<tr>
+			<th scope="row"><p>tools</p>
+			<p>(小工具)</p></th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="11%" scope="row">addEventListener()</th>
+					<td width="89%">添加dom事件监听，用于传递从dom来的事件</td>
+				</tr>
+				<tr>
+					<th scope="row">arraybyZ_index()</th>
+					<td>绘图顺序排序的核心函数</td>
+				</tr>
+				<tr>
+					<th scope="row">defaultPathFun()</th>
+					<td>可处理事件的元素的默认鼠标事件识别区定义函数</td>
+				</tr>
+				<tr>
+					<th scope="row">getBrowser()</th>
+					<td>得到(主流)浏览器名</td>
+				</tr>
+				<tr>
+					<th scope="row">getnum()</th>
+					<td>提出一个字符串里首次出现的数字</td>
+				</tr>
+				<tr>
+					<th scope="row">paixurule()</th>
+					<td>绘图顺序的排序规则定义函数</td>
+				</tr>
+				<tr>
+					<th scope="row">rand()</th>
+					<td>得到一个区间里的随机整数</td>
+				</tr>
+			</table></td>
+		</tr>
+		<tr>
+			<th scope="row">tosign</th>
+			<td>定义预发生事件的地方</td>
+		</tr>
+		<tr>
+			<th scope="row"><p>&nbsp;</p>
+			<p>&nbsp;</p>
+			<p>对象</p></th>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<th scope="row">图形对象</th>
+			<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="10%" scope="row">New()</th>
+					<td width="90%">新建一个相同的对象(不包含父子节点)</td>
+				</tr>
+				<tr>
+					<th scope="row">addChild()</th>
+					<td>添加子元素</td>
+				</tr>
+				<tr>
+					<th scope="row">afterdrawfun()</th>
+					<td>这个元素绘制完成后运行的函数</td>
+				</tr>
+				<tr>
+					<th scope="row">backgroundColor</th>
+					<td>背景色</td>
+				</tr>
+				<tr>
+					<th scope="row">beforedrawfun()</th>
+					<td>这个元素绘制前运行的函数</td>
+				</tr>
+				<tr>
+					<th scope="row">childNode</th>
+					<td>子节点数组</td>
+				</tr>
+				<tr>
+					<th scope="row">display</th>
+					<td>是否显示(会影响子节点)</td>
+				</tr>
+				<tr>
+					<th scope="row">drawfunction()</th>
+					<td>函数型图形的绘图函数</td>
+				</tr>
+				<tr>
+					<th scope="row">drawlist</th>
+					<td>按顺序排好的子节点绘制列表</td>
+				</tr>
+				<tr>
+					<th scope="row">drawpic()</th>
+					<td>用根里的drarpic函数绘制图片并存进自己的imageobj</td>
+				</tr>
+				<tr>
+					<th scope="row">drawtype</th>
+					<td>绘制类型</td>
+				</tr>
+				<tr>
+					<th scope="row">eventable</th>
+					<td>是否处理事件(事件冒泡时会无效)</td>
+				</tr>
+				<tr>
+					<th scope="row">height</th>
+					<td>高度</td>
+				</tr>
+				<tr>
+					<th scope="row">imageobj</th>
+					<td>私有图像对象</td>
+				</tr>
+				<tr>
+					<th scope="row">left</th>
+					<td>相对父节点的x偏移量</td>
+				</tr>
+				<tr>
+					<th scope="row">name</th>
+					<td>名字</td>
+				</tr>
+				<tr>
+					<th scope="row">opacity</th>
+					<td>透明度()</td>
+				</tr>
+				<tr>
+					<th scope="row">parentNode</th>
+					<td>父节点</td>
+				</tr>
+				<tr>
+					<th scope="row">removeChild()</th>
+					<td>移除子节点</td>
+				</tr>
+				<tr>
+					<th scope="row">rotate</th>
+					<td>旋转角度(会影响子节点)</td>
+				</tr>
+				<tr>
+					<th scope="row"><p>rotatecenter</p>
+						<p>(旋转中心)</p></th>
+					<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+						<tr>
+							<th width="8%" scope="row">x</th>
+							<td width="92%">不解释</td>
+						</tr>
+						<tr>
+							<th scope="row">y</th>
+							<td>同上</td>
+						</tr>
+						</table></td>
+				</tr>
+				<tr>
+					<th scope="row">setRotateCenter()</th>
+					<td>设置旋转中心</td>
+				</tr>
+				<tr>
+					<th scope="row">setSize()</th>
+					<td>设置尺寸</td>
+				</tr>
+				<tr>
+					<th scope="row">setZoom()</th>
+					<td>设置缩放</td>
+				</tr>
+				<tr>
+					<th scope="row">top</th>
+					<td>相对父节点的y偏移量</td>
+				</tr>
+				<tr>
+					<th scope="row">useImage()</th>
+					<td>传入一个image对象并把它作为imageobj的内容</td>
+				</tr>
+				<tr>
+					<th scope="row">width</th>
+					<td>宽度</td>
+				</tr>
+				<tr>
+					<th scope="row">z_index</th>
+					<td>z方向顺序茵蒂克斯</td>
+				</tr>
+				<tr>
+					<th scope="row">zindex()</th>
+					<td>设置茵蒂克斯</td>
+				</tr>
+				<tr>
+					<th scope="row"><p>zoom</p>
+						<p>(缩放信息)</p></th>
+					<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+						<tr>
+							<th width="16%" scope="row">x</th>
+							<td width="84%">横向缩放</td>
+						</tr>
+						<tr>
+							<th scope="row">y</th>
+							<td>纵向缩放</td>
+						</tr>
+					</table></td>
+				</tr>
+			</table>
+			<p>&nbsp;</p>
+			<p>文字对象(继承基础对象)</p>
+			<table width="100%" border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th width="13%" scope="row">text</th>
+					<td width="87%">要绘制的文本</td>
+				</tr>
+				<tr>
+					<th scope="row">baseline</th>
+					<td>基线</td>
+				</tr>
+				<tr>
+					<th scope="row">fontStyle</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">fontWeight</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">textInput</th>
+					<td>将来会添加对应功能</td>
+				</tr>
+				<tr>
+					<th scope="row">fontVariant</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">lineHeight</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">fontSize</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">fontFamily</th>
+					<td>参见CSS对应属性</td>
+				</tr>
+				<tr>
+					<th scope="row">innerX</th>
+					<td>字相对本imageobj内部的横向偏移(autosize为true时没有实际意义)</td>
+				</tr>
+				<tr>
+					<th scope="row">innerY</th>
+					<td>字相对本imageobj内部的纵向偏移(autosize为true时没有实际意义)</td>
+				</tr>
+				<tr>
+					<th scope="row">color</th>
+					<td>字的颜色</td>
+				</tr>
+				<tr>
+					<th scope="row">autoSize</th>
+					<td>自动尺寸</td>
+				</tr>
+				<tr>
+					<th scope="row">editable</th>
+					<td>将来会加入的功能的相关参数</td>
+				</tr>
+				<tr>
+					<th scope="row">textborderWidth</th>
+					<td>字描边粗细</td>
+				</tr>
+				<tr>
+					<th scope="row">textborderColor</th>
+					<td>字描边颜色</td>
+				</tr>
+				<tr>
+					<th scope="row">fill</th>
+					<td>是否填充</td>
+				</tr>
+				<tr>
+					<th scope="row">shadowBlur</th>
+					<td>阴影蘑(mo)菇(hu)等级</td>
+				</tr>
+				<tr>
+					<th scope="row">shadowColor</th>
+					<td>阴影颜色</td>
+				</tr>
+				<tr>
+					<th scope="row"><p>shadowOffset</p>
+						<p>阴影偏移</p></th>
+					<td><table width="100%" border="1" cellspacing="0" cellpadding="0">
+						<tr>
+							<th width="8%" scope="row">x</th>
+							<td width="92%">不解释</td>
+						</tr>
+						<tr>
+							<th scope="row">y</th>
+							<td width="92%">不解释</td>
+							</tr>
+					</table></td>
+				</tr>
+				<tr>
+					<th scope="row">maxWidth</th>
+					<td>最大宽度</td>
+				</tr>
+				<tr>
+					<th scope="row">prepareText()</th>
+					<td>重绘文字到imageobj</td>
+				</tr>
+				<tr>
+					<th scope="row">setSize()</th>
+					<td>设置尺寸</td>
+				</tr>
+				<tr>
+					<th scope="row">setText()</th>
+					<td>设置文本</td>
+				</tr>
+			</table>
+			<p>由于Canvas文字绘制能力太弱，所以此对象先把文字绘制到自己的imageobj上再被当作图片绘制到画布，再所以更改了文字样式以后要手动prepareText()来刷新样式</p></td>
+		</tr>
+	</table>
+</div>
