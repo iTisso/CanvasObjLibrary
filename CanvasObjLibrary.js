@@ -6,9 +6,9 @@ member:LuoJia
 function newC_GUI() {
 	var C_GUI = {
 		keys: new Array(),
-		/*被绘制的canvas*/
+		/*主canvas*//*The main canvas*/
 		canvas: null,
-		/*canvas的绘图上下文*/
+		/*canvas的绘图上下文*//*Canvas' context*/
 		context: null,
 		buffercanvas: null,
 		buffercontext: null,
@@ -37,6 +37,7 @@ function newC_GUI() {
 		},
 
 		/*重设位置(为鼠标坐标服务)【当canvas的位置改变(dom中)时需要调用，来修正鼠标坐标】*/
+		/*Reset mouse offset,if the canvas has change it's place in page,run it*/
 		setrelPosition: function() {
 			switch (C_GUI.tools.getBrowser()) {
 			case "msie":
@@ -66,6 +67,7 @@ function newC_GUI() {
 		},
 
 		/*创建图形用的画布*/
+		/*A canvas to create picture*/
 		imagecreater: {
 			creatercanvas: null,
 			creatercontext: null,
@@ -88,11 +90,12 @@ function newC_GUI() {
 			}
 		},
 
-		/*设置被绘制的画布*/
+		/*设置主画布*//*set main canvas*/
 		setCanvas: function(canvas_dom) {
 			C_GUI.canvas = canvas_dom;
 			C_GUI.setrelPosition();
 
+			/*Solve events*/
 			var ev = C_GUI.e;
 			C_GUI.eve.stopPropagation = function() {
 				C_GUI.eve.Propagation = false;
@@ -232,8 +235,7 @@ function newC_GUI() {
 					opacity: null,
 					beforedrawfun: null,
 					afterdrawfun: null,
-					drawtype: "function",
-					//function、image
+					drawtype: "function",//function、image、text
 					drawfunction: null,
 					backgroundColor: null,
 					eventable: false,
@@ -358,7 +360,7 @@ function newC_GUI() {
 						t.imageobj = document.createElement("canvas");
 					}
 					var ct = t.imageobj.getContext("2d");
-					//ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
+					ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
 					var font = "";
 					if (t.fontSize && t.fontFamily) {
 						if (t.fontStyle) font += t.fontStyle;
@@ -686,7 +688,7 @@ function newC_GUI() {
 						ct.scale(1 / zx, 1 / zy);
 						ct.textBaseline = "top";
 						ct.fillStyle = "rgba(0,0,0,1)";
-						ct.font = "20px 宋体";
+						ct.font = "20px Arial";
 						switch (d[i].drawtype) {
 						case "function":
 							{
@@ -702,18 +704,18 @@ function newC_GUI() {
 						case "text":
 							{
 								ct.fillText("Text", 0, 0);
-								ct.font = "12px 宋体";
+								ct.font = "12px Arial";
 								ct.fillText("font:" + d[i].font, 0, -12);
 								break;
 							}
 						}
 
 						if (C_GUI.Debug.eleinfo) {
-							ct.font = "10px 宋体";
+							ct.font = "10px Arial";
 							ct.fillText("X:" + d[i].left + " " + "Y:" + d[i].top, 0, 21);
 							ct.fillText("rotate:" + d[i].rotate, 0, 31);
 							ct.fillText("zoom:" + d[i].zoom.x + "," + d[i].zoom.y, 0, 41);
-							ct.fillText("操作点:" + d[i].rotatecenter.x + " " + d[i].rotatecenter.y, 0, 51);
+							ct.fillText("RotatePotint:" + d[i].rotatecenter.x + " " + d[i].rotatecenter.y, 0, 51);
 						}
 						ct.restore();
 					}
@@ -747,7 +749,7 @@ function newC_GUI() {
 			}
 		},
 
-		/*把队列中的图形按index绘制出来*/
+		/*把队列中的图形按index绘制出来*//*draw all graphs[display=true]*/
 		draw: function() {
 			C_GUI.newonoverElement = null;
 			C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
@@ -918,7 +920,7 @@ function newC_GUI() {
 			}
 		},
 
-		/*在当前基础上新建一个对象*/
+		/*在当前基础上新建一个对象*//*Create a new gui obj based on the current obj*/
 		New: function() {
 			return Object.create(this);
 		}
