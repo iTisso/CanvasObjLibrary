@@ -3,4 +3,4 @@ CanvasObjLibrary
 
 To draw object in canvas
 
-Who to help me write this read me file?
+Who to help me write this readme file?
