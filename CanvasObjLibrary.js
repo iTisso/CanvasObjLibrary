@@ -890,9 +890,6 @@ function newC_GUI() {
 					dom["on" + e] = fun;
 				}
 			},
-			数值渐变: function(开始, 结束, 作用对象, 时间) {
-				
-			},
 			getBrowser: function() {
 				var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome/i)[0];
 				return b;
