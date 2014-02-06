@@ -299,6 +299,17 @@ function newC_GUI() {
 		C_GUI.Graph.Eventable(C_GUI.document);
 		C_GUI.document.width = canvas_dom.width;
 		C_GUI.document.height = canvas_dom.height;
+		C_GUI.document.afterdrawfun=function(ct){
+			if(C_GUI.Debug.stat){
+				ct.save();
+				ct.setTransform(1,0,0,1,0,0);
+				ct.font="16px Arial";
+				ct.textBaseline="bottom";
+				ct.fillStyle="#CCC";
+				ct.fillText("mousX:"+C_GUI.mouseX+" mouseY:"+C_GUI.mouseY+" mouseL:"+C_GUI.mouseleft+" C:"+C_GUI.mousecenter+" R:"+C_GUI.mouseright,0,C_GUI.canvas.height);
+				ct.restore();
+			}
+		};
 		C_GUI.drawlist = [C_GUI.document];
 	};
 
@@ -870,6 +881,7 @@ function newC_GUI() {
 	C_GUI.draw = function() {
 		C_GUI.newonoverElement = null;
 		C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
+
 		if (C_GUI.newonoverElement != C_GUI.onoverElement) {
 			if (C_GUI.onoverElement && C_GUI.onoverElement.mouseout) {
 				var eve = new C_GUI.event();
