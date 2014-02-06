@@ -43,6 +43,7 @@ function newC_GUI() {
 		setrelPosition: function() {
 			switch (C_GUI.tools.getBrowser()) {
 			case "msie":
+			case "trident":
 			case "opera":
 				{
 					C_GUI.mousePosition.fun = C_GUI.mousePosition.ie;
@@ -99,7 +100,6 @@ function newC_GUI() {
 			C_GUI.setrelPosition();
 
 			/*Solve events*/
-			var ev = C_GUI.e;
 			C_GUI.eve.stopPropagation = function() {
 				C_GUI.eve.Propagation = false;
 			};
@@ -111,21 +111,41 @@ function newC_GUI() {
 			aEL(canvas_dom, "mousemove",
 			function(e) {
 				e.preventDefault();
+				C_GUI.eve=new C_GUI.event;
 				C_GUI.eve.target = C_GUI.onoverElement;
 				C_GUI.mousePosition.fun(e);
-				ev.mousemove(C_GUI.eve);
+				if (C_GUI.onoverElement && C_GUI.onoverElement.mousemove) {
+					C_GUI.onoverElement.mousemove(C_GUI.eve);
+				}
 			});
 			aEL(canvas_dom, "mousedown",
 			function(e) {
 				e.preventDefault();
-				C_GUI.eve.Propagation = true;
-				C_GUI.eve.target = C_GUI.onoverElement;
-				C_GUI.eve.button = e.button;
-				ev.mousedown(C_GUI.eve);
+				var eve=new C_GUI.event;
+				eve.target = C_GUI.onoverElement;
+				eve.button = e.button;
+				C_GUI.tosign.click = true;
+				switch (eve.button) {
+				case 0:
+					C_GUI.tosign.click = C_GUI.mouseleft = true;
+					break;
+				case 1:
+					C_GUI.tosign.centerclick = C_GUI.mousecenter = true;
+					break;
+				case 2:
+					C_GUI.tosign.rightclick = C_GUI.mouseright = true;
+					break;
+				}
+				if (C_GUI.onoverElement && C_GUI.onoverElement.mousedown) {
+					if (C_GUI.onoverElement.mousedown) {
+						C_GUI.onoverElement.mousedown(eve);
+					}
+					C_GUI.focus = C_GUI.onoverElement;
+				}
 			});
 			aEL(canvas_dom, "mouseout",
 			function() {
-				ev.mouseoutcanvas();
+				C_GUI.e.mouseoutcanvas();
 			});
 			aEL(canvas_dom, "contextmenu",
 			function(e) {
@@ -137,7 +157,7 @@ function newC_GUI() {
 			});
 			aEL(window, "mouseout",
 			function() {
-				ev.mouseoutcanvas();
+				C_GUI.e.mouseoutcanvas();
 			});
 
 			aEL(canvas_dom, "resize",
@@ -153,23 +173,48 @@ function newC_GUI() {
 
 			aEL(canvas_dom, "mouseup",
 			function(e) {
-				C_GUI.eve.Propagation = true;
-				C_GUI.eve.target = C_GUI.onoverElement;
-				C_GUI.eve.button = e.button;
-				ev.mouseup(C_GUI.eve);
+				var eve=new C_GUI.event;
+				eve.target = C_GUI.onoverElement;
+				eve.button = e.button;
+				switch (eve.button) {
+				case 0:
+					C_GUI.mouseleft = false;
+					if (C_GUI.tosign.click && eve.target && eve.target.click) {
+						eve.target.click(eve);
+					}
+					break;
+				case 1:
+					C_GUI.mousecenter = false;
+					if (C_GUI.tosign.centerclick && eve.target && eve.target.centerclick) {
+						eve.target.centerclick(eve);
+					}
+					break;
+				case 2:
+					C_GUI.mouseright = false;
+					if (C_GUI.tosign.rightclick && eve.target && eve.target.rightclick) {
+						eve.target.rightclick(eve);
+					}
+					break;
+				}
+				if (C_GUI.onoverElement && C_GUI.onoverElement.mouseup) {
+					C_GUI.onoverElement.mouseup(eve);
+				}
 			});
 			aEL(canvas_dom, "mousewheel",
 			function(e) {
 				e = e || window.event;
-				C_GUI.eve.Propagation = true;
-				C_GUI.eve.target = C_GUI.onoverElement;
+				var eve=new C_GUI.event;
+				eve.target = C_GUI.onoverElement;
 				var data = e.wheelDelta ? e.wheelDelta: e.detail;
 				if (data == -3 || data == 120) {
-					C_GUI.eve.wheel = 0;
+					eve.wheel = 0;
 				} else if (data == 3 || data == -120) {
-					C_GUI.eve.wheel = 1;
+					eve.wheel = 1;
 				}
-				ev.mousewheel(C_GUI.eve);
+				if (C_GUI.onoverElement && C_GUI.onoverElement.mousewheel) {
+					C_GUI.onoverElement.mousewheel(eve);
+				}
+
 			});
 			aEL(window, "keydown",
 			function(e) {
@@ -177,9 +222,12 @@ function newC_GUI() {
 
 					if (!C_GUI.keys[e.keyCode]) {
 						e.preventDefault();
-						C_GUI.eve.Propagation = true;
-						C_GUI.eve.keyCode = e.keyCode;
-						ev.keydown(C_GUI.eve);
+						var eve=new C_GUI.event;
+						eve.keyCode = e.keyCode;
+						C_GUI.keys[e.keyCode] = true;
+				if (C_GUI.focus && C_GUI.focus.keydown) {
+					C_GUI.focus.keydown(eve);
+				}
 					}
 				}
 			});
@@ -187,9 +235,12 @@ function newC_GUI() {
 			function(e) {
 				if (C_GUI.canvasonfocus) {
 					if (C_GUI.keys[e.keyCode]) {
-						C_GUI.eve.Propagation = true;
-						C_GUI.eve.keyCode = e.keyCode;
-						ev.keyup(C_GUI.eve);
+						var eve=new C_GUI.event;
+						eve.keyCode = e.keyCode;
+						C_GUI.keys[e.keyCode] = false;
+				if (C_GUI.focus && C_GUI.focus.keyup) {
+					C_GUI.focus.keyup(eve);
+				}
 					}
 					e.preventDefault();
 				}
@@ -197,9 +248,12 @@ function newC_GUI() {
 			aEL(window, "keypress",
 			function(e) {
 				if (C_GUI.canvasonfocus) {
-					C_GUI.eve.Propagation = true;
-					C_GUI.eve.keyCode = e.keyCode;
-					ev.keypress(C_GUI.eve);
+					var eve=new C_GUI.event;
+					eve.keyCode = e.keyCode;
+					C_GUI.keys[e.keyCode] = false;
+				if (C_GUI.focus && C_GUI.focus.keypress) {
+					C_GUI.focus.keypress(eve);
+				}
 					e.preventDefault();
 				}
 			});
@@ -765,15 +819,15 @@ function newC_GUI() {
 			C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
 			if (C_GUI.newonoverElement != C_GUI.onoverElement) {
 				if (C_GUI.onoverElement && C_GUI.onoverElement.mouseout) {
-					C_GUI.eve.target = C_GUI.onoverElement;
-					C_GUI.eve.Propagation = true;
-					C_GUI.onoverElement.mouseout(C_GUI.eve);
+					var eve=new C_GUI.event;
+					eve.target = C_GUI.onoverElement;
+					C_GUI.onoverElement.mouseout(eve);
 				}
 				C_GUI.onoverElement = C_GUI.newonoverElement;
 				if (C_GUI.onoverElement && C_GUI.onoverElement.mouseover) {
-					C_GUI.eve.target = C_GUI.onoverElement;
-					C_GUI.eve.Propagation = true;
-					C_GUI.onoverElement.mouseover(C_GUI.eve);
+					var eve=new C_GUI.event;
+					eve.target = C_GUI.onoverElement;
+					C_GUI.onoverElement.mouseover(eve);
 				}
 			}
 		},
@@ -788,94 +842,7 @@ function newC_GUI() {
 				}
 				C_GUI.onoverElement = null;
 				C_GUI.canvasonfocus = false;
-			},
-			mouseover: function(e) {
-				if (C_GUI.tosign.click) {
-					C_GUI.tosign.click = false;
-				}
-				if (C_GUI.tosign.centerclick) {
-					C_GUI.tosign.centerclick = false;
-				}
-				if (C_GUI.tosign.rightclick) {
-					C_GUI.tosign.rightclick = false;
-				}
-				if (C_GUI.onoverElement && C_GUI.onoverElement.mouseover) {
-					C_GUI.onoverElement.mouseover(e);
-				}
-			},
-			mousewheel: function(e) {
-				if (C_GUI.onoverElement && C_GUI.onoverElement.mousewheel) {
-					C_GUI.onoverElement.mousewheel(e);
-				}
-			},
-			mousedown: function(e) {
-				C_GUI.tosign.click = true;
-				switch (e.button) {
-				case 0:
-					C_GUI.tosign.click = C_GUI.mouseleft = true;
-					break;
-				case 1:
-					C_GUI.tosign.centerclick = C_GUI.mousecenter = true;
-					break;
-				case 2:
-					C_GUI.tosign.rightclick = C_GUI.mouseright = true;
-					break;
-				}
-				if (C_GUI.onoverElement && C_GUI.onoverElement.mousedown) {
-					if (C_GUI.onoverElement.mousedown) {
-						C_GUI.onoverElement.mousedown(e);
-					}
-					C_GUI.focus = C_GUI.onoverElement;
-				}
-			},
-			mousemove: function(e) {
-				if (C_GUI.onoverElement && C_GUI.onoverElement.mousemove) {
-					C_GUI.onoverElement.mousemove(e);
-				}
-			},
-			mouseup: function(e) {
-				switch (e.button) {
-				case 0:
-					C_GUI.mouseleft = false;
-					if (C_GUI.tosign.click && e.target && e.target.click) {
-						e.target.click(e);
-					}
-					break;
-				case 1:
-					C_GUI.mousecenter = false;
-					if (C_GUI.tosign.centerclick && e.target && e.target.centerclick) {
-						e.target.centerclick(e);
-					}
-					break;
-				case 2:
-					C_GUI.mouseright = false;
-					if (C_GUI.tosign.rightclick && e.target && e.target.rightclick) {
-						e.target.rightclick(e);
-					}
-					break;
-				}
-				if (C_GUI.onoverElement && C_GUI.onoverElement.mouseup) {
-					C_GUI.onoverElement.mouseup(e);
-				}
-			},
-			keydown: function(e) {
-				C_GUI.keys[e.keyCode] = true;
-				if (C_GUI.focus && C_GUI.focus.keydown) {
-					C_GUI.focus.keydown(e);
-				}
-			},
-			keyup: function(e) {
-				C_GUI.keys[e.keyCode] = false;
-				if (C_GUI.focus && C_GUI.focus.keyup) {
-					C_GUI.focus.keyup(e);
-				}
-			},
-			keypress: function(e) {
-				C_GUI.keys[e.keyCode] = false;
-				if (C_GUI.focus && C_GUI.focus.keypress) {
-					C_GUI.focus.keypress(e);
-				}
-			},
+			}
 		},
 		tools: {
 			getnum: function(string) {
@@ -903,7 +870,9 @@ function newC_GUI() {
 				}
 			},
 			getBrowser: function() {
-				var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome/i)[0];
+				var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome|trident/i);
+				if(b.length)b=b[0];
+				else b="unknow";
 				return b;
 			},
 			rand: function(min, max) {
@@ -917,6 +886,12 @@ function newC_GUI() {
 			rightcilck: false,
 			onmoveele: null,
 			drag: false
+		},
+		event:function(){
+			this.stopPropagation= function() {
+				this.Propagation = false;
+			};
+			this.Propagation = true;
 		},
 
 		Debug: {
