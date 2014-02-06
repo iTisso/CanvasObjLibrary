@@ -235,8 +235,8 @@ function newC_GUI() {
 				C_GUI.onoverElement.mouseup(eve);
 			}
 		});
-		aEL(canvas_dom, "mousewheel",
-		function(e) {
+		var _mousewheele=C_GUI.tools.getBrowser()=="firefox"?"DOMMouseScroll":"mousewheel";
+			aEL(canvas_dom,_mousewheele,function(e) {
 			e = e || window.event;
 			var eve = new C_GUI.event();
 			eve.target = C_GUI.onoverElement;
@@ -251,6 +251,7 @@ function newC_GUI() {
 			}
 
 		});
+		
 		aEL(window, "keydown",
 		function(e) {
 			if (C_GUI.canvasonfocus) {
