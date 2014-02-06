@@ -424,6 +424,12 @@ function newC_GUI() {
 			};
 			return g;
 		},
+		NewImageObj:function(image){
+			var m=C_GUI.Graph.New();
+			if(image){
+				m.userImage(image);
+			}
+		},
 		NewTextObj: function(text, fontsize, fontFamily) {
 			var t = C_GUI.Graph.New();
 			t.drawtype = "text";
@@ -509,6 +515,7 @@ function newC_GUI() {
 				t.autoSize = false;
 				t.width = width;
 				t.height = height;
+				t.prepareText();
 			};
 			t.setText = function(text) {
 				t.text = text || " ";
@@ -696,9 +703,11 @@ function newC_GUI() {
 				switch (d[i].drawtype) {
 				case "function":
 					{
-
 						ct.translate( - d[i].rotatecenter.x, -d[i].rotatecenter.y);
 						if (d[i].drawfunction) d[i].drawfunction(ct);
+						if (d[i].overflow == "hidden") {
+							ct.clip();
+						}
 						ct.save();
 						if (d[i].backgroundColor) {
 							ct.fillStyle = d[i].backgroundColor;
@@ -733,8 +742,16 @@ function newC_GUI() {
 					}
 				case "image":
 				case "text":
-					{
+					{     
+						if (d[i].overflow == "hidden") {
+							ct.save();
+							ct.rect(0,0,d[i].width, d[i].height);
+							ct.clip();
+							ct.restore();
+						}
+
 						ct.save();
+						
 						if (d[i].backgroundColor) {
 							ct.fillStyle = d[i].backgroundColor;
 							ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
@@ -757,6 +774,7 @@ function newC_GUI() {
 								} else {
 									C_GUI.tools.defaultPathFun(ct, d[i]);
 								}
+
 								if (ct.isPointInPath(C_GUI.mouseX, C_GUI.mouseY)) {
 									C_GUI.newonoverElement = d[i];
 								}
