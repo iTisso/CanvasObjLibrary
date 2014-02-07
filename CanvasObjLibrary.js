@@ -306,7 +306,7 @@ function newC_GUI() {
 				ct.font="16px Arial";
 				ct.textBaseline="bottom";
 				ct.fillStyle="#CCC";
-				ct.fillText("mousX:"+C_GUI.mouseX+" mouseY:"+C_GUI.mouseY+" mouseL:"+C_GUI.mouseleft+" C:"+C_GUI.mousecenter+" R:"+C_GUI.mouseright,0,C_GUI.canvas.height);
+				ct.fillText("mouseX:"+C_GUI.mouseX+" Y:"+C_GUI.mouseY+" mouseL:"+C_GUI.mouseleft+" C:"+C_GUI.mousecenter+" R:"+C_GUI.mouseright,0,C_GUI.canvas.height);
 				ct.restore();
 			}
 		};
@@ -701,12 +701,14 @@ function newC_GUI() {
 				ct.rotate(d[i].rotate * 0.017453292519943295);
 				ct.scale(d[i].zoom.x, d[i].zoom.y);
 				if (d[i].opacity !== null) ct.globalAlpha = d[i].opacity;
+
 				if (d[i].overflow == "hidden") {
 					ct.rect( - d[i].rotatecenter.x, -d[i].rotatecenter.y, d[i].width, d[i].height);
 					ct.clip();
 				}
-				ct.save();
 
+				ct.save();
+				if(d[i].Composite)ct.globalCompositeOperation=d[i].Composite;
 				ct.save();
 				if (d[i].beforedrawfun) d[i].beforedrawfun(ct);
 				ct.restore();
@@ -842,6 +844,7 @@ function newC_GUI() {
 						ct.fillText("rotate:" + d[i].rotate, 0, 31);
 						ct.fillText("zoom:" + d[i].zoom.x + "," + d[i].zoom.y, 0, 41);
 						ct.fillText("RotatePotint:" + d[i].rotatecenter.x + " " + d[i].rotatecenter.y, 0, 51);
+						ct.fillText("Size:" + d[i].width + "*" + d[i].height, 0, 61);
 					}
 					ct.restore();
 				}
