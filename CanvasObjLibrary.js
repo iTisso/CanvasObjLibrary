@@ -698,7 +698,7 @@ function newC_GUI() {
 				ct.save();
 				ct.translate(d[i].left + d[i].rotatecenter.x, d[i].top + d[i].rotatecenter.y);
 				ct.beginPath();
-				ct.rotate(d[i].rotate * 0.017453292519943295);
+				ct.rotate(d[i].rotate * 0.017453);
 				ct.scale(d[i].zoom.x, d[i].zoom.y);
 				if (d[i].opacity !== null) ct.globalAlpha = d[i].opacity;
 
