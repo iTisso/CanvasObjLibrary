@@ -459,8 +459,8 @@ function newC_GUI() {
 			t.textInput = null;
 			t.fontVariant = null;
 			t.lineHeight = null;
-			t.fontSize = fontsize || "15px";
-			t.fontFamily = fontFamily || "Arial";
+			t.fontSize = fontsize;
+			t.fontFamily = fontFamily;
 			t.innerX = 0;
 			t.innerY = 0;
 			t.color = "#000";
@@ -484,11 +484,11 @@ function newC_GUI() {
 				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
 				var font = "";
 					if (t.fontStyle||C_GUI.font.fontStyle) font +=t.fontStyle||C_GUI.font.fontStyle;
-					if (t.fontVariant||C_GUI.font.fontVariant) font += (" " + t.fontVariant||C_GUI.font.fontVariant);
-					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +t.fontWeight||C_GUI.font.fontWeight);
-					font += (" " + t.fontSize||C_GUI.font.fontSize||"15px");
-					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +t.lineHeight||C_GUI.font.lineHeight);
-					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + t.fontFamily||C_GUI.font.fontFamily);
+					if (t.fontVariant||C_GUI.font.fontVariant) font += (" " +( t.fontVariant||C_GUI.font.fontVariant));
+ 					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +(t.fontWeight||C_GUI.font.fontWeight));
+ 					font += (" " +( t.fontSize||C_GUI.font.fontSize)||"15px");
+ 					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +(t.lineHeight||C_GUI.font.lineHeight));
+ 					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + (t.fontFamily||C_GUI.font.fontFamily));
 					else{font += (" " + C_GUI.fontFamily)}
 				ct.font = font;
 				t.font = font;
