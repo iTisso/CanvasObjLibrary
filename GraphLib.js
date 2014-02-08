@@ -53,9 +53,6 @@ Glib.Graph['arc'] = function(optionjson) {
 	g.width = 2 * g.option.r;
 	g.height = 2 * g.option.r;
 	g.graphFun = function(ct) {
-		ct.fillStyle = g.option.fillColor || "#66CCFF";
-		ct.strokeStyle = g.option.borderColor || "#000";
-		ct.lineWidth = g.option.borderWidth || 0;
 		ct.arc(g.option.r, g.option.r, g.option.r, g.option.startAngle || 0, g.option.endAngle || 2*Math.PI, g.option.anticlockwise || true);
 		ct.closePath();
 	}
@@ -65,6 +62,9 @@ Glib.Graph['arc'] = function(optionjson) {
 		g.height = 2 * r;
 	}
 	g.drawfunction = function(ct) {
+		ct.fillStyle = g.option.fillColor || "#66CCFF";
+		ct.strokeStyle = g.option.borderColor || "#000";
+		ct.lineWidth = g.option.borderWidth || 0;
 		g.graphFun(ct);
 		ct.fill();
 	}
