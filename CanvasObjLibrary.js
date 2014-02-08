@@ -485,10 +485,10 @@ function newC_GUI() {
 				var font = "";
 					if (t.fontStyle||C_GUI.font.fontStyle) font +=t.fontStyle||C_GUI.font.fontStyle;
 					if (t.fontVariant||C_GUI.font.fontVariant) font += (" " +( t.fontVariant||C_GUI.font.fontVariant));
-					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +(t.fontWeight||C_GUI.font.fontWeight));
-					font += (" " +( t.fontSize||C_GUI.font.fontSize)||"15px");
-					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +(t.lineHeight||C_GUI.font.lineHeight));
-					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + (t.fontFamily||C_GUI.font.fontFamily));
+ 					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +(t.fontWeight||C_GUI.font.fontWeight));
+ 					font += (" " +( t.fontSize||C_GUI.font.fontSize)||"15px");
+ 					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +(t.lineHeight||C_GUI.font.lineHeight));
+ 					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + (t.fontFamily||C_GUI.font.fontFamily));
 					else{font += (" " + C_GUI.fontFamily)}
 				ct.font = font;
 				t.font = font;
@@ -730,10 +730,10 @@ function newC_GUI() {
 							ct.clip();
 						}
 						ct.save();
-						if (d[i].backgroundColor) {
-							ct.fillStyle = d[i].backgroundColor;
-							ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
-						}
+						// if (d[i].backgroundColor) {
+						// 	ct.fillStyle = d[i].backgroundColor;
+						// 	ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
+						// }
 						if (d[i].eventable) {
 							if (C_GUI.Debug.stat) {
 								ct.save();
@@ -741,7 +741,7 @@ function newC_GUI() {
 								ct.strokeStyle = "rgb(255,255,255)";
 								ct.lineWidth = 2;
 							}
-							if (C_GUI.mouseX && C_GUI.mouseY) {
+							if (C_GUI.mouseX) {
 								if (d[i].overPath) {
 									ct.beginPath();
 									d[i].overPath(ct, d[i]);
@@ -773,10 +773,10 @@ function newC_GUI() {
 
 						ct.save();
 						
-						if (d[i].backgroundColor) {
-							ct.fillStyle = d[i].backgroundColor;
-							ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
-						}
+						// if (d[i].backgroundColor) {
+						// 	ct.fillStyle = d[i].backgroundColor;
+						// 	ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
+						// }
 						if (d[i].imageobj && d[i].imageobj.width && d[i].imageobj.height) {
 							ct.drawImage(d[i].imageobj, -(d[i].rotatecenter.x), -(d[i].rotatecenter.y));
 						}
@@ -788,7 +788,7 @@ function newC_GUI() {
 								ct.strokeStyle = "rgb(255,255,255)";
 								ct.lineWidth = 2;
 							}
-							if (C_GUI.mouseX && C_GUI.mouseY) {
+							if (C_GUI.mouseX) {
 								ct.beginPath();
 								if (d[i].overPath) {
 									d[i].overPath(ct, d[i]);
