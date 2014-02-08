@@ -14,9 +14,18 @@ function newC_GUI() {
 		context: null,
 		buffercanvas: null,
 		buffercontext: null,
+		font:{
+			fontStyle :null,
+			fontWeight : null,
+			textInput :null,
+			fontVariant :null,
+			lineHeight :null,
+			fontSize:"15px",
+			fontFamily:  "Arial"
+		},
 		currentcontext: null,
 		mouseleft: false,
-		mouseright: false,
+		mouseright: false, 
 		mousecenter: false,
 		mouseX: null,
 		mouseY: null,
@@ -475,16 +484,13 @@ function newC_GUI() {
 				var ct = t.imageobj.getContext("2d");
 				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
 				var font = "";
-				if (t.fontSize && t.fontFamily) {
-					if (t.fontStyle) font += t.fontStyle;
-					if (t.fontVariant) font += (" " + t.fontVariant);
-					if (t.fontWeight) font += (" " + t.fontWeight);
-					font += (" " + t.fontSize);
-					if (t.lineHeight) font += (" " + t.lineHeight);
-					font += (" " + t.fontFamily);
-				} else {
-					font = "15px Arial";
-				}
+					if (t.fontStyle||C_GUI.font.fontStyle) font +=t.fontStyle||C_GUI.font.fontStyle;
+					if (t.fontVariant||C_GUI.font.fontVariant) font += (" " + t.fontVariant||C_GUI.font.fontVariant);
+					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +t.fontWeight||C_GUI.font.fontWeight);
+					font += (" " + t.fontSize||C_GUI.font.fontSize||"15px");
+					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +t.lineHeight||C_GUI.font.lineHeight);
+					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + t.fontFamily||C_GUI.font.fontFamily);
+					else{font += (" " + C_GUI.fontFamily)}
 				ct.font = font;
 				t.font = font;
 				if (t.autoSize) {
@@ -908,6 +914,21 @@ function newC_GUI() {
 				if (a) return a;
 				else return 0;
 			}
+		},
+		Linear:function(start,end,time,func,_hz){
+			var hz=_hz||30;
+			var t=time/1000*hz;
+			var part=(end-start)/t;
+			var i=setInterval(function(){
+				t--;start+=part;
+				if(t<0){clearInterval(i);func(end);return;}
+				func(start);
+				
+			},1000/hz);
+			return i;
+		},
+		stopLinear:function(i){
+			clearInterval(i);
 		},
 		paixurule: function(a, b) {
 			return a.z_index - b.z_index;
