@@ -1,6 +1,5 @@
 /*
 CopyRight(Left) iTisso
-CC 3.0
 member:LuoJia
 */
 function newC_GUI() {
