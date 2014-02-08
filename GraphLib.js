@@ -70,6 +70,34 @@ Glib.Graph['arc'] = function(optionjson) {
 	}
 	return g;
 }
+Glib.Graph['rect'] = function(optionjson) {
+		var g = Glib.lib.Graph.New();
+		g.option = optionjson || {};
+		g.width = g.option.width || 50;
+		g.height = g.option.height || 50;
+		g.option.fillColor = g.option.fillColor || "#000";
+		g.option.fill = g.option.fill || true;
+		g.backgroundColor=g.option.backgroundColor;
+		g.option.borderWidth = g.option.borderWidth || 0;
+		g.option.borderColor = g.option.borderColor || "#000";
+		g.graphFun = function(ct) {
+			ct.rect(0, 0, g.width, g.height);
+		}
+		g.drawfunction = function(ct) {
+			ct.fillColor = g.option.fillColor;
+			ct.strokeStyle = g.option.borderColor;
+			ct.lineWidth = g.option.borderWidth;
+			g.graphFun(ct);
+			if (g.option.fill) {
+				ct.fill();
+			}
+			if (g.option.borderWidth > 0) {
+				ct.stroke();
+			}
+
+		}
+		return g;
+	}
 return Glib;
 }
 
