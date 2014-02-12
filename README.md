@@ -8,10 +8,8 @@ How to use? Go to wiki Page!
 Here is a demo:[http://jiastorage.duapp.com/demo/CanvasObjLibrary/][demo]
 > 提示:右键图片，中键图片，左击图片或太鼓，鼠标位于文字上方然后滚动鼠标滚轮。会有惊喜哦
 > 确保输入焦点不在canvas中(目前为了防止按键冲突，我让canvas垄断了所有键盘事件，还在想解决方案)，然后打开浏览器控制台，输入`gui.Debug.on()`
-<<<<<<< HEAD
-=======
 
->>>>>>> README.md
+
 Nya~
 ------------------------
 已知问题（如果有人修正了这里的问题请把错误从这里去掉然后添加进下面的log）
