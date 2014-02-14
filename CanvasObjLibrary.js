@@ -153,7 +153,7 @@ function newC_GUI() {
 		});
 		aEL(canvas_dom, "mousemove",
 		function(e) {
-			e.preventDefault();
+			//e.preventDefault();
 			C_GUI.eve = new C_GUI.event();
 			C_GUI.eve.target = C_GUI.onoverElement;
 			C_GUI.mousePosition.fun(e);
@@ -163,7 +163,7 @@ function newC_GUI() {
 		});
 		aEL(canvas_dom, "mousedown",
 		function(e) {
-			e.preventDefault();
+			//e.preventDefault();
 			var eve = new C_GUI.event();
 			eve.target = C_GUI.onoverElement;
 			eve.button = e.button;
@@ -265,7 +265,7 @@ function newC_GUI() {
 			if (C_GUI.canvasonfocus) {
 
 				if (!C_GUI.keys[e.keyCode]) {
-					e.preventDefault();
+					//e.preventDefault();
 					var eve = new C_GUI.event();
 					eve.keyCode = e.keyCode;
 					C_GUI.keys[e.keyCode] = true;
@@ -286,7 +286,7 @@ function newC_GUI() {
 						C_GUI.focus.keyup(eve);
 					}
 				}
-				e.preventDefault();
+				// e.preventDefault();
 			}
 		});
 		aEL(window, "keypress",
@@ -298,7 +298,7 @@ function newC_GUI() {
 				if (C_GUI.focus && C_GUI.focus.keypress) {
 					C_GUI.focus.keypress(eve);
 				}
-				e.preventDefault();
+				// e.preventDefault();
 			}
 		});
 		C_GUI.context = canvas_dom.getContext("2d");
@@ -335,6 +335,10 @@ function newC_GUI() {
 				left: 0,
 				width: 1,
 				height: 1,
+				positionpoint:{
+					x:0,
+					y:0
+				},
 				rotate: 0,
 				rotatecenter: {
 					x: 0,
@@ -408,7 +412,21 @@ function newC_GUI() {
 							}
 						}
 					}
-
+				},
+				setPositionPoint:function(){
+					if (arguments.length == 2) {
+						this.positionpoint.x = arguments[0];
+						this.positionpoint.y = arguments[1];
+					} else if (arguments.length == 1) {
+						switch (arguments[0]) {
+						case "center":
+							{
+								this.positionpoint.x = this.width / 2;
+								this.positionpoint.y = this.height / 2;
+								break;
+							}
+						}
+					}
 				},
 				setSize: function(w, h) {
 					this.width = w;
@@ -420,7 +438,10 @@ function newC_GUI() {
 					newobj.parentNode = null;
 					newobj.childNode = [];
 					newobj.drawlist = null;
-
+					return newobj;
+				},
+				clone:function(){
+					var newobj = Object.create(this);
 					return newobj;
 				},
 				addChild: function(graph) {
@@ -701,7 +722,7 @@ function newC_GUI() {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
 				ct.save();
-				ct.translate(d[i].left + d[i].rotatecenter.x, d[i].top + d[i].rotatecenter.y);
+				ct.translate(d[i].left + d[i].rotatecenter.x-d[i].positionpoint.x, d[i].top + d[i].rotatecenter.y-d[i].positionpoint.y);
 				ct.beginPath();
 				ct.rotate(d[i].rotate * 0.017453);
 				ct.scale(d[i].zoom.x, d[i].zoom.y);
@@ -909,7 +930,7 @@ function newC_GUI() {
 	};
 
 	C_GUI.tools = {
-		getnum: function(string) {
+		getnum: function(string) {//提取字符串里首次出现的数字串
 			if (!string) return 0;
 			else {
 				var a = Number(string.match(/\d+/)[0]);
@@ -917,7 +938,7 @@ function newC_GUI() {
 				else return 0;
 			}
 		},
-		Linear:function(start,end,time,func,_hz){
+		Linear:function(start,end,time,func,_hz){//线性渐变函数
 			var hz=_hz||30;
 			var t=time/1000*hz;
 			var part=(end-start)/t;
@@ -929,13 +950,13 @@ function newC_GUI() {
 			},1000/hz);
 			return i;
 		},
-		stopLinear:function(i){
+		stopLinear:function(i){//停止线性渐变
 			clearInterval(i);
 		},
-		paixurule: function(a, b) {
+		paixurule: function(a, b) {//index的排序规则
 			return a.z_index - b.z_index;
 		},
-		arraybyZ_index: function(graph) {
+		arraybyZ_index: function(graph) {//让图形的子元素排序
 			if (graph.childNode) graph.drawlist = graph.childNode.sort(C_GUI.tools.paixurule);
 		},
 		defaultPathFun: function(ct, graph) {
@@ -948,13 +969,13 @@ function newC_GUI() {
 				dom["on" + e] = fun;
 			}
 		},
-		getBrowser: function() {
+		getBrowser: function() {//识别浏览器
 			var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome|trident/i);
 			if (b.length) b = b[0];
 			else b = "unknow";
 			return b;
 		},
-		rand: function(min, max) {
+		rand: function(min, max) {//范围随机数
 			return Math.floor(min + Math.random() * (max - min));
 		}
 

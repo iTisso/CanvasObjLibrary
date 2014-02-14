@@ -100,4 +100,3 @@ Glib.Graph['rect'] = function(optionjson) {
 	}
 return Glib;
 }
-
