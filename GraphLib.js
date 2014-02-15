@@ -13,29 +13,34 @@ Glib.getGraphObj=function(type,optionjson){
 }
 Glib.Graph['star']=function(optionjson){
 	var g=Glib.lib.Graph.New();
-	g.option=optionjson||{};
-	g.option.r=g.option.r||10;
-	g.width=2*g.option.r;
-	g.height=2*g.option.r;
+	if(optionjson){
+			for(op in optionjson){
+				g[op]=optionjson[op];
+			}
+		}
+	
+	g.r=g.r||10;
+	g.width=2*g.r;
+	g.height=2*g.r;
 	g.graphFun=function(ct){
-		ct.translate(g.option.r, g.option.r);
+		ct.translate(g.r, g.r);
 		ct .rotate(Math.PI/2*3);
 		ct.beginPath();
 		ct.fillStyle =g.option.color||"#000";
-		ct.moveTo(g.option.r, 0);
+		ct.moveTo(g.r, 0);
 		for (var i = 0; i < 9; i++) {
 			ct.rotate(Math.PI / 5);
 			if (i % 2 == 0) {
-				ct.lineTo(g.option.r*0.3819653, 0);
+				ct.lineTo(g.r*0.3819653, 0);
 			} else {
-				ct.lineTo(g.option.r, 0);
+				ct.lineTo(g.r, 0);
 			}
 		}
 		ct .rotate(Math.PI*7/10);
-		ct.translate(-g.option.r, -g.option.r);
+		ct.translate(-g.r, -g.r);
 	}
 	g.setR=function(r){
-		g.option.r=r;
+		g.r=r;
 		g.width=2*r;
 		g.height=2*r;
 	}
@@ -48,23 +53,27 @@ Glib.Graph['star']=function(optionjson){
 
 Glib.Graph['arc'] = function(optionjson) {
 	var g = Glib.lib.Graph.New();
-	g.option = optionjson || {};
-	g.option.r = g.option.r || 10;
-	g.width = 2 * g.option.r;
-	g.height = 2 * g.option.r;
+	if(optionjson){
+			for(op in optionjson){
+				g[op]=optionjson[op];
+			}
+		}
+	g.r = g.r || 10;
+	g.width = 2 * g.r;
+	g.height = 2 * g.r;
 	g.graphFun = function(ct) {
-		ct.arc(g.option.r, g.option.r, g.option.r, g.option.startAngle || 0, g.option.endAngle || 2*Math.PI, g.option.anticlockwise || true);
+		ct.arc(g.r, g.r, g.r, g.startAngle || 0, g.endAngle || 2*Math.PI, g.anticlockwise || true);
 		ct.closePath();
 	}
 	g.setR = function(r) {
-		g.option.r = r;
+		g.r = r;
 		g.width = 2 * r;
 		g.height = 2 * r;
 	}
 	g.drawfunction = function(ct) {
-		ct.fillStyle = g.option.fillColor || "#66CCFF";
-		ct.strokeStyle = g.option.borderColor || "#000";
-		ct.lineWidth = g.option.borderWidth || 0;
+		ct.fillStyle = g.fillColor|| "#66CCFF";
+		ct.strokeStyle = g.borderColor || "#000";
+		ct.lineWidth =g.borderWidth|| 0;
 		g.graphFun(ct);
 		ct.fill();
 	}
@@ -72,29 +81,29 @@ Glib.Graph['arc'] = function(optionjson) {
 }
 Glib.Graph['rect'] = function(optionjson) {
 		var g = Glib.lib.Graph.New();
-		g.option = optionjson || {};
-		g.width = g.option.width || 50;
-		g.height = g.option.height || 50;
-		g.option.fillColor = g.option.fillColor || "#000";
-		g.option.fill = g.option.fill || true;
-		g.backgroundColor=g.option.backgroundColor;
-		g.option.borderWidth = g.option.borderWidth || 0;
-		g.option.borderColor = g.option.borderColor || "#000";
+		if(optionjson){
+			for(op in optionjson){
+				g[op]=optionjson[op];
+			}
+		}
+
+		g.width = g.width || 50;
+		g.height = g.height || 50;
+		if(g.iffill===null)g.iffill = true;
 		g.graphFun = function(ct) {
 			ct.rect(0, 0, g.width, g.height);
 		}
 		g.drawfunction = function(ct) {
-			ct.fillColor = g.option.fillColor;
-			ct.strokeStyle = g.option.borderColor;
-			ct.lineWidth = g.option.borderWidth;
 			g.graphFun(ct);
-			if (g.option.fill) {
+			if (g.iffill) {
+				ct.fillColor = g.fillColor|| "#000";
 				ct.fill();
 			}
-			if (g.option.borderWidth > 0) {
+			if (g.borderWidth  > 0) {
+				ct.strokeStyle = g.borderColor|| "#000";
+				ct.lineWidth = g.borderWidth ;
 				ct.stroke();
 			}
-
 		}
 		return g;
 	}

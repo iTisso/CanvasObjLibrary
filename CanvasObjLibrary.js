@@ -43,7 +43,7 @@ function newC_GUI() {
 					C_GUI.onoverElement.mouseout(C_GUI.eve);
 				}
 				C_GUI.onoverElement = null;
-				C_GUI.canvasonfocus = false;
+				//C_GUI.canvasonfocus = false;
 			}
 		},
 		tosign: {
@@ -163,6 +163,7 @@ function newC_GUI() {
 		});
 		aEL(canvas_dom, "mousedown",
 		function(e) {
+			C_GUI.canvasonfocus=true;
 			//e.preventDefault();
 			var eve = new C_GUI.event();
 			eve.target = C_GUI.onoverElement;
@@ -184,6 +185,12 @@ function newC_GUI() {
 					C_GUI.onoverElement.mousedown(eve);
 				}
 				C_GUI.focus = C_GUI.onoverElement;
+			}
+		});
+		aEL(document, "mousedown",
+		function(e) {
+			if(e.target!=C_GUI.canvas){
+				C_GUI.canvasonfocus=false;
 			}
 		});
 		aEL(canvas_dom, "mouseout",
@@ -243,7 +250,7 @@ function newC_GUI() {
 				C_GUI.onoverElement.mouseup(eve);
 			}
 		});
-		var _mousewheele=C_GUI.tools.getBrowser()=="firefox"?"DOMMouseScroll":"mousewheel";
+		var _mousewheele=(C_GUI.tools.getBrowser()=="firefox")?"DOMMouseScroll":"mousewheel";
 			aEL(canvas_dom,_mousewheele,function(e) {
 			e = e || window.event;
 			var eve = new C_GUI.event();
@@ -313,7 +320,8 @@ function newC_GUI() {
 				ct.setTransform(1,0,0,1,0,0);
 				ct.font="16px Arial";
 				ct.textBaseline="bottom";
-				ct.fillStyle="#CCC";
+				ct.globalCompositeOperation="lighter";
+				ct.fillStyle="red";
 				ct.fillText("mouseX:"+C_GUI.mouseX+" Y:"+C_GUI.mouseY+" mouseL:"+C_GUI.mouseleft+" C:"+C_GUI.mousecenter+" R:"+C_GUI.mouseright,0,C_GUI.canvas.height);
 				ct.restore();
 			}
@@ -379,16 +387,17 @@ function newC_GUI() {
 					if (!this.imageobj) {
 						this.imageobj = document.createElement("canvas");
 					}
+					var _this=this;
+					function set(){
+						_this.width = _this.imageobj.width = image.width;
+						_this.height = _this.imageobj.height = image.height;
+						_this.imageobj.getContext("2d").drawImage(image, 0, 0);
+					}
+					if(!image.complete){image.onload = function() {set();}}
 					try {
-						this.width = this.imageobj.width = image.width;
-						this.height = this.imageobj.height = image.height;
-						this.imageobj.getContext("2d").drawImage(image, 0, 0);
+						set();
 					} catch(e) {
-						image.onload = function() {
-							this.width = this.imageobj.width = image.width;
-							this.height = this.imageobj.height = image.height;
-							this.imageobj.getContext("2d").drawImage(image, 0, 0);
-						};
+						console.log(e);
 					}
 
 				},
