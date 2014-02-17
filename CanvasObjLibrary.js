@@ -13,18 +13,18 @@ function newC_GUI() {
 		context: null,
 		buffercanvas: null,
 		buffercontext: null,
-		font:{
-			fontStyle :null,
-			fontWeight : null,
-			textInput :null,
-			fontVariant :null,
-			lineHeight :null,
-			fontSize:"15px",
-			fontFamily:  "Arial"
+		font: {
+			fontStyle: null,
+			fontWeight: null,
+			textInput: null,
+			fontVariant: null,
+			lineHeight: null,
+			fontSize: "15px",
+			fontFamily: "Arial"
 		},
 		currentcontext: null,
 		mouseleft: false,
-		mouseright: false, 
+		mouseright: false,
 		mousecenter: false,
 		mouseX: null,
 		mouseY: null,
@@ -33,7 +33,7 @@ function newC_GUI() {
 		document: null,
 		onoverElement: null,
 		eve: {},
-
+		commonevents:["mouseover", "mouseout", "mousemove", "mousewheel", "mouseup", "click", "centerclick", "rightclick", "mousedown", "keydown", "keyup", "keypress"],
 		e: {
 			mouseoutcanvas: function() {
 				C_GUI.mouseX = null;
@@ -163,7 +163,7 @@ function newC_GUI() {
 		});
 		aEL(canvas_dom, "mousedown",
 		function(e) {
-			C_GUI.canvasonfocus=true;
+			C_GUI.canvasonfocus = true;
 			//e.preventDefault();
 			var eve = new C_GUI.event();
 			eve.target = C_GUI.onoverElement;
@@ -189,8 +189,8 @@ function newC_GUI() {
 		});
 		aEL(document, "mousedown",
 		function(e) {
-			if(e.target!=C_GUI.canvas){
-				C_GUI.canvasonfocus=false;
+			if (e.target != C_GUI.canvas) {
+				C_GUI.canvasonfocus = false;
 			}
 		});
 		aEL(canvas_dom, "mouseout",
@@ -250,8 +250,9 @@ function newC_GUI() {
 				C_GUI.onoverElement.mouseup(eve);
 			}
 		});
-		var _mousewheele=(C_GUI.tools.getBrowser()=="firefox")?"DOMMouseScroll":"mousewheel";
-			aEL(canvas_dom,_mousewheele,function(e) {
+		var _mousewheele = (C_GUI.tools.getBrowser() == "firefox") ? "DOMMouseScroll": "mousewheel";
+		aEL(canvas_dom, _mousewheele,
+		function(e) {
 			e = e || window.event;
 			var eve = new C_GUI.event();
 			eve.target = C_GUI.onoverElement;
@@ -266,7 +267,7 @@ function newC_GUI() {
 			}
 
 		});
-		
+
 		aEL(window, "keydown",
 		function(e) {
 			if (C_GUI.canvasonfocus) {
@@ -314,15 +315,15 @@ function newC_GUI() {
 		C_GUI.Graph.Eventable(C_GUI.document);
 		C_GUI.document.width = canvas_dom.width;
 		C_GUI.document.height = canvas_dom.height;
-		C_GUI.document.afterdrawfun=function(ct){
-			if(C_GUI.Debug.stat){
+		C_GUI.document.afterdrawfun = function(ct) {
+			if (C_GUI.Debug.stat) {
 				ct.save();
-				ct.setTransform(1,0,0,1,0,0);
-				ct.font="16px Arial";
-				ct.textBaseline="bottom";
-				ct.globalCompositeOperation="lighter";
-				ct.fillStyle="red";
-				ct.fillText("mouseX:"+C_GUI.mouseX+" Y:"+C_GUI.mouseY+" mouseL:"+C_GUI.mouseleft+" C:"+C_GUI.mousecenter+" R:"+C_GUI.mouseright,0,C_GUI.canvas.height);
+				ct.setTransform(1, 0, 0, 1, 0, 0);
+				ct.font = "16px Arial";
+				ct.textBaseline = "bottom";
+				ct.globalCompositeOperation = "lighter";
+				ct.fillStyle = "red";
+				ct.fillText("mouseX:" + C_GUI.mouseX + " Y:" + C_GUI.mouseY + " mouseL:" + C_GUI.mouseleft + " C:" + C_GUI.mousecenter + " R:" + C_GUI.mouseright, 0, C_GUI.canvas.height);
 				ct.restore();
 			}
 		};
@@ -343,9 +344,9 @@ function newC_GUI() {
 				left: 0,
 				width: 1,
 				height: 1,
-				positionpoint:{
-					x:0,
-					y:0
+				positionpoint: {
+					x: 0,
+					y: 0
 				},
 				rotate: 0,
 				rotatecenter: {
@@ -371,6 +372,13 @@ function newC_GUI() {
 				drawlist: null,
 				childNode: [],
 				parentNode: null,
+				set: function(json) {
+					if (json) {
+						for (var ob in json) {
+							g[ob] = json[ob];
+						}
+					}
+				},
 				drawpic: function(width, height, _draw) {
 					this.width = width;
 					this.height = height;
@@ -387,13 +395,17 @@ function newC_GUI() {
 					if (!this.imageobj) {
 						this.imageobj = document.createElement("canvas");
 					}
-					var _this=this;
-					function set(){
+					var _this = this;
+					function set() {
 						_this.width = _this.imageobj.width = image.width;
 						_this.height = _this.imageobj.height = image.height;
 						_this.imageobj.getContext("2d").drawImage(image, 0, 0);
 					}
-					if(!image.complete){image.onload = function() {set();}}
+					if (!image.complete) {
+						image.onload = function() {
+							set();
+						};
+					}
 					try {
 						set();
 					} catch(e) {
@@ -422,7 +434,7 @@ function newC_GUI() {
 						}
 					}
 				},
-				setPositionPoint:function(){
+				setPositionPoint: function() {
 					if (arguments.length == 2) {
 						this.positionpoint.x = arguments[0];
 						this.positionpoint.y = arguments[1];
@@ -449,7 +461,7 @@ function newC_GUI() {
 					newobj.drawlist = null;
 					return newobj;
 				},
-				clone:function(){
+				clone: function() {
 					var newobj = Object.create(this);
 					return newobj;
 				},
@@ -473,9 +485,9 @@ function newC_GUI() {
 			};
 			return g;
 		},
-		NewImageObj:function(image){
-			var m=C_GUI.Graph.New();
-			if(image){
+		NewImageObj: function(image) {
+			var m = C_GUI.Graph.New();
+			if (image) {
 				m.userImage(image);
 			}
 		},
@@ -513,13 +525,15 @@ function newC_GUI() {
 				var ct = t.imageobj.getContext("2d");
 				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
 				var font = "";
-					if (t.fontStyle||C_GUI.font.fontStyle) font +=t.fontStyle||C_GUI.font.fontStyle;
-					if (t.fontVariant||C_GUI.font.fontVariant) font += (" " +( t.fontVariant||C_GUI.font.fontVariant));
- 					if (t.fontWeight||C_GUI.font.fontWeight) font += (" " +(t.fontWeight||C_GUI.font.fontWeight));
- 					font += (" " +( t.fontSize||C_GUI.font.fontSize)||"15px");
- 					if (t.lineHeight||C_GUI.font.lineHeight) font += (" " +(t.lineHeight||C_GUI.font.lineHeight));
- 					if (t.fontFamily||C_GUI.font.fontFamily)font += (" " + (t.fontFamily||C_GUI.font.fontFamily));
-					else{font += (" " + C_GUI.fontFamily)}
+				if (t.fontStyle || C_GUI.font.fontStyle) font += t.fontStyle || C_GUI.font.fontStyle;
+				if (t.fontVariant || C_GUI.font.fontVariant) font += (" " + (t.fontVariant || C_GUI.font.fontVariant));
+				if (t.fontWeight || C_GUI.font.fontWeight) font += (" " + (t.fontWeight || C_GUI.font.fontWeight));
+				font += (" " + (t.fontSize || C_GUI.font.fontSize) || "15px");
+				if (t.lineHeight || C_GUI.font.lineHeight) font += (" " + (t.lineHeight || C_GUI.font.lineHeight));
+				if (t.fontFamily || C_GUI.font.fontFamily) font += (" " + (t.fontFamily || C_GUI.font.fontFamily));
+				else {
+					font += (" " + C_GUI.fontFamily);
+				}
 				ct.font = font;
 				t.font = font;
 				if (t.autoSize) {
@@ -573,146 +587,28 @@ function newC_GUI() {
 		Eventable: function(graph) {
 			graph.eventable = true;
 			graph.overPath = null;
-			graph.mouseover = function(e) {
-				for (var i = graph.events["onmouseover"].length; i--;) {
-					graph.events["onmouseover"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mouseover(e);
-					}
-				}
-			};
-			graph.mouseout = function(e) {
-				for (var i = graph.events["onmouseout"].length; i--;) {
-					graph.events["onmouseout"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mouseout(e);
-					}
-				}
-			};
-			graph.mousemove = function(e) {
-				for (var i = graph.events["onmousemove"].length; i--;) {
-					graph.events["onmousemove"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mousemove(e);
-					}
-				}
-			};
-			graph.mousewheel = function(e) {
-				for (var i = graph.events["onmousewheel"].length; i--;) {
-					graph.events["onmousewheel"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mousewheel(e);
-					}
-				}
-			};
-			graph.mouseup = function(e) {
-				for (var i = graph.events["onmouseup"].length; i--;) {
-					graph.events["onmouseup"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mouseup(e);
-					}
-				}
-			};
-			graph.click = function(e) {
-				for (var i = graph.events["onclick"].length; i--;) {
-					graph.events["onclick"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.click(e);
-					}
-				}
-			};
-			graph.centerclick = function(e) {
-				for (var i = graph.events["oncenterclick"].length; i--;) {
-					graph.events["oncenterclick"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.centerclick(e);
-					}
-				}
-			};
-			graph.rightclick = function(e) {
-				for (var i = graph.events["onrightclick"].length; i--;) {
-					graph.events["onrightclick"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.rightclick(e);
-					}
-				}
-			};
-			graph.mousedown = function(e) {
-				C_GUI.focus = e.target;
-				for (var i = graph.events["onmousedown"].length; i--;) {
-					graph.events["onmousedown"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.mousedown(e);
-					}
-				}
-			};
-			graph.keydown = function(e) {
-				for (var i = graph.events["onkeydown"].length; i--;) {
-					graph.events["onkeydown"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.keydown(e);
-					}
-				}
-			};
-			graph.keyup = function(e) {
-				for (var i = graph.events["onkeyup"].length; i--;) {
-					graph.events["onkeyup"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.keyup(e);
-					}
-				}
-			};
-			graph.keypress = function(e) {
-				for (var i = graph.events["onkeypress"].length; i--;) {
-					graph.events["onkeypress"][i](e);
-				}
-				if (e.Propagation) {
-					if (graph.parentNode) {
-						graph.parentNode.keypress(e);
-					}
-				}
-			};
 			graph.events = [];
-			graph.events["onmouseover"] = [];
-			graph.events["onmouseout"] = [];
-			graph.events["onmouseup"] = [];
-			graph.events["onmousewheel"] = [];
-			graph.events["onmousemove"] = [];
-			graph.events["onclick"] = [];
-			graph.events["oncenterclick"] = [];
-			graph.events["onrightclick"] = [];
-			graph.events["onmousedown"] = [];
-			graph.events["onkeydown"] = [];
-			graph.events["onkeyup"] = [];
-			graph.events["onkeypress"] = [];
+			for (var inde = 0; inde < C_GUI.commonevents.length; inde++) {
+				graph.events["on" + C_GUI.commonevents[inde]] = [];
+				graph[C_GUI.commonevents[inde]] = eval('(function(e){for (var i = graph.events["on'+C_GUI.commonevents[inde]+'"].length; i--;) {if (typeof(graph.events["on'+C_GUI.commonevents[inde]+'"][i]) == "function") graph.events["on'+C_GUI.commonevents[inde]+'"][i](e);}if(e.Propagation) {if (graph.parentNode) {graph.events["on'+C_GUI.commonevents[inde]+'"](e);}}})');
+			}
 			graph.addEvent = function(name, fun) {
 				if (!graph.events[name]) graph.events[name] = [];
-				if (typeof(fun) == "function" && graph.events[name]) graph.events[name].unshift(fun);
-				else {
+				if (typeof(fun) == "function" && graph.events[name]) {
+					var i = C_GUI.tools.findEmptyPlace(graph.events[name]);
+					graph.events[name][i] = fun;
+					var ev = {
+						ename: name,
+						index: i
+					};
+					return ev;
+				} else {
 					return false;
 				}
+			};
+			graph.removeEvent = function(ev) {
+				graph.events[ev.ename][ev.index] = null;
+				ev=null;
 			};
 		},
 		Delete: function(graph) {
@@ -731,7 +627,7 @@ function newC_GUI() {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
 				ct.save();
-				ct.translate(d[i].left + d[i].rotatecenter.x-d[i].positionpoint.x, d[i].top + d[i].rotatecenter.y-d[i].positionpoint.y);
+				ct.translate(d[i].left + d[i].rotatecenter.x - d[i].positionpoint.x, d[i].top + d[i].rotatecenter.y - d[i].positionpoint.y);
 				ct.beginPath();
 				ct.rotate(d[i].rotate * 0.017453);
 				ct.scale(d[i].zoom.x, d[i].zoom.y);
@@ -743,14 +639,12 @@ function newC_GUI() {
 				}
 
 				ct.save();
-				if(d[i].Composite)ct.globalCompositeOperation=d[i].Composite;
-				//ct.save();
+				if (d[i].Composite) ct.globalCompositeOperation = d[i].Composite;
 				if (d[i].beforedrawfun) d[i].beforedrawfun(ct);
-				//ct.restore();
 				if (d[i].backgroundColor) {
-							ct.fillStyle = d[i].backgroundColor;
-							ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
-						}
+					ct.fillStyle = d[i].backgroundColor;
+					ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
+				}
 				switch (d[i].drawtype) {
 				case "function":
 					{
@@ -760,10 +654,6 @@ function newC_GUI() {
 							ct.clip();
 						}
 						ct.save();
-						// if (d[i].backgroundColor) {
-						// 	ct.fillStyle = d[i].backgroundColor;
-						// 	ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
-						// }
 						if (d[i].eventable) {
 							if (C_GUI.Debug.stat) {
 								ct.save();
@@ -793,20 +683,15 @@ function newC_GUI() {
 					}
 				case "image":
 				case "text":
-					{     
+					{
 						if (d[i].overflow == "hidden") {
 							ct.save();
-							ct.rect(0,0,d[i].width, d[i].height);
+							ct.rect(0, 0, d[i].width, d[i].height);
 							ct.clip();
 							ct.restore();
 						}
 
 						ct.save();
-						
-						// if (d[i].backgroundColor) {
-						// 	ct.fillStyle = d[i].backgroundColor;
-						// 	ct.fillRect( - (d[i].rotatecenter.x), -(d[i].rotatecenter.y), d[i].width, d[i].height);
-						// }
 						if (d[i].imageobj && d[i].imageobj.width && d[i].imageobj.height) {
 							ct.drawImage(d[i].imageobj, -(d[i].rotatecenter.x), -(d[i].rotatecenter.y));
 						}
@@ -939,7 +824,7 @@ function newC_GUI() {
 	};
 
 	C_GUI.tools = {
-		getnum: function(string) {//提取字符串里首次出现的数字串
+		getnum: function(string) { //提取字符串里首次出现的数字串
 			if (!string) return 0;
 			else {
 				var a = Number(string.match(/\d+/)[0]);
@@ -947,25 +832,36 @@ function newC_GUI() {
 				else return 0;
 			}
 		},
-		Linear:function(start,end,time,func,_hz){//线性渐变函数
-			var hz=_hz||30;
-			var t=time/1000*hz;
-			var part=(end-start)/t;
-			var i=setInterval(function(){
-				t--;start+=part;
-				if(t<0){clearInterval(i);func(end);return;}
-				func(start);
-				
-			},1000/hz);
+		findEmptyPlace: function(array) {
+			var i = 0;
+			while (array[i]) i++;
 			return i;
 		},
-		stopLinear:function(i){//停止线性渐变
+		Linear: function(start, end, time, func, _hz) { //线性渐变函数
+			var hz = _hz || 30;
+			var t = time / 1000 * hz;
+			var part = (end - start) / t;
+			var i = setInterval(function() {
+				t--;
+				start += part;
+				if (t < 0) {
+					clearInterval(i);
+					func(end);
+					return;
+				}
+				func(start);
+
+			},
+			1000 / hz);
+			return i;
+		},
+		stopLinear: function(i) { //停止线性渐变
 			clearInterval(i);
 		},
-		paixurule: function(a, b) {//index的排序规则
+		paixurule: function(a, b) { //index的排序规则
 			return a.z_index - b.z_index;
 		},
-		arraybyZ_index: function(graph) {//让图形的子元素排序
+		arraybyZ_index: function(graph) { //让图形的子元素排序
 			if (graph.childNode) graph.drawlist = graph.childNode.sort(C_GUI.tools.paixurule);
 		},
 		defaultPathFun: function(ct, graph) {
@@ -978,13 +874,13 @@ function newC_GUI() {
 				dom["on" + e] = fun;
 			}
 		},
-		getBrowser: function() {//识别浏览器
+		getBrowser: function() { //识别浏览器
 			var b = navigator.userAgent.toLowerCase().match(/MSIE|Firefox|Opera|Safari|Chrome|trident/i);
 			if (b.length) b = b[0];
 			else b = "unknow";
 			return b;
 		},
-		rand: function(min, max) {//范围随机数
+		rand: function(min, max) { //范围随机数
 			return Math.floor(min + Math.random() * (max - min));
 		}
 
