@@ -141,7 +141,8 @@ function newC_GUI() {
 	C_GUI.setCanvas = function(canvas_dom) {
 		C_GUI.canvas = canvas_dom;
 		C_GUI.setrelPosition();
-
+		canvas_dom.width=canvas_dom.offsetWidth;
+		canvas_dom.height=canvas_dom.offsetHeight;
 		/*Solve events*/
 		C_GUI.eve.stopPropagation = function() {
 			C_GUI.eve.Propagation = false;
@@ -313,6 +314,7 @@ function newC_GUI() {
 		C_GUI.currentcontext = C_GUI.buffercontext || C_GUI.context;
 		C_GUI.document = C_GUI.Graph.New();
 		C_GUI.Graph.Eventable(C_GUI.document);
+		C_GUI.document.drawtype="image";
 		C_GUI.document.width = canvas_dom.width;
 		C_GUI.document.height = canvas_dom.height;
 		C_GUI.document.afterdrawfun = function(ct) {
@@ -806,6 +808,10 @@ function newC_GUI() {
 	/*draw all graphs[display=true]*/
 	C_GUI.draw = function() {
 		C_GUI.newonoverElement = null;
+		if(C_GUI.autoClear){
+			C_GUI.context.clearRect(0,0,C_GUI.document.width,C_GUI.document.height);
+			if(C_GUI.buffercontext)C_GUI.buffercontext.clearRect(0,0,C_GUI.document.width,C_GUI.document.height);
+		}
 		C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
 
 		if (C_GUI.newonoverElement != C_GUI.onoverElement) {
