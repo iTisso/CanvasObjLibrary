@@ -24,7 +24,8 @@ Nya~
 
 
 ------------------------
-更新log
+重大更新log
 ------------------------
+JiaJiaJun:取消键盘事件的完全截取(鼠标事件还是会被截取)
 JiaJiaJun:添加合成效果，添加图形库
 [demo]:http://jiastorage.duapp.com/demo/CanvasObjLibrary/
