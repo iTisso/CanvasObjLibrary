@@ -51,7 +51,8 @@ function newC_GUI() {
 			centerclick: false,
 			rightcilck: false,
 			onmoveele: null,
-			drag: false
+			drag: false,
+			havemousepositioned:false
 		},
 		event: function() {
 			this.stopPropagation = function() {
@@ -326,7 +327,12 @@ function newC_GUI() {
 				ct.globalCompositeOperation = "lighter";
 				ct.fillStyle = "red";
 				ct.fillText("mouseX:" + C_GUI.mouseX + " Y:" + C_GUI.mouseY + " mouseL:" + C_GUI.mouseleft + " C:" + C_GUI.mousecenter + " R:" + C_GUI.mouseright, 0, C_GUI.canvas.height);
-				ct.restore();
+				ct.strokeStyle="red";
+				ct.moveTo(C_GUI.mouseX,C_GUI.mouseY+6);
+						ct.lineTo(C_GUI.mouseX,C_GUI.mouseY-6);
+						ct.moveTo(C_GUI.mouseX-6,C_GUI.mouseY);
+						ct.lineTo(C_GUI.mouseX+6,C_GUI.mouseY);
+						ct.stroke();ct.restore();
 			}
 		};
 		C_GUI.drawlist = [C_GUI.document];
@@ -592,7 +598,7 @@ function newC_GUI() {
 			graph.events = [];
 			for (var inde = 0; inde < C_GUI.commonevents.length; inde++) {
 				graph.events["on" + C_GUI.commonevents[inde]] = [];
-				graph[C_GUI.commonevents[inde]] = eval('(function(e){for (var i = graph.events["on'+C_GUI.commonevents[inde]+'"].length; i--;) {if (typeof(graph.events["on'+C_GUI.commonevents[inde]+'"][i]) == "function") graph.events["on'+C_GUI.commonevents[inde]+'"][i](e);}if(e.Propagation) {if (graph.parentNode) {graph.events["on'+C_GUI.commonevents[inde]+'"](e);}}})');
+				graph[C_GUI.commonevents[inde]] = eval('(function(e){for(var i=graph.events["on' + C_GUI.commonevents[inde] + '"].length;i--;){if(typeof(graph.events["on' + C_GUI.commonevents[inde] + '"][i])=="function")graph.events["on' + C_GUI.commonevents[inde] + '"][i](e)}if(e.Propagation){if(graph.parentNode){for(var i=graph.parentNode.events["on' + C_GUI.commonevents[inde] + '"].length;i--;){if(typeof(graph.parentNode.events["on' + C_GUI.commonevents[inde] + '"][i])=="function")graph.parentNode.events["on' + C_GUI.commonevents[inde] + '"][i](e)}}}})');
 			}
 			graph.addEvent = function(name, fun) {
 				if (!graph.events[name]) graph.events[name] = [];
@@ -663,13 +669,14 @@ function newC_GUI() {
 								ct.strokeStyle = "rgb(255,255,255)";
 								ct.lineWidth = 2;
 							}
-							if (C_GUI.mouseX) {
+							if ((!C_GUI.havemousepositioned)&&C_GUI.mouseX) {
 								if (d[i].overPath) {
 									ct.beginPath();
-									d[i].overPath(ct, d[i]);
+									d[i].overPath(ct);
 								}
 								if (ct.isPointInPath(C_GUI.mouseX, C_GUI.mouseY)) {
 									C_GUI.newonoverElement = d[i];
+									C_GUI.havemousepositioned=true;
 								}
 							}
 							if (C_GUI.Debug.stat) {
@@ -705,10 +712,10 @@ function newC_GUI() {
 								ct.strokeStyle = "rgb(255,255,255)";
 								ct.lineWidth = 2;
 							}
-							if (C_GUI.mouseX) {
+							if ((!C_GUI.havemousepositioned)&&C_GUI.mouseX) {
 								ct.beginPath();
 								if (d[i].overPath) {
-									d[i].overPath(ct, d[i]);
+									d[i].overPath(ct);
 								} else {
 									C_GUI.tools.defaultPathFun(ct, d[i]);
 								}
@@ -813,7 +820,7 @@ function newC_GUI() {
 			if(C_GUI.buffercontext)C_GUI.buffercontext.clearRect(0,0,C_GUI.document.width,C_GUI.document.height);
 		}
 		C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
-
+		C_GUI.havemousepositioned=false;
 		if (C_GUI.newonoverElement != C_GUI.onoverElement) {
 			if (C_GUI.onoverElement && C_GUI.onoverElement.mouseout) {
 				var eve = new C_GUI.event();
