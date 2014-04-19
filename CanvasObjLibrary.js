@@ -843,7 +843,8 @@ function newC_GUI() {
 				linear.func = func;
 				linear.hz = _hz || 30;
 				linear.totalc = time / 1000 * linear.hz;
-				//console.log(linear.totalc); linear.part = (end - start) / linear.totalc;
+				//console.log(linear.totalc); 
+				linear.part = (end - start) / linear.totalc;
 				linear.i = setInterval(function() {
 					linear.c++;
 					linear.process += linear.part;
@@ -854,14 +855,14 @@ function newC_GUI() {
 						for (var n in linear) {
 							delete linear[n];
 						}
-						window.linear[ind] = null;
+						//window.linear[ind] = null;
 						linear = null;
 						return;
 					}
 					func(linear.process);
 				},
 				1000 / linear.hz);
-				return window.linear[ind];
+				return linear;
 			},
 			continue: function(linear) {
 				if (!linear.i) {
