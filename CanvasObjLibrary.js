@@ -23,6 +23,7 @@ function newC_GUI() {
 			fontFamily: "Arial"
 		},
 		currentcontext: null,
+		cct: null,
 		mouseleft: false,
 		mouseright: false,
 		mousecenter: false,
@@ -32,8 +33,13 @@ function newC_GUI() {
 		canvasonfocus: false,
 		document: null,
 		onoverElement: null,
+		fps:{
+			c:0,
+			v:0,
+			i:null
+		},
 		eve: {},
-		commonevents:["mouseover", "mouseout", "mousemove", "mousewheel", "mouseup", "click", "centerclick", "rightclick", "mousedown", "keydown", "keyup", "keypress"],
+		commonevents: ["mouseover", "mouseout", "mousemove", "mousewheel", "mouseup", "click", "centerclick", "rightclick", "mousedown", "keydown", "keyup", "keypress"],
 		e: {
 			mouseoutcanvas: function() {
 				C_GUI.mouseX = null;
@@ -52,7 +58,7 @@ function newC_GUI() {
 			rightcilck: false,
 			onmoveele: null,
 			drag: false,
-			havemousepositioned:false
+			havemousepositioned: false
 		},
 		event: function() {
 			this.stopPropagation = function() {
@@ -86,26 +92,26 @@ function newC_GUI() {
 		case "opera":
 			{
 				C_GUI.mousePosition.fun = C_GUI.mousePosition.ie;
-				C_GUI.mousePosition.offsetx = C_GUI.tools.getnum(C_GUI.canvas.style.borderLeftWidth);
-				C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;
+				/*C_GUI.mousePosition.offsetx = C_GUI.tools.getnum(C_GUI.canvas.style.borderLeftWidth);
+				C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;*/
 				break;
 			}
 		case "firefox":
 			{
 				C_GUI.mousePosition.fun = C_GUI.mousePosition.firefox;
-				C_GUI.mousePosition.offsety = C_GUI.canvas.offsetTop + C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;
-				C_GUI.mousePosition.offsetx = C_GUI.canvas.offsetLeft;
+				/*C_GUI.mousePosition.offsety = C_GUI.canvas.offsetTop + C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;
+				C_GUI.mousePosition.offsetx = C_GUI.canvas.offsetLeft;*/
 				break;
 			}
-		case "chrome":
-			{
-				C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;
-				C_GUI.mousePosition.fun = C_GUI.mousePosition.chrome;
+		/*case "chrome":
+			{*/
+				/*C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;*/
+				/*C_GUI.mousePosition.fun = C_GUI.mousePosition.chrome;
 				break;
-			}
+			}*/
 		default:
 			{
-				C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;
+				/*C_GUI.mousePosition.offsety = C_GUI.tools.getnum(C_GUI.canvas.style.borderTopWidth) / 2;*/
 				C_GUI.mousePosition.fun = C_GUI.mousePosition.chrome;
 				break;
 			}
@@ -142,8 +148,8 @@ function newC_GUI() {
 	C_GUI.setCanvas = function(canvas_dom) {
 		C_GUI.canvas = canvas_dom;
 		C_GUI.setrelPosition();
-		canvas_dom.width=canvas_dom.offsetWidth;
-		canvas_dom.height=canvas_dom.offsetHeight;
+		canvas_dom.width = canvas_dom.offsetWidth;
+		canvas_dom.height = canvas_dom.offsetHeight;
 		/*Solve events*/
 		C_GUI.eve.stopPropagation = function() {
 			C_GUI.eve.Propagation = false;
@@ -199,10 +205,10 @@ function newC_GUI() {
 		function() {
 			C_GUI.e.mouseoutcanvas();
 		});
-		aEL(canvas_dom, "contextmenu",
+		/*aEL(canvas_dom, "contextmenu",
 		function(e) {
 			e.preventDefault();
-		});
+		});*/
 		aEL(canvas_dom, "selectstart",
 		function(e) {
 			e.preventDefault();
@@ -313,28 +319,12 @@ function newC_GUI() {
 		});
 		C_GUI.context = canvas_dom.getContext("2d");
 		C_GUI.currentcontext = C_GUI.buffercontext || C_GUI.context;
+		C_GUI.cct = C_GUI.currentcontext;
 		C_GUI.document = C_GUI.Graph.New();
 		C_GUI.Graph.Eventable(C_GUI.document);
-		C_GUI.document.drawtype="image";
+		C_GUI.document.drawtype = "image";
 		C_GUI.document.width = canvas_dom.width;
 		C_GUI.document.height = canvas_dom.height;
-		C_GUI.document.afterdrawfun = function(ct) {
-			if (C_GUI.Debug.stat) {
-				ct.save();
-				ct.setTransform(1, 0, 0, 1, 0, 0);
-				ct.font = "16px Arial";
-				ct.textBaseline = "bottom";
-				ct.globalCompositeOperation = "lighter";
-				ct.fillStyle = "red";
-				ct.fillText("mouseX:" + C_GUI.mouseX + " Y:" + C_GUI.mouseY + " mouseL:" + C_GUI.mouseleft + " C:" + C_GUI.mousecenter + " R:" + C_GUI.mouseright, 0, C_GUI.canvas.height);
-				ct.strokeStyle="red";
-				ct.moveTo(C_GUI.mouseX,C_GUI.mouseY+6);
-						ct.lineTo(C_GUI.mouseX,C_GUI.mouseY-6);
-						ct.moveTo(C_GUI.mouseX-6,C_GUI.mouseY);
-						ct.lineTo(C_GUI.mouseX+6,C_GUI.mouseY);
-						ct.stroke();ct.restore();
-			}
-		};
 		C_GUI.drawlist = [C_GUI.document];
 	};
 
@@ -348,8 +338,8 @@ function newC_GUI() {
 		New: function(newname) {
 			var g = {
 				name: newname,
-				top: 0,
-				left: 0,
+				y: 0,
+				x: 0,
 				width: 1,
 				height: 1,
 				positionpoint: {
@@ -377,6 +367,7 @@ function newC_GUI() {
 				eventable: false,
 				imageobj: null,
 				z_index: null,
+				clipBy:"border",
 				drawlist: null,
 				childNode: [],
 				parentNode: null,
@@ -420,6 +411,9 @@ function newC_GUI() {
 						console.log(e);
 					}
 
+				},
+				borderPathFun:function(ct){
+					ct.rect(0, 0, this.width, this.height);
 				},
 				zindex: function(index) {
 					this.z_index = index;
@@ -616,7 +610,7 @@ function newC_GUI() {
 			};
 			graph.removeEvent = function(ev) {
 				graph.events[ev.ename][ev.index] = null;
-				ev=null;
+				ev = null;
 			};
 		},
 		Delete: function(graph) {
@@ -635,17 +629,28 @@ function newC_GUI() {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
 				ct.save();
-				ct.translate(d[i].left + d[i].rotatecenter.x - d[i].positionpoint.x, d[i].top + d[i].rotatecenter.y - d[i].positionpoint.y);
+				ct.translate(d[i].x + d[i].rotatecenter.x - d[i].positionpoint.x, d[i].y + d[i].rotatecenter.y - d[i].positionpoint.y);
 				ct.beginPath();
 				ct.rotate(d[i].rotate * 0.017453);
 				ct.scale(d[i].zoom.x, d[i].zoom.y);
 				if (d[i].opacity !== null) ct.globalAlpha = d[i].opacity;
-
 				if (d[i].overflow == "hidden") {
-					ct.rect( - d[i].rotatecenter.x, -d[i].rotatecenter.y, d[i].width, d[i].height);
+					ct.beginPath();
+					switch(d[i].clipBy){
+						case "border":{
+							d[i].borderPathFun?d[i].borderPathFun(ct):C_GUI.tools.defaultPathFun(ct, d[i]);
+							break;
+						}
+						case "drawfunction":{
+							d[i].drawfunction?d[i].drawfunction(ct):C_GUI.tools.defaultPathFun(ct, d[i]);
+							break;
+						}
+						default:{
+							C_GUI.tools.defaultPathFun(ct, d[i]);
+						}
+					}
 					ct.clip();
 				}
-
 				ct.save();
 				if (d[i].Composite) ct.globalCompositeOperation = d[i].Composite;
 				if (d[i].beforedrawfun) d[i].beforedrawfun(ct);
@@ -658,128 +663,86 @@ function newC_GUI() {
 					{
 						ct.translate( - d[i].rotatecenter.x, -d[i].rotatecenter.y);
 						if (d[i].drawfunction) d[i].drawfunction(ct);
-						if (d[i].overflow == "hidden") {
-							ct.clip();
-						}
-						ct.save();
-						if (d[i].eventable) {
-							if (C_GUI.Debug.stat) {
-								ct.save();
-								ct.fillStyle = "rgba(29, 145, 194,0.7)";
-								ct.strokeStyle = "rgb(255,255,255)";
-								ct.lineWidth = 2;
-							}
-							if ((!C_GUI.havemousepositioned)&&C_GUI.mouseX) {
-								if (d[i].overPath) {
-									ct.beginPath();
-									d[i].overPath(ct);
-								}
-								if (ct.isPointInPath(C_GUI.mouseX, C_GUI.mouseY)) {
-									C_GUI.newonoverElement = d[i];
-									C_GUI.havemousepositioned=true;
-								}
-							}
-							if (C_GUI.Debug.stat) {
-								ct.closePath();
-								ct.fill();
-								ct.stroke();
-								ct.restore();
-							}
-
-						}
-
 						break;
 					}
 				case "image":
 				case "text":
 					{
-						if (d[i].overflow == "hidden") {
-							ct.save();
-							ct.rect(0, 0, d[i].width, d[i].height);
-							ct.clip();
-							ct.restore();
-						}
-
-						ct.save();
-						if (d[i].imageobj && d[i].imageobj.width && d[i].imageobj.height) {
-							ct.drawImage(d[i].imageobj, -(d[i].rotatecenter.x), -(d[i].rotatecenter.y));
-						}
 						ct.translate( - d[i].rotatecenter.x, -d[i].rotatecenter.y);
-						if (d[i].eventable) {
-							if (C_GUI.Debug.stat) {
-								ct.save();
-								ct.fillStyle = "rgba(0,0,0,0.3)";
-								ct.strokeStyle = "rgb(255,255,255)";
-								ct.lineWidth = 2;
-							}
-							if ((!C_GUI.havemousepositioned)&&C_GUI.mouseX) {
-								ct.beginPath();
-								if (d[i].overPath) {
-									d[i].overPath(ct);
-								} else {
-									C_GUI.tools.defaultPathFun(ct, d[i]);
-								}
-
-								if (ct.isPointInPath(C_GUI.mouseX, C_GUI.mouseY)) {
-									C_GUI.newonoverElement = d[i];
-								}
-							}
-							if (C_GUI.Debug.stat) {
-								ct.fill();
-								ct.stroke();
-								ct.restore();
-							}
-
+						if (d[i].imageobj && d[i].imageobj.width && d[i].imageobj.height) {
+							ct.drawImage(d[i].imageobj,0, 0);
 						}
 						break;
 					}
 				}
-				if (C_GUI.Debug.stat) {
-					ct.save();
-					ct.beginPath();
-					ct.strokeRect(0, 0, d[i].width, d[i].height);
-					ct.stroke();
-					var zx = d[i].zoom.x,
-					zy = d[i].zoom.y;
-					if (d[i].parentNode) {
-						zx *= d[i].parentNode.zoom.x;
-						zy *= d[i].parentNode.zoom.y;
-					}
-					ct.scale(1 / zx, 1 / zy);
-					ct.textBaseline = "top";
-					ct.fillStyle = "rgba(0,0,0,1)";
-					ct.font = "20px Arial";
-					switch (d[i].drawtype) {
-					case "function":
-						{
-							ct.fillText("Function", 0, 0);
-							break;
+				ct.save();
+				if (d[i].eventable) {
+					if (C_GUI.mouseX) {
+						if (d[i].overPath) {
+							d[i].overPath(ct);
+						}else if(d[i].drawfunction){
+							d[i].drawfunction(ct);
+						} else {
+							C_GUI.tools.defaultPathFun(ct, d[i]);
+						}
+						if (ct.isPointInPath(C_GUI.mouseX, C_GUI.mouseY)) {
+							C_GUI.newonoverElement = d[i];
+							if (C_GUI.Debug.stat) {
+								ct.save();
+								ct.globalCompositeOperation="lighter";
+								ct.fillStyle = "rgba(255,255,255,0.3)";
+								ct.fill();
+								ct.restore();
+							}
 						}
 
-					case "image":
-						{
-							ct.fillText("Image", 0, 0);
-							break;
-						}
-					case "text":
-						{
-							ct.fillText("Text", 0, 0);
-							ct.font = "12px Arial";
-							ct.fillText("font:" + d[i].font, 0, -12);
-							break;
-						}
 					}
-
-					if (C_GUI.Debug.eleinfo) {
-						ct.font = "10px Arial";
-						ct.fillText("X:" + d[i].left + " " + "Y:" + d[i].top, 0, 21);
-						ct.fillText("rotate:" + d[i].rotate, 0, 31);
-						ct.fillText("zoom:" + d[i].zoom.x + "," + d[i].zoom.y, 0, 41);
-						ct.fillText("RotatePotint:" + d[i].rotatecenter.x + " " + d[i].rotatecenter.y, 0, 51);
-						ct.fillText("Size:" + d[i].width + "*" + d[i].height, 0, 61);
-					}
-					ct.restore();
 				}
+					if (C_GUI.Debug.stat) {
+						ct.save();
+						ct.beginPath();
+						ct.strokeRect(0, 0, d[i].width, d[i].height);
+						ct.stroke();
+						var zx = d[i].zoom.x,
+						zy = d[i].zoom.y;
+						if (d[i].parentNode) {
+							zx *= d[i].parentNode.zoom.x;
+							zy *= d[i].parentNode.zoom.y;
+						}
+						ct.scale(1 / zx, 1 / zy);
+						ct.textBaseline = "top";
+						ct.fillStyle = "rgba(0,0,0,1)";
+						ct.font = "20px Arial";
+						switch (d[i].drawtype) {
+						case "function":
+							{
+								ct.fillText("Function", 0, 0);
+								break;
+							}
+
+						case "image":
+							{
+								ct.fillText("Image", 0, 0);
+								break;
+							}
+						case "text":
+							{
+								ct.fillText("Text", 0, 0);
+								ct.font = "12px Arial";
+								ct.fillText("font:" + d[i].font, 0, -12);
+								break;
+							}
+						}
+						if (C_GUI.Debug.eleinfo) {
+							ct.font = "10px Arial";
+							ct.fillText("X:" + d[i].x + " " + "Y:" + d[i].y, 0, 21);
+							ct.fillText("rotate:" + d[i].rotate, 0, 31);
+							ct.fillText("zoom:" + d[i].zoom.x + "," + d[i].zoom.y, 0, 41);
+							ct.fillText("RotatePotint:" + d[i].rotatecenter.x + " " + d[i].rotatecenter.y, 0, 51);
+							ct.fillText("Size:" + d[i].width + "*" + d[i].height, 0, 61);
+						}
+						ct.restore();
+					}
 				ct.restore();
 				if (d[i].afterdrawfun) d[i].afterdrawfun(ct);
 				ct.restore();
@@ -798,29 +761,47 @@ function newC_GUI() {
 		offsetx: 0,
 		offsety: 0,
 		chrome: function(e) {
-			C_GUI.mouseX = e.offsetX - this.offsetx;
-			C_GUI.mouseY = e.offsetY - this.offsety;
+			C_GUI.mouseX = e.offsetX;
+			C_GUI.mouseY = e.offsetY;
 		},
 		ie: function(e) {
-			C_GUI.mouseX = e.offsetX + this.offsetx;
-			C_GUI.mouseY = e.offsetY + this.offsety;
+			C_GUI.mouseX = e.offsetX;
+			C_GUI.mouseY = e.offsetY;
 		},
 		firefox: function(e) {
-			C_GUI.mouseX = e.pageX - this.offsetx;
-			C_GUI.mouseY = e.pageY - this.offsety;
+			C_GUI.mouseX = e.layerX;
+			C_GUI.mouseY = e.layerY;
 		}
 	};
 
 	/*把队列中的图形按index绘制出来*/
-	/*draw all graphs[display=true]*/
+	/*draw all graphs whose [display=true]*/
+	// var cct;
 	C_GUI.draw = function() {
 		C_GUI.newonoverElement = null;
-		if(C_GUI.autoClear){
-			C_GUI.context.clearRect(0,0,C_GUI.document.width,C_GUI.document.height);
-			if(C_GUI.buffercontext)C_GUI.buffercontext.clearRect(0,0,C_GUI.document.width,C_GUI.document.height);
+		if (C_GUI.autoClear) {
+			C_GUI.context.clearRect(0, 0, C_GUI.document.width, C_GUI.document.height);
+			if (C_GUI.buffercontext) C_GUI.buffercontext.clearRect(0, 0, C_GUI.document.width, C_GUI.document.height);
 		}
 		C_GUI.drawElement(C_GUI.drawlist, C_GUI.currentcontext);
-		C_GUI.havemousepositioned=false;
+		if (C_GUI.Debug.stat) {
+			C_GUI.cct.save();
+			C_GUI.cct.setTransform(1, 0, 0, 1, 0, 0);
+			C_GUI.cct.font = "16px Arial";
+			C_GUI.cct.textBaseline = "bottom";
+			C_GUI.cct.globalCompositeOperation = "lighter";
+			C_GUI.cct.fillStyle = "red";
+			C_GUI.cct.fillText("mouseX:" + C_GUI.mouseX + " Y:" + C_GUI.mouseY + " mouseL:" + C_GUI.mouseleft + " C:" + C_GUI.mousecenter + " R:" + C_GUI.mouseright+" FPS:"+C_GUI.fps.v, 0, C_GUI.canvas.height);
+			C_GUI.cct.strokeStyle = "red";
+			C_GUI.cct.globalCompositeOperation = "source-over";
+			C_GUI.cct.moveTo(C_GUI.mouseX, C_GUI.mouseY + 6);
+			C_GUI.cct.lineTo(C_GUI.mouseX, C_GUI.mouseY - 6);
+			C_GUI.cct.moveTo(C_GUI.mouseX - 6, C_GUI.mouseY);
+			C_GUI.cct.lineTo(C_GUI.mouseX + 6, C_GUI.mouseY);
+			C_GUI.cct.stroke();
+			C_GUI.cct.restore();
+			C_GUI.fps.c++;
+		}
 		if (C_GUI.newonoverElement != C_GUI.onoverElement) {
 			if (C_GUI.onoverElement && C_GUI.onoverElement.mouseout) {
 				var eve = new C_GUI.event();
@@ -850,26 +831,77 @@ function newC_GUI() {
 			while (array[i]) i++;
 			return i;
 		},
-		Linear: function(start, end, time, func, _hz) { //线性渐变函数
-			var hz = _hz || 30;
-			var t = time / 1000 * hz;
-			var part = (end - start) / t;
-			var i = setInterval(function() {
-				t--;
-				start += part;
-				if (t < 0) {
-					clearInterval(i);
-					func(end);
-					return;
+		Linear: {
+			go: function(start, end, time, func, _hz) {
+				if (!window.linear) window.linear = [];
+				var ind = C_GUI.tools.findEmptyPlace(window.linear);
+				var linear = window.linear[ind] = {};
+				linear.start = start;
+				linear.end = end;
+				linear.time = time;
+				linear.process = linear.c = linear.precentage = 0;
+				linear.func = func;
+				linear.hz = _hz || 30;
+				linear.totalc = time / 1000 * linear.hz;
+				//console.log(linear.totalc); linear.part = (end - start) / linear.totalc;
+				linear.i = setInterval(function() {
+					linear.c++;
+					linear.process += linear.part;
+					linear.precentage = linear.c / linear.totalc;
+					if (linear.c > linear.totalc) {
+						clearInterval(linear.i);
+						func(linear.end);
+						for (var n in linear) {
+							delete linear[n];
+						}
+						window.linear[ind] = null;
+						linear = null;
+						return;
+					}
+					func(linear.process);
+				},
+				1000 / linear.hz);
+				return window.linear[ind];
+			},
+			continue: function(linear) {
+				if (!linear.i) {
+					linear.i = setInterval(function() {
+						linear.c++;
+						linear.process += linear.part;
+						linear.precentage = linear.c / linear.totalc;
+						if (linear.c > linear.totalc) {
+							clearInterval(linear.i);
+							linear.func(linear.end);
+							for (var n in linear) {
+								delete linear[n];
+							}
+							linear = null;
+							return;
+						}
+						linear.func(linear.process);
+					},
+					1000 / linear.hz);
 				}
-				func(start);
 
 			},
-			1000 / hz);
-			return i;
-		},
-		stopLinear: function(i) { //停止线性渐变
-			clearInterval(i);
+			pause: function(linear) {
+				clearInterval(linear.i);
+				linear.i = null;
+			},
+			stop: function(linear) {
+				clearInterval(linear.i);
+				for (var n in linear) {
+					delete n;
+				}
+				linear = null;
+			},
+			setProcess: function(linear, precentage) {
+				if (! (linear.func && precentage >= 0 && precentage <= 1)) return;
+				linear.c = linear.time * precentage / 1000 * linear.hz;
+				linear.precentage = linear.c / linear.totalc;
+				linear.process = linear.c * linear.part;
+				linear.func(linear.process);
+			}
 		},
 		paixurule: function(a, b) { //index的排序规则
 			return a.z_index - b.z_index;
@@ -895,8 +927,11 @@ function newC_GUI() {
 		},
 		rand: function(min, max) { //范围随机数
 			return Math.floor(min + Math.random() * (max - min));
+		},
+		fpscounter:function(){
+			C_GUI.fps.v=C_GUI.fps.c;
+			C_GUI.fps.c=0;
 		}
-
 	};
 
 	C_GUI.Debug = {
@@ -904,9 +939,13 @@ function newC_GUI() {
 		eleinfo: false,
 		on: function() {
 			C_GUI.Debug.stat = true;
+			clearInterval(C_GUI.fps.i);
+			C_GUI.fps.c=0;
+			setInterval(C_GUI.tools.fpscounter,1000);
 		},
 		off: function() {
 			C_GUI.Debug.stat = false;
+			clearInterval(C_GUI.fps.i);
 		}
 	};
 	return C_GUI;
