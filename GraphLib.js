@@ -26,7 +26,7 @@ Glib.Graph['star']=function(optionjson){
 		ct.translate(g.r, g.r);
 		ct .rotate(Math.PI/2*3);
 		ct.beginPath();
-		ct.fillStyle =g.option.color||"#000";
+		ct.fillStyle =g.color||"#000";
 		ct.moveTo(g.r, 0);
 		for (var i = 0; i < 9; i++) {
 			ct.rotate(Math.PI / 5);
