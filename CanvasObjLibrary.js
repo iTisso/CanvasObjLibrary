@@ -546,7 +546,7 @@ function newC_GUI() {
 				ct.fillStyle = this.color || C_GUI.font.color || "#000";
 				//ct.save();
 				if (this.shadowBlur > 0) {
-					ct.font = font;
+					ct.font = this.font;
 					ct.shadowBlur = this.shadowBlur;
 					ct.shadowColor = this.shadowColor;
 					ct.shadowOffsetX = this.shadowOffset.x;
@@ -566,7 +566,7 @@ function newC_GUI() {
 							ct.translate(0, this.lineHeight);
 						}
 					}else if(t.columndirection==1){
-						for (var i = this.varylist.length; i >0; i--) {
+						for (var i = this.varylist.length-1; i >0; i--) {
 							if (this.fill) {
 								ct.fillText(this.varylist[i], this.innerX, this.innerY);
 							}
@@ -578,31 +578,39 @@ function newC_GUI() {
 					}
 				}else if(this.linedirection==1){
 					if(t.columndirection===0){
-						for (var i = 0; i < this.varylist.length; i++) {ct.save();
-							ct.translate(this.lineHeight / 2+i*this.lineHeight,this.fontSize/2);
+						for (var i = 0; i < this.varylist.length; i++) {
+							ct.save();
+							ct.translate(i*this.lineHeight,this.fontSize/2);
 							var thisline=this.varylist[i].split("");
-							for(var im=0;im<thisline.lengthlim++){
+							for(var im=0;im<thisline.length;im++){
+								ct.save();
+								ct.translate(this.lineHeight-ct.measureText(thisline[im]).width,0);
 								if (this.fill) {
 									ct.fillText(thisline[im], this.innerX, this.innerY);
 								}
 								if (this.textborderWidth) {
 									ct.strokeText(thisline[im], this.innerX, this.innerY);
 								}
+								ct.restore();
 								ct.translate(0, this.fontSize);
 							}
 							ct.restore();
 						}
 					}else if(t.columndirection==1){
-						for (var i =this.varylist.length; i>0; i--) {ct.save();
-							ct.translate(this.lineHeight / 2+i*this.lineHeight,this.fontSize/2);
+						for (var i =this.varylist.length-1; i>0; i--) {
+							ct.save();
+							ct.translate(i*this.lineHeight,this.fontSize/2);
 							var thisline=this.varylist[i].split("");
-							for(var im=0;im<thisline.lengthlim++){
+							for(var im=0;im<thisline.length;im++){
+								ct.save();
+								ct.translate(this.lineHeight-ct.measureText(thisline[im]).width,0);
 								if (this.fill) {
 									ct.fillText(thisline[im], this.innerX, this.innerY);
 								}
 								if (this.textborderWidth) {
 									ct.strokeText(thisline[im], this.innerX, this.innerY);
 								}
+								ct.restore();
 								ct.translate(0, this.fontSize);
 							}
 							ct.restore();
@@ -616,9 +624,8 @@ function newC_GUI() {
 				}
 				var ct = t.imageobj.getContext("2d");
 				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
-				//var tmptext=t.text.replace("\\\/\n","~#/n");
-				t.varylist = t.text.split(/\\n/m);
-				//console.log(t.varylist);
+				t.varylist = t.text.split(/\n/g);
+				console.log(t.varylist);
 				var font = "";
 				if (t.fontStyle || C_GUI.font.fontStyle) font += t.fontStyle || C_GUI.font.fontStyle;
 				if (t.fontVariant || C_GUI.font.fontVariant) font += (" " + (t.fontVariant || C_GUI.font.fontVariant));
@@ -635,14 +642,14 @@ function newC_GUI() {
 				if (t.autoSize) {
 					var w = 0,
 					tw;
-					if (linedirection === 0) {
+					if (this.linedirection === 0) {
 						for (var i = 0; i < t.varylist.length; i++) {
 							tw = ct.measureText(t.varylist[i]).width;
 							w = tw > w ? tw: w;
 						}
 						t.width = t.imageobj.width = (t.maxWidth >= w) ? t.maxWidth: w;
 						t.height = t.imageobj.height = t.varylist.length * t.lineHeight;
-					}else if(linedirection==1){
+					}else if(this.linedirection==1){
 						for (var i = 0; i < t.varylist.length; i++) {
 							tw =t.varylist[i].split("").length;
 							w = tw > w ? tw: w;
