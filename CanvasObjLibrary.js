@@ -599,7 +599,7 @@ function newC_GUI() {
 					}else if(t.columndirection==1){
 						for (var i =this.varylist.length-1; i>0; i--) {
 							ct.save();
-							ct.translate(i*this.lineHeight,this.fontSize/2);
+							ct.translate((this.varylist.length-1-i)*this.lineHeight,this.fontSize/2);
 							var thisline=this.varylist[i].split("");
 							for(var im=0;im<thisline.length;im++){
 								ct.save();
@@ -625,7 +625,6 @@ function newC_GUI() {
 				var ct = t.imageobj.getContext("2d");
 				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
 				t.varylist = t.text.split(/\n/g);
-				console.log(t.varylist);
 				var font = "";
 				if (t.fontStyle || C_GUI.font.fontStyle) font += t.fontStyle || C_GUI.font.fontStyle;
 				if (t.fontVariant || C_GUI.font.fontVariant) font += (" " + (t.fontVariant || C_GUI.font.fontVariant));
