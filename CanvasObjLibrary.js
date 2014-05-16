@@ -506,14 +506,15 @@ function newC_GUI() {
 			t.drawtype = "text";
 			t.realtimeVary = false;
 			t.text = text || " ";
+			t.varylist=[];
 			t.baseline = "middle";
 			t.fontStyle = null;
 			t.fontWeight = null;
 			t.textInput = null;
 			t.fontVariant = null;
-			t.lineHeight = null;
-			t.fontSize = fontsize || "15px";
+			t.lineHeight=t.fontSize = fontsize ||15;
 			t.fontFamily = null;
+			//t.overflow="hidden";
 			t.innerX = 0;
 			t.innerY = 0;
 			t.color = "#000";
@@ -535,7 +536,8 @@ function newC_GUI() {
 				}
 			}
 			t.vary=function(ct){
-				ct.translate(0, this.imageobj.height / 2);
+				//ct.translate(0, this.imageobj.height / 2);
+				ct.translate(0, this.lineHeight / 2);
 				ct.beginPath();
 				ct.textBaseline = this.baseline;
 				ct.lineWidth = this.textborderWidth;
@@ -550,25 +552,31 @@ function newC_GUI() {
 					ct.shadowOffsetY = this.shadowOffset.y;
 				}
 				ct.font = this.font;
-				if (this.fill) {
-					ct.fillText(this.text, this.innerX, this.innerY);
+				for(var i=0;i<this.varylist.length;i++){
+					if (this.fill) {
+					ct.fillText(this.varylist[i], this.innerX, this.innerY);
 				}
 				if (this.textborderWidth) {
-					ct.strokeText(this.text, this.innerX, this.innerY);
+					ct.strokeText(this.varylist[i], this.innerX, this.innerY);
+					}
+					ct.translate(0, this.lineHeight);
 				}
+				
 			}
 			t.prepareText = function() {
 				if (!t.imageobj) {
 					t.imageobj = document.createElement("canvas");
 					}var ct = t.imageobj.getContext("2d");
 					ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
-				
+				//var tmptext=t.text.replace("\\\/\n","~#/n");
+				t.varylist=t.text.split(/\\n/m);
+				//console.log(t.varylist);
 				var font = "";
 				if (t.fontStyle || C_GUI.font.fontStyle) font += t.fontStyle || C_GUI.font.fontStyle;
 				if (t.fontVariant || C_GUI.font.fontVariant) font += (" " + (t.fontVariant || C_GUI.font.fontVariant));
 				if (t.fontWeight || C_GUI.font.fontWeight) font += (" " + (t.fontWeight || C_GUI.font.fontWeight));
-				font += (" " + (t.fontSize || C_GUI.font.fontSize) || "15px");
-				if (t.lineHeight || C_GUI.font.lineHeight) font += (" " + (t.lineHeight || C_GUI.font.lineHeight));
+				font += (" " + (t.fontSize || C_GUI.font.fontSize) || 15)+"px";
+				/*if (t.lineHeight || C_GUI.font.lineHeight) font += (" " + (t.lineHeight || C_GUI.font.lineHeight));*/
 				if (t.fontFamily || C_GUI.font.fontFamily) font += (" " + (t.fontFamily || C_GUI.font.fontFamily));
 				else {
 					font += (" " + C_GUI.fontFamily);
@@ -577,19 +585,23 @@ function newC_GUI() {
 				t.font = font;
 				ct.font = font;
 				if (t.autoSize) {
-					var w = ct.measureText(t.text).width;
+					var w =0 /*ct.measureText(t.text).width*/,tw;
+					for(var i=0;i<t.varylist.length;i++){
+						tw = ct.measureText(t.varylist[i]).width;
+						w=tw>w?tw:w;
+					}
 					t.width = t.imageobj.width = (t.maxWidth >= w) ? t.maxWidth: w;
-					var fontsize = C_GUI.tools.getnum(t.fontSize) * 1.3;
+					/*var fontsize = t.fontSize* 1.3;
 					if (fontsize === 0) {
 						fontsize = 20;
-					}
-					t.height = t.imageobj.height = fontsize;
+					}*/
+					t.height = t.imageobj.height =t.varylist.length*t.lineHeight/* fontsize*/;
 				} else {
 					t.imageobj.width = t.width || 100;
 					t.imageobj.height = t.height || 30;
 				}
 				t.vary(ct);
-				ct.restore();
+				//ct.restore();
 			};
 			t.setSize = function(width, height) {
 				t.autoSize = false;
