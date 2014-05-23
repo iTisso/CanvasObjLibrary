@@ -329,9 +329,9 @@ function newCOL() {
 
 	COL.Graph = {
 		New: function(opjson) {
-			var cF=COL.Graph.commonFunction;
+			var cF = COL.Graph.commonFunction;
 			var g = {
-				name:null,
+				name: null,
 				GraphID: COL.generateGraphID(),
 				y: 0,
 				x: 0,
@@ -367,132 +367,19 @@ function newCOL() {
 				drawlist: [],
 				childNode: [],
 				parentNode: null,
-				set:cF.set /*function(json) {
-					if (json) {
-						for (var ob in json) {
-							g[ob] = json[ob];
-						}
-					}
-				}*/,
-				drawpic:cF. drawpic/* function(width, height, _draw) {
-					this.width = width;
-					this.height = height;
-					this.imageobj = COL.imagecreater.drawpic(width, height, _draw);
-				}*/,
-				setZoom:cF. setZoom /*function(x, y) {
-					if (arguments.length == 1) this.zoom.x = this.zoom.y = x;
-					else if (arguments.length == 2) {
-						this.zoom.x = x;
-						this.zoom.y = y;
-					}
-				}*/,
-				useImage: cF. useImage/*function(image) {
-					if (!this.imageobj) {
-						this.imageobj = document.createElement("canvas");
-					}
-					var _this = this;
-					function set() {
-						_this.width = _this.imageobj.width = image.width;
-						_this.height = _this.imageobj.height = image.height;
-						_this.imageobj.getContext("2d").drawImage(image, 0, 0);
-					}
-					if (!image.complete) {
-						image.onload = function() {
-							set();
-						};
-					}
-					try {
-						set();
-					} catch(e) {
-						console.log(e);
-					}
-
-				}*/,
-				borderPathFun:cF.borderPathFun  /*function(ct) {
-					ct.rect(0, 0, this.width, this.height);
-				}*/,
-				zindex:cF. zindex/*function(index) {
-					this.z_index = index;
-					if (this.parentNode) {
-						COL.tools.arraybyZ_index(this.parentNode);
-					}
-				}*/,
-				setRotateCenter: cF. setRotateCenter/*function() {
-					if (arguments.length == 2) {
-						this.rotatecenter.x = arguments[0];
-						this.rotatecenter.y = arguments[1];
-					} else if (arguments.length == 1) {
-						switch (arguments[0]) {
-						case "center":
-							{
-								this.rotatecenter.x = this.width / 2;
-								this.rotatecenter.y = this.height / 2;
-								break;
-							}
-						}
-					}
-				}*/,
-				setPositionPoint:cF.setPositionPoint  /*function() {
-					if (arguments.length == 2) {
-						this.positionpoint.x = arguments[0];
-						this.positionpoint.y = arguments[1];
-					} else if (arguments.length == 1) {
-						switch (arguments[0]) {
-						case "center":
-							{
-								this.positionpoint.x = this.width / 2;
-								this.positionpoint.y = this.height / 2;
-								break;
-							}
-						}
-					}
-				}*/,
-				setSize:cF.setSize /* function(w, h) {
-					this.width = w;
-					this.height = h;
-
-				}*/,
-				New: cF.New /*function() {
-					var newobj = Object.create(this);
-					newobj.parentNode = null;
-					newobj.childNode = [];
-					newobj.drawlist = [];
-					return newobj;
-				}*/,
-				clone:cF. clone/* function() {
-					var newobj = Object.create(this);
-					return newobj;
-				}*/,
-				addChild:cF. addChild/* function(graph) {
-					if (graph.GraphID) {
-						//console.log(graph.GraphID)
-						//this.childNode.unshift(graph);
-						this.childNode[graph.GraphID] = graph;
-						//this.childNode.pop(graph);
-						graph.parentNode = this;
-						if (this.needsort) {
-							COL.tools.arraybyZ_index(this);
-						} else {
-							this.drawlist.unshift(graph);
-						}
-					}
-				}*/,
-				removeChild:cF.removeChild/* function(graph) {
-					if (this.childNode[graph.GraphID]) {
-						//this.childNode[graph.GraphID] = null;
-						graph.parentNode = null;
-						delete this.childNode[graph.GraphID];
-						var ind = 0;
-						for (var ele in this.drawlist) {
-							if (this.drawlist[ele].GraphID == graph.GraphID) {
-								this.drawlist.splice(ind, 1);
-								break;
-							}
-							ind++;
-						}
-
-					}
-				}*/
+				set: cF.set,
+				drawpic: cF.drawpic,
+				setZoom: cF.setZoom,
+				useImage: cF.useImage,
+				borderPathFun: cF.borderPathFun,
+				zindex: cF.zindex,
+				setRotateCenter: cF.setRotateCenter,
+				setPositionPoint: cF.setPositionPoint,
+				setSize: cF.setSize,
+				New: cF.New,
+				clone: cF.clone,
+				addChild: cF.addChild,
+				removeChild: cF.removeChild
 			};
 			if (opjson) {
 				for (var ob in opjson) {
@@ -543,148 +430,10 @@ function newCOL() {
 					t[ob] = opjson[ob];
 				}
 			}
-			t.vary = function(ct) {
-				//ct.translate(0, this.imageobj.height / 2);
-				ct.beginPath();
-				ct.textBaseline = this.baseline;
-				ct.lineWidth = this.textborderWidth;
-				ct.strokeStyle = this.textborderColor;
-				ct.fillStyle = this.color || COL.font.color || "#000";
-				//ct.save();
-				if (this.shadowBlur > 0) {
-					ct.font = this.font;
-					ct.shadowBlur = this.shadowBlur;
-					ct.shadowColor = this.shadowColor;
-					ct.shadowOffsetX = this.shadowOffset.x;
-					ct.shadowOffsetY = this.shadowOffset.y;
-				}
-				ct.font = this.font;
-				if(this.linedirection===0){
-					ct.translate(0, this.lineHeight / 2);
-					if(t.columndirection===0){
-						for (var i = 0; i < this.varylist.length; i++) {
-							if (this.fill) {
-								ct.fillText(this.varylist[i], this.innerX, this.innerY);
-							}
-							if (this.textborderWidth) {
-								ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-							}
-							ct.translate(0, this.lineHeight);
-						}
-					}else if(t.columndirection==1){
-						for (var i = this.varylist.length-1; i >0; i--) {
-							if (this.fill) {
-								ct.fillText(this.varylist[i], this.innerX, this.innerY);
-							}
-							if (this.textborderWidth) {
-								ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-							}
-							ct.translate(0, this.lineHeight);
-						}
-					}
-				}else if(this.linedirection==1){
-					if(t.columndirection===0){
-						for (var i = 0; i < this.varylist.length; i++) {
-							ct.save();
-							ct.translate(i*this.lineHeight,this.fontSize/2);
-							var thisline=this.varylist[i].split("");
-							for(var im=0;im<thisline.length;im++){
-								ct.save();
-								ct.translate(this.lineHeight-ct.measureText(thisline[im]).width,0);
-								if (this.fill) {
-									ct.fillText(thisline[im], this.innerX, this.innerY);
-								}
-								if (this.textborderWidth) {
-									ct.strokeText(thisline[im], this.innerX, this.innerY);
-								}
-								ct.restore();
-								ct.translate(0, this.fontSize);
-							}
-							ct.restore();
-						}
-					}else if(t.columndirection==1){
-						for (var i =this.varylist.length-1; i>0; i--) {
-							ct.save();
-							ct.translate((this.varylist.length-1-i)*this.lineHeight,this.fontSize/2);
-							var thisline=this.varylist[i].split("");
-							for(var im=0;im<thisline.length;im++){
-								ct.save();
-								ct.translate(this.lineHeight-ct.measureText(thisline[im]).width,0);
-								if (this.fill) {
-									ct.fillText(thisline[im], this.innerX, this.innerY);
-								}
-								if (this.textborderWidth) {
-									ct.strokeText(thisline[im], this.innerX, this.innerY);
-								}
-								ct.restore();
-								ct.translate(0, this.fontSize);
-							}
-							ct.restore();
-						}
-					}
-				}
-			}
-			t.prepareText = function() {
-				if (!t.imageobj) {
-					t.imageobj = document.createElement("canvas");
-				}
-				try{
-					var ct = t.imageobj.getContext("2d");
-				}catch(e){
-					t.imageobj = document.createElement("canvas");
-					var ct = t.imageobj.getContext("2d");
-				}
-				
-				ct.clearRect(0, 0, t.imageobj.width, t.imageobj.height);
-				t.varylist = t.text.split(/\n/g);
-				var font = "";
-				if (t.fontStyle || COL.font.fontStyle) font += t.fontStyle || COL.font.fontStyle;
-				if (t.fontVariant || COL.font.fontVariant) font += (" " + (t.fontVariant || COL.font.fontVariant));
-				if (t.fontWeight || COL.font.fontWeight) font += (" " + (t.fontWeight || COL.font.fontWeight));
-				font += (" " + (t.fontSize || COL.font.fontSize) || 15) + "px";
-				if (t.fontFamily || COL.font.fontFamily) font += (" " + (t.fontFamily || COL.font.fontFamily));
-				else {
-					font += (" " + COL.fontFamily);
-				}
-
-				t.font = font;
-				ct.font = font;
-				if (t.autoSize) {
-					var w = 0,
-					tw;
-					if (this.linedirection === 0) {
-						for (var i = 0; i < t.varylist.length; i++) {
-							tw = ct.measureText(t.varylist[i]).width;
-							w = tw > w ? tw: w;
-						}
-						t.width = t.imageobj.width = (t.maxWidth >= w) ? t.maxWidth: w;
-						t.height = t.imageobj.height = t.varylist.length * t.lineHeight;
-					}else if(this.linedirection==1){
-						for (var i = 0; i < t.varylist.length; i++) {
-							tw =t.varylist[i].split("").length;
-							w = tw > w ? tw: w;
-						}
-						w*= t.fontSize;
-						t.width = t.imageobj.width = t.varylist.length * t.lineHeight;
-						t.height = t.imageobj.height =(t.maxWidth >= w) ? t.maxWidth: w ;
-					}
-
-				} else {
-					t.imageobj.width = (t.width>=0)?t.width:100;
-					t.imageobj.height = (t.height>=0)?t.height:30;
-				}
-				t.vary(ct);
-			};
-			t.setSize = function(width, height) {
-				t.autoSize = false;
-				t.width = width;
-				t.height = height;
-				t.prepareText();
-			};
-			t.setText = function(text) {
-				t.text = text || " ";
-				t.prepareText();
-			};
+			t.vary = COL.Graph.commonFunction.t.vary;
+			t.prepareText = COL.Graph.commonFunction.t.prepareText;
+			t.setSize = COL.Graph.commonFunction.t.setSize;
+			t.setText = COL.Graph.commonFunction.t.setText;
 			t.prepareText();
 			return t;
 		},
@@ -696,152 +445,302 @@ function newCOL() {
 				graph.events["on" + COL.commonevents[inde]] = [];
 				graph[COL.commonevents[inde]] = eval('(function(e){for(var i=graph.events["on' + COL.commonevents[inde] + '"].length;i--;){if(typeof(graph.events["on' + COL.commonevents[inde] + '"][i])=="function")graph.events["on' + COL.commonevents[inde] + '"][i](e)}if(e.Propagation){if(graph.parentNode){for(var i=graph.parentNode.events["on' + COL.commonevents[inde] + '"].length;i--;){if(typeof(graph.parentNode.events["on' + COL.commonevents[inde] + '"][i])=="function")graph.parentNode.events["on' + COL.commonevents[inde] + '"][i](e)}}}})');
 			}
-			graph.addEvent = function(name, fun) {
-				if (!graph.events[name]) graph.events[name] = [];
-				if (typeof(fun) == "function" && graph.events[name]) {
-					var i = COL.tools.findEmptyPlace(graph.events[name]);
-					graph.events[name][i] = fun;
-					var ev = {
-						ename: name,
-						index: i
-					};
-					return ev;
-				} else {
-					return false;
-				}
-			};
-			graph.removeEvent = function(ev) {
-				graph.events[ev.ename][ev.index] = null;
-				ev = null;
-			};
+			graph.addEvent = COL.Graph.commonFunction.Event.addEvent;
+			graph.removeEvent = COL.Graph.commonFunction.Event.removeEvent;
 		},
-		commonFunction:{
-			set:function(json){
+		commonFunction: {
+			set: function(json) {
 				if (json) {
-						for (var ob in json) {
-							this[ob] = json[ob];
+					for (var ob in json) {
+						this[ob] = json[ob];
+					}
+				}
+			},
+			drawpic: function(width, height, _draw) {
+				this.width = width;
+				this.height = height;
+				this.imageobj = COL.imagecreater.drawpic(width, height, _draw);
+			},
+			setZoom: function(x, y) {
+				if (arguments.length == 1) this.zoom.x = this.zoom.y = x;
+				else if (arguments.length == 2) {
+					this.zoom.x = x;
+					this.zoom.y = y;
+				}
+			},
+			useImage: function(image) {
+				if (!this.imageobj) {
+					this.imageobj = document.createElement("canvas");
+				}
+				var _this = this;
+				function set() {
+					_this.width = _this.imageobj.width = image.width;
+					_this.height = _this.imageobj.height = image.height;
+					_this.imageobj.getContext("2d").drawImage(image, 0, 0);
+				}
+				if (!image.complete) {
+					image.onload = function() {
+						set();
+					};
+				}
+				try {
+					set();
+				} catch(e) {
+					console.log(e);
+				}
+
+			},
+			borderPathFun: function(ct) {
+				ct.rect(0, 0, this.width, this.height);
+			},
+			zindex: function(index) {
+				this.z_index = index;
+				if (this.parentNode) {
+					COL.tools.arraybyZ_index(this.parentNode);
+				}
+			},
+			setRotateCenter: function() {
+				if (arguments.length == 2) {
+					this.rotatecenter.x = arguments[0];
+					this.rotatecenter.y = arguments[1];
+				} else if (arguments.length == 1) {
+					switch (arguments[0]) {
+					case "center":
+						{
+							this.rotatecenter.x = this.width / 2;
+							this.rotatecenter.y = this.height / 2;
+							break;
+						}
+					}
+				}
+			},
+			setPositionPoint: function() {
+				if (arguments.length == 2) {
+					this.positionpoint.x = arguments[0];
+					this.positionpoint.y = arguments[1];
+				} else if (arguments.length == 1) {
+					switch (arguments[0]) {
+					case "center":
+						{
+							this.positionpoint.x = this.width / 2;
+							this.positionpoint.y = this.height / 2;
+							break;
+						}
+					}
+				}
+			},
+			setSize: function(w, h) {
+				this.width = w;
+				this.height = h;
+
+			},
+			New: function() {
+				var newobj = Object.create(this);
+				newobj.parentNode = null;
+				newobj.childNode = [];
+				newobj.drawlist = [];
+				return newobj;
+			},
+			clone: function() {
+				var newobj = Object.create(this);
+				return newobj;
+			},
+			addChild: function(graph) {
+				if (graph.GraphID) {
+					//console.log(graph.GraphID)
+					//this.childNode.unshift(graph);
+					this.childNode[graph.GraphID] = graph;
+					//this.childNode.pop(graph);
+					graph.parentNode = this;
+					if (this.needsort) {
+						COL.tools.arraybyZ_index(this);
+					} else {
+						this.drawlist.unshift(graph);
+					}
+				}
+			},
+			removeChild: function(graph) {
+				if (this.childNode[graph.GraphID]) {
+					//this.childNode[graph.GraphID] = null;
+					graph.parentNode = null;
+					delete this.childNode[graph.GraphID];
+					var ind = 0;
+					for (var ele in this.drawlist) {
+						if (this.drawlist[ele].GraphID == graph.GraphID) {
+							this.drawlist.splice(ind, 1);
+							break;
+						}
+						ind++;
+					}
+
+				}
+			},
+			t: {
+				vary: function(ct) {
+					ct.beginPath();
+					ct.textBaseline = this.baseline;
+					ct.lineWidth = this.textborderWidth;
+					ct.strokeStyle = this.textborderColor;
+					ct.fillStyle = this.color || COL.font.color || "#000";
+					//ct.save();
+					if (this.shadowBlur > 0) {
+						ct.font = this.font;
+						ct.shadowBlur = this.shadowBlur;
+						ct.shadowColor = this.shadowColor;
+						ct.shadowOffsetX = this.shadowOffset.x;
+						ct.shadowOffsetY = this.shadowOffset.y;
+					}
+					ct.font = this.font;
+					if (this.linedirection === 0) {
+						ct.translate(0, this.lineHeight / 2);
+						if (this.columndirection === 0) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								if (this.fill) {
+									ct.fillText(this.varylist[i], this.innerX, this.innerY);
+								}
+								if (this.textborderWidth) {
+									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
+								}
+								ct.translate(0, this.lineHeight);
+							}
+						} else if (this.columndirection == 1) {
+							for (var i = this.varylist.length - 1; i > 0; i--) {
+								if (this.fill) {
+									ct.fillText(this.varylist[i], this.innerX, this.innerY);
+								}
+								if (this.textborderWidth) {
+									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
+								}
+								ct.translate(0, this.lineHeight);
+							}
+						}
+					} else if (this.linedirection == 1) {
+						if (this.columndirection === 0) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								ct.save();
+								ct.translate(i * this.lineHeight, this.fontSize / 2);
+								var thisline = this.varylist[i].split("");
+								for (var im = 0; im < thisline.length; im++) {
+									ct.save();
+									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
+									if (this.fill) {
+										ct.fillText(thisline[im], this.innerX, this.innerY);
+									}
+									if (this.textborderWidth) {
+										ct.strokeText(thisline[im], this.innerX, this.innerY);
+									}
+									ct.restore();
+									ct.translate(0, this.fontSize);
+								}
+								ct.restore();
+							}
+						} else if (this.columndirection == 1) {
+							for (var i = this.varylist.length - 1; i > 0; i--) {
+								ct.save();
+								ct.translate((this.varylist.length - 1 - i) * this.lineHeight, this.fontSize / 2);
+								var thisline = this.varylist[i].split("");
+								for (var im = 0; im < thisline.length; im++) {
+									ct.save();
+									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
+									if (this.fill) {
+										ct.fillText(thisline[im], this.innerX, this.innerY);
+									}
+									if (this.textborderWidth) {
+										ct.strokeText(thisline[im], this.innerX, this.innerY);
+									}
+									ct.restore();
+									ct.translate(0, this.fontSize);
+								}
+								ct.restore();
+							}
 						}
 					}
 				},
-				drawpic: function(width, height, _draw) {
-					this.width = width;
-					this.height = height;
-					this.imageobj = COL.imagecreater.drawpic(width, height, _draw);
-				},
-				setZoom: function(x, y) {
-					if (arguments.length == 1) this.zoom.x = this.zoom.y = x;
-					else if (arguments.length == 2) {
-						this.zoom.x = x;
-						this.zoom.y = y;
-					}
-				},
-				useImage: function(image) {
+				prepareText: function() {
 					if (!this.imageobj) {
 						this.imageobj = document.createElement("canvas");
 					}
-					var _this = this;
-					function set() {
-						_this.width = _this.imageobj.width = image.width;
-						_this.height = _this.imageobj.height = image.height;
-						_this.imageobj.getContext("2d").drawImage(image, 0, 0);
-					}
-					if (!image.complete) {
-						image.onload = function() {
-							set();
-						};
-					}
 					try {
-						set();
+						var ct = this.imageobj.getContext("2d");
 					} catch(e) {
-						console.log(e);
+						this.imageobj = document.createElement("canvas");
+						var ct = this.imageobj.getContext("2d");
 					}
 
-				},
-				borderPathFun: function(ct) {
-					ct.rect(0, 0, this.width, this.height);
-				},
-				zindex: function(index) {
-					this.z_index = index;
-					if (this.parentNode) {
-						COL.tools.arraybyZ_index(this.parentNode);
+					ct.clearRect(0, 0, this.imageobj.width, this.imageobj.height);
+					this.varylist = this.text.split(/\n/g);
+					var font = "";
+					if (this.fontStyle || COL.font.fontStyle) font += this.fontStyle || COL.font.fontStyle;
+					if (this.fontVariant || COL.font.fontVariant) font += (" " + (this.fontVariant || COL.font.fontVariant));
+					if (this.fontWeight || COL.font.fontWeight) font += (" " + (this.fontWeight || COL.font.fontWeight));
+					font += (" " + (this.fontSize || COL.font.fontSize) || 15) + "px";
+					if (this.fontFamily || COL.font.fontFamily) font += (" " + (this.fontFamily || COL.font.fontFamily));
+					else {
+						font += (" " + COL.fontFamily);
 					}
-				},
-				setRotateCenter: function() {
-					if (arguments.length == 2) {
-						this.rotatecenter.x = arguments[0];
-						this.rotatecenter.y = arguments[1];
-					} else if (arguments.length == 1) {
-						switch (arguments[0]) {
-						case "center":
-							{
-								this.rotatecenter.x = this.width / 2;
-								this.rotatecenter.y = this.height / 2;
-								break;
-							}
-						}
-					}
-				},
-				setPositionPoint: function() {
-					if (arguments.length == 2) {
-						this.positionpoint.x = arguments[0];
-						this.positionpoint.y = arguments[1];
-					} else if (arguments.length == 1) {
-						switch (arguments[0]) {
-						case "center":
-							{
-								this.positionpoint.x = this.width / 2;
-								this.positionpoint.y = this.height / 2;
-								break;
-							}
-						}
-					}
-				},
-				setSize: function(w, h) {
-					this.width = w;
-					this.height = h;
 
-				},
-				New: function() {
-					var newobj = Object.create(this);
-					newobj.parentNode = null;
-					newobj.childNode = [];
-					newobj.drawlist = [];
-					return newobj;
-				},
-				clone: function() {
-					var newobj = Object.create(this);
-					return newobj;
-				},
-				addChild: function(graph) {
-					if (graph.GraphID) {
-						//console.log(graph.GraphID)
-						//this.childNode.unshift(graph);
-						this.childNode[graph.GraphID] = graph;
-						//this.childNode.pop(graph);
-						graph.parentNode = this;
-						if (this.needsort) {
-							COL.tools.arraybyZ_index(this);
-						} else {
-							this.drawlist.unshift(graph);
-						}
-					}
-				},
-				removeChild: function(graph) {
-					if (this.childNode[graph.GraphID]) {
-						//this.childNode[graph.GraphID] = null;
-						graph.parentNode = null;
-						delete this.childNode[graph.GraphID];
-						var ind = 0;
-						for (var ele in this.drawlist) {
-							if (this.drawlist[ele].GraphID == graph.GraphID) {
-								this.drawlist.splice(ind, 1);
-								break;
+					this.font = font;
+					ct.font = font;
+					if (this.autoSize) {
+						var w = 0,
+						tw;
+						if (this.linedirection === 0) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								tw = ct.measureText(this.varylist[i]).width;
+								w = tw > w ? tw: w;
 							}
-							ind++;
+							this.width = this.imageobj.width = (this.maxWidth >= w) ? this.maxWidth: w;
+							this.height = this.imageobj.height = this.varylist.length * this.lineHeight;
+						} else if (this.linedirection == 1) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								tw = this.varylist[i].split("").length;
+								w = tw > w ? tw: w;
+							}
+							w *= this.fontSize;
+							this.width = this.imageobj.width = this.varylist.length * this.lineHeight;
+							this.height = this.imageobj.height = (this.maxWidth >= w) ? this.maxWidth: w;
 						}
 
+					} else {
+						this.imageobj.width = (this.width >= 0) ? this.width: 100;
+						this.imageobj.height = (this.height >= 0) ? this.height: 30;
 					}
+					this.vary(ct);
+				},
+				setSize: function(width, height) {
+					this.autoSize = false;
+					this.width = width;
+					this.height = height;
+					this.prepareText();
+				},
+				setText: function(text) {
+					this.text = text || " ";
+					this.prepareText();
 				}
+			},
+			Event: {
+				addEvent: function(name, fun) {
+					if (!this.events[name]) this.events[name] = [];
+					if (typeof(fun) == "function" && this.events[name]) {
+						var i = COL.tools.findEmptyPlace(this.events[name]);
+						this.events[name][i] = fun;
+						var ev = {
+							ename: name,
+							index: i
+						};
+						return ev;
+					} else {
+						return false;
+					}
+				},
+				removeEvent: function(ev) {
+					this.events[ev.ename][ev.index] = null;
+					ev = null;
+				},
+				fireEvent:function(evename,eobj){
+
+				}
+			}
 		},
 		Delete: function(graph) {
 			if (graph) {
@@ -858,9 +757,9 @@ function newCOL() {
 		var currentObj;
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
-				cObj=d[i];
+				cObj = d[i];
 				ct.save();
-				ct.translate(cObj.x + cObj.rotatecenter.x -cObj.positionpoint.x, cObj.y +cObj.rotatecenter.y -cObj.positionpoint.y);
+				ct.translate(cObj.x + cObj.rotatecenter.x - cObj.positionpoint.x, cObj.y + cObj.rotatecenter.y - cObj.positionpoint.y);
 				ct.beginPath();
 				ct.rotate(cObj.rotate * 0.017453);
 				ct.scale(cObj.zoom.x, cObj.zoom.y);
@@ -875,7 +774,7 @@ function newCOL() {
 						}
 					case "drawfunction":
 						{
-							cObj.drawfunction ? cObj.drawfunction(ct) : COL.tools.defaultPathFun(ct,cObj);
+							cObj.drawfunction ? cObj.drawfunction(ct) : COL.tools.defaultPathFun(ct, cObj);
 							break;
 						}
 					default:
