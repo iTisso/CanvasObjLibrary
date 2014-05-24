@@ -555,7 +555,7 @@ function newCOL() {
 			addChild: function(graph) {
 				if (graph.GraphID) {
 					//console.log(graph.GraphID)
-					//this.childNode.unshift(graph);
+					//this.childNode.push(graph);
 					this.childNode[graph.GraphID] = graph;
 					//this.childNode.pop(graph);
 					graph.parentNode = this;
