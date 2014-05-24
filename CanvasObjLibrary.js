@@ -752,12 +752,12 @@ function newCOL() {
 							} 
 						}else {/*大于十个用二分搜索*/
 								var middleindex, starti = 0,
-								endi = earr.length - 1;
+								endi = earr.length - 1,evid=ev.EventID;
 								while (endi - starti) { //当前后定位不重合
 									middleindex = Math.floor((starti + endi) / 2);
-									if (earr[middleindex].EventID == ev.EventID) {
+									if (earr[middleindex].EventID == evid) {
 										earr.splice(middleindex, 1) break;
-									} else if (earr[middleindex + 1].EventID > ev.EventID) {
+									} else if (earr[middleindex + 1].EventID >evid) {
 										endi = middleindex;
 									} else {
 										starti = middleindex + 1;
