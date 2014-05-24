@@ -35,23 +35,25 @@ function newCOL() {
 		document: null,
 		onoverElement: null,
 		tmpGraphID: 0,
+		tmpEventID: 0,
 		fps: {
 			c: 0,
 			v: 0,
 			i: null
 		},
-		eve: {},
-		commonevents: ["mouseover", "mouseout", "mousemove", "mousewheel", "mouseup", "click", "centerclick", "rightclick", "mousedown", "keydown", "keyup", "keypress"],
+		/*eve: {},*/
+		/*commonevents: ["mouseover", "mouseout", "mousemove", "mousewheel", "mouseup", "click", "centerclick", "rightclick", "mousedown", "keydown", "keyup", "keypress"],*/
 		e: {
 			mouseoutcanvas: function() {
 				COL.mouseX = null;
 				COL.mouseY = null;
-				if (COL.onoverElement && COL.onoverElement.mouseout) {
-					COL.eve.target = COL.onoverElement;
-					COL.onoverElement.mouseout(COL.eve);
+				if (COL.onoverElement) {
+					var eve = COL.event();
+					//eve.target = COL.onoverElement;
+					//COL.onoverElement.mouseout(COL.eve);
+					COL.onoverElement.fireEvent("mouseout", eve);
 				}
 				COL.onoverElement = null;
-				//COL.canvasonfocus = false;
 			}
 		},
 		tosign: {
@@ -62,10 +64,12 @@ function newCOL() {
 			drag: false
 		},
 		event: function() {
-			this.stopPropagation = function() {
-				this.Propagation = false;
-			};
-			this.Propagation = true;
+			return {
+				stopPropagation: function() {
+					this.Propagation = false;
+				},
+				Propagation: true
+			}
 		},
 
 		/*在当前基础上新建一个对象*/
@@ -143,9 +147,6 @@ function newCOL() {
 		canvas_dom.width = canvas_dom.offsetWidth;
 		canvas_dom.height = canvas_dom.offsetHeight;
 		/*Solve events*/
-		COL.eve.stopPropagation = function() {
-			COL.eve.Propagation = false;
-		};
 		var aEL = COL.tools.addEventListener;
 		aEL(canvas_dom, "mouseover",
 		function(e) {
@@ -154,18 +155,18 @@ function newCOL() {
 		aEL(canvas_dom, "mousemove",
 		function(e) {
 			//e.preventDefault();
-			COL.eve = new COL.event();
-			COL.eve.target = COL.onoverElement;
+			var eve = COL.event();
+			eve.target = COL.onoverElement;
 			COL.mousePosition.fun(e);
-			if (COL.onoverElement && COL.onoverElement.mousemove) {
-				COL.onoverElement.mousemove(COL.eve);
+			if (COL.onoverElement) {
+				COL.onoverElement.fireEvent("mousemove", eve);
 			}
 		});
 		aEL(canvas_dom, "mousedown",
 		function(e) {
 			COL.canvasonfocus = true;
 			//e.preventDefault();
-			var eve = new COL.event();
+			var eve = COL.event();
 			eve.target = COL.onoverElement;
 			eve.button = e.button;
 			COL.tosign.click = true;
@@ -180,12 +181,48 @@ function newCOL() {
 				COL.tosign.rightclick = COL.mouseright = true;
 				break;
 			}
-			if (COL.onoverElement && COL.onoverElement.mousedown) {
-				if (COL.onoverElement.mousedown) {
-					COL.onoverElement.mousedown(eve);
+			if (COL.onoverElement) {
+
+				COL.onoverElement.fireEvent("mousedown", eve);
+				if (COL.onoverElement.eventable) {
+					COL.focus = COL.onoverElement;
 				}
-				COL.focus = COL.onoverElement;
+
 			}
+		});
+		aEL(canvas_dom, "mouseup",
+		function(e) {
+			var eve = COL.event();
+			eve.target = COL.onoverElement;
+			eve.button = e.button;
+			switch (eve.button) {
+			case 0:
+				COL.mouseleft = false;
+				if (COL.tosign.click && eve.target && eve.target.click) {
+					eve.target.click(eve);
+				}
+				break;
+			case 1:
+				COL.mousecenter = false;
+				if (COL.tosign.centerclick && eve.target && eve.target.centerclick) {
+					eve.target.centerclick(eve);
+				}
+				break;
+			case 2:
+				COL.mouseright = false;
+				if (COL.tosign.rightclick && eve.target && eve.target.rightclick) {
+					eve.target.rightclick(eve);
+				}
+				break;
+			}
+			if (COL.onoverElement) {
+				//COL.onoverElement.mouseup(eve);
+				COL.onoverElement.fireEvent("mouseup", eve);
+			}
+		});
+		aEL(canvas_dom, "mouseout",
+		function() {
+			COL.e.mouseoutcanvas();
 		});
 		aEL(document, "mousedown",
 		function(e) {
@@ -193,10 +230,7 @@ function newCOL() {
 				COL.canvasonfocus = false;
 			}
 		});
-		aEL(canvas_dom, "mouseout",
-		function() {
-			COL.e.mouseoutcanvas();
-		});
+
 		/*aEL(canvas_dom, "contextmenu",
 		function(e) {
 			e.preventDefault();
@@ -221,40 +255,11 @@ function newCOL() {
 			//COL.setPosition();
 		});
 
-		aEL(canvas_dom, "mouseup",
-		function(e) {
-			var eve = new COL.event();
-			eve.target = COL.onoverElement;
-			eve.button = e.button;
-			switch (eve.button) {
-			case 0:
-				COL.mouseleft = false;
-				if (COL.tosign.click && eve.target && eve.target.click) {
-					eve.target.click(eve);
-				}
-				break;
-			case 1:
-				COL.mousecenter = false;
-				if (COL.tosign.centerclick && eve.target && eve.target.centerclick) {
-					eve.target.centerclick(eve);
-				}
-				break;
-			case 2:
-				COL.mouseright = false;
-				if (COL.tosign.rightclick && eve.target && eve.target.rightclick) {
-					eve.target.rightclick(eve);
-				}
-				break;
-			}
-			if (COL.onoverElement && COL.onoverElement.mouseup) {
-				COL.onoverElement.mouseup(eve);
-			}
-		});
 		var _mousewheele = (COL.tools.getBrowser() == "firefox") ? "DOMMouseScroll": "mousewheel";
 		aEL(canvas_dom, _mousewheele,
 		function(e) {
 			e = e || window.event;
-			var eve = new COL.event();
+			var eve = COL.event();
 			eve.target = COL.onoverElement;
 			var data = e.wheelDelta ? e.wheelDelta: e.detail;
 			if (data == -3 || data == 120) {
@@ -262,8 +267,9 @@ function newCOL() {
 			} else if (data == 3 || data == -120) {
 				eve.wheel = 1;
 			}
-			if (COL.onoverElement && COL.onoverElement.mousewheel) {
-				COL.onoverElement.mousewheel(eve);
+			if (COL.onoverElement) {
+				//COL.onoverElement.mousewheel(eve);
+				COL.onoverElement.fireEvent("mousewheel", eve);
 			}
 
 		});
@@ -274,11 +280,12 @@ function newCOL() {
 
 				if (!COL.keys[e.keyCode]) {
 					//e.preventDefault();
-					var eve = new COL.event();
+					var eve = COL.event();
 					eve.keyCode = e.keyCode;
 					COL.keys[e.keyCode] = true;
-					if (COL.focus && COL.focus.keydown) {
-						COL.focus.keydown(eve);
+					if (COL.focus) {
+						//COL.focus.keydown(eve);
+						COL.focus.fireEvent("keydown", eve);
 					}
 				}
 			}
@@ -287,11 +294,12 @@ function newCOL() {
 		function(e) {
 			if (COL.canvasonfocus) {
 				if (COL.keys[e.keyCode]) {
-					var eve = new COL.event();
+					var eve = COL.event();
 					eve.keyCode = e.keyCode;
 					COL.keys[e.keyCode] = false;
-					if (COL.focus && COL.focus.keyup) {
-						COL.focus.keyup(eve);
+					if (COL.focus) {
+						//COL.focus.keyup(eve);
+						COL.focus.fireEvent("keyup", eve);
 					}
 				}
 				// e.preventDefault();
@@ -300,11 +308,12 @@ function newCOL() {
 		aEL(window, "keypress",
 		function(e) {
 			if (COL.canvasonfocus) {
-				var eve = new COL.event();
+				var eve = COL.event();
 				eve.keyCode = e.keyCode;
 				COL.keys[e.keyCode] = false;
-				if (COL.focus && COL.focus.keypress) {
-					COL.focus.keypress(eve);
+				if (COL.focus) {
+					//COL.focus.keypress(eve);
+					COL.focus.fireEvent("keypress", eve);
 				}
 				// e.preventDefault();
 			}
@@ -379,7 +388,8 @@ function newCOL() {
 				New: cF.New,
 				clone: cF.clone,
 				addChild: cF.addChild,
-				removeChild: cF.removeChild
+				removeChild: cF.removeChild,
+				fireEvent: COL.Graph.commonFunction.Event.fireEvent
 			};
 			if (opjson) {
 				for (var ob in opjson) {
@@ -440,11 +450,8 @@ function newCOL() {
 		Eventable: function(graph) {
 			graph.eventable = true;
 			graph.overPath = null;
-			graph.events = [];
-			for (var inde = 0; inde < COL.commonevents.length; inde++) {
-				graph.events["on" + COL.commonevents[inde]] = [];
-				graph[COL.commonevents[inde]] = eval('(function(e){for(var i=graph.events["on' + COL.commonevents[inde] + '"].length;i--;){if(typeof(graph.events["on' + COL.commonevents[inde] + '"][i])=="function")graph.events["on' + COL.commonevents[inde] + '"][i](e)}if(e.Propagation){if(graph.parentNode){for(var i=graph.parentNode.events["on' + COL.commonevents[inde] + '"].length;i--;){if(typeof(graph.parentNode.events["on' + COL.commonevents[inde] + '"][i])=="function")graph.parentNode.events["on' + COL.commonevents[inde] + '"][i](e)}}}})');
-			}
+			graph.events = {};
+			//graph.fireEvent = COL.Graph.commonFunction.Event.fireEvent;
 			graph.addEvent = COL.Graph.commonFunction.Event.addEvent;
 			graph.removeEvent = COL.Graph.commonFunction.Event.removeEvent;
 		},
@@ -720,13 +727,15 @@ function newCOL() {
 			},
 			Event: {
 				addEvent: function(name, fun) {
+					if (typeof name == "string") name.replace(/^on/, "");
 					if (!this.events[name]) this.events[name] = [];
 					if (typeof(fun) == "function" && this.events[name]) {
-						var i = COL.tools.findEmptyPlace(this.events[name]);
-						this.events[name][i] = fun;
+						this.events[name].push(fun);
+						var eid = (++COL.tmpEventID);
+						this.events[name][this.events[name].length - 1].EventID = eid;
 						var ev = {
 							ename: name,
-							index: i
+							EventID: eid
 						};
 						return ev;
 					} else {
@@ -734,11 +743,41 @@ function newCOL() {
 					}
 				},
 				removeEvent: function(ev) {
-					this.events[ev.ename][ev.index] = null;
-					ev = null;
-				},
-				fireEvent:function(evename,eobj){
+					if (typeof ev.ename == "string") ev.ename.replace(/^on/, "");
+					if (this.events && this.events[ev.ename]) {
+						var earr = this.events[ev.ename];
+						if (earr.length <= 10) {/*如果个数小于等于10个*/
+							for (var i = 0; i < earr.length; i++) {
+								if (earr[i].EventID == ev.EventID) earr.splice(i, 1);
+							} 
+						}else {/*大于十个用二分搜索*/
+								var middleindex, starti = 0,
+								endi = earr.length - 1;
+								while (endi - starti) { //当前后定位不重合
+									middleindex = Math.floor((starti + endi) / 2);
+									if (earr[middleindex].EventID == ev.EventID) {
+										earr.splice(middleindex, 1) break;
+									} else if (earr[middleindex + 1].EventID > ev.EventID) {
+										endi = middleindex;
+									} else {
+										starti = middleindex + 1;
+									}
+								}
+							};
+					}
 
+				},
+				fireEvent: function(evename, eobj) {
+					if (this.events && this.events[evename]) {
+						for (var i = this.events[evename].length; i--;) {
+							if (typeof(this.events[evename][i]) == "function") this.events[evename][i](eobj);
+						}
+					}
+					if (eobj.Propagation) {
+						if (this.parentNode) {
+							this.parentNode.fireEvent(evename, eobj);
+						}
+					}
 				}
 			}
 		},
@@ -945,6 +984,7 @@ function newCOL() {
 			cct.globalCompositeOperation = "lighter";
 			cct.fillStyle = "red";
 			cct.fillText("mouseX:" + COL.mouseX + " Y:" + COL.mouseY + " mouseL:" + COL.mouseleft + " C:" + COL.mousecenter + " R:" + COL.mouseright + " FPS:" + COL.fps.v + " Items:" + COL.Debug.itemcount, 0, COL.canvas.height);
+			cct.fillText("onmouseoverGraphID:" + (COL.onoverElement ? COL.onoverElement.GraphID: "null") + " onfocusGraphID:" + (COL.focus ? COL.focus.GraphID: "null"), 0, COL.canvas.height - 20);
 			cct.strokeStyle = "red";
 			cct.globalCompositeOperation = "source-over";
 			cct.moveTo(COL.mouseX, COL.mouseY + 6);
@@ -956,17 +996,23 @@ function newCOL() {
 			COL.fps.c++;
 		}
 		if (COL.newonoverElement != COL.onoverElement) {
-			if (COL.onoverElement && COL.onoverElement.mouseout) {
-				var eve = new COL.event();
+			if (COL.onoverElement
+			/* && COL.onoverElement.mouseout*/
+			) {
+				var eve = COL.event();
 				eve.target = COL.onoverElement;
-				COL.onoverElement.mouseout(eve);
+				//COL.onoverElement.mouseout(eve);
+				COL.onoverElement.fireEvent("mouseout", eve);
 				COL.tosign.click = COL.tosign.centerclick = COL.tosign.rightcilck = false;
 			}
 			COL.onoverElement = COL.newonoverElement;
-			if (COL.onoverElement && COL.onoverElement.mouseover) {
-				var eve = new COL.event();
+			if (COL.onoverElement
+			/*&& COL.onoverElement.mouseover*/
+			) {
+				var eve = COL.event();
 				eve.target = COL.onoverElement;
-				COL.onoverElement.mouseover(eve);
+				//COL.onoverElement.mouseover(eve);
+				COL.onoverElement.fireEvent("mouseover", eve);
 			}
 		}
 	};
@@ -1073,9 +1119,9 @@ function newCOL() {
 		},
 		addEventListener: function(dom, e, fun) {
 			if (dom.addEventListener) dom.addEventListener(e, fun, false);
-			else if (dom.attachEvent) dom.attachEvent("on" + e, fun);
+			else if (dom.attachEvent) dom.attachEvent(e, fun);
 			else {
-				dom["on" + e] = fun;
+				dom[e] = fun;
 			}
 		},
 		getBrowser: function() { //识别浏览器
@@ -1091,6 +1137,10 @@ function newCOL() {
 			COL.fps.v = COL.fps.c;
 			COL.fps.c = 0;
 		}
+		/*,
+		dichotomySearch:function(array,fun){
+			if(typeof array=="object")
+		}*/
 	};
 
 	COL.Debug = {
@@ -1123,7 +1173,7 @@ function newCOL() {
 
 	if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element) {
 		var currTime = new Date().getTime();
-		var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		var timeToCall = Math.max(0, 1000 / 60 - (currTime - lastTime));
 		var id = window.setTimeout(function() {
 			callback(currTime + timeToCall);
 		},
