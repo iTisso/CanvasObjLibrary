@@ -575,7 +575,6 @@ function newCOL() {
 					ct.lineWidth = this.textborderWidth;
 					ct.strokeStyle = this.textborderColor;
 					ct.fillStyle = this.color || COL.font.color || "#000";
-					//ct.save();
 					if (this.shadowBlur > 0) {
 						ct.font = this.font;
 						ct.shadowBlur = this.shadowBlur;
@@ -668,6 +667,9 @@ function newCOL() {
 
 					this.font = font;
 					ct.font = font;
+					this.plusoffsetX=this.shadowBlur+this.shadowOffset.x;
+					this.plusoffsetY=this.shadowBlur+this.shadowOffset.y;
+					var addedwidth=this.shadowBlur*2+Math.abs(this.shadowOffset.x),addedheight=this.shadowBlur*2+Math.abs(this.shadowOffset.y);
 					if (this.autoSize) {
 						var w = 0,
 						tw;
@@ -676,8 +678,8 @@ function newCOL() {
 								tw = ct.measureText(this.varylist[i]).width;
 								w = tw > w ? tw: w;
 							}
-							this.width = imgobj.width = (this.maxWidth >= w) ? this.maxWidth: w;
-							this.height = imgobj.height = this.varylist.length * this.lineHeight;
+							imgobj.width = (this.width = (this.maxWidth >= w) ? this.maxWidth: w)+addedwidth;
+							 imgobj.height =(this.height = this.varylist.length * this.lineHeight)+addedheight;
 						} else if (this.linedirection == 1) {
 							for (var i = 0; i < this.varylist.length; i++) {
 								tw = this.varylist[i].split("").length;
@@ -692,6 +694,7 @@ function newCOL() {
 						imgobj.width = (this.width >= 0) ? this.width: 100;
 						imgobj.height = (this.height >= 0) ? this.height: 30;
 					}
+					ct.translate( this.plusoffsetX,this.plusoffsetY);
 					this.vary(ct);
 				},
 				setSize: function(width, height) {
@@ -832,6 +835,7 @@ function newCOL() {
 							ct.restore();
 						} else {
 							if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
+								ct.translate(- this.plusoffsetX,-this.plusoffsetY);
 								ct.drawImage(cObj.imageobj, 0, 0);
 							}
 						}
