@@ -78,7 +78,7 @@ function newCOL() {
 		}
 	};
 	COL.generateGraphID = function() {
-		return++COL.tmpGraphID;
+		return (++COL.tmpGraphID);
 	};
 	COL.imageSmoothing = {
 		on: function() {
