@@ -34,6 +34,9 @@ function newCOL() {
 		canvasonfocus: false,
 		document: null,
 		onoverElement: null,
+		simpleMouseCheckMode: false,
+		MatrixTransformMode: false,
+		mousestatuechanged:true,
 		tmpGraphID: 0,
 		tmpEventID: 0,
 		fps: {
@@ -75,7 +78,7 @@ function newCOL() {
 		}
 	};
 	COL.generateGraphID = function() {
-		return ++COL.tmpGraphID;
+		return++COL.tmpGraphID;
 	};
 	COL.imageSmoothing = {
 		on: function() {
@@ -146,12 +149,14 @@ function newCOL() {
 		aEL(canvas_dom, "mouseover",
 		function(e) {
 			COL.canvasonfocus = true;
+			COL.mousestatuechanged=true;
 		});
 		aEL(canvas_dom, "mousemove",
 		function(e) {
 			//e.preventDefault();
 			var eve = COL.event();
 			eve.target = COL.onoverElement;
+			COL.mousestatuechanged=true;
 			COL.mousePosition.fun(e);
 			if (COL.onoverElement) {
 				COL.onoverElement.fireEvent("mousemove", eve);
@@ -160,6 +165,7 @@ function newCOL() {
 		aEL(canvas_dom, "mousedown",
 		function(e) {
 			COL.canvasonfocus = true;
+			COL.mousestatuechanged=true;
 			//e.preventDefault();
 			var eve = COL.event();
 			eve.target = COL.onoverElement;
@@ -186,6 +192,7 @@ function newCOL() {
 		});
 		aEL(canvas_dom, "mouseup",
 		function(e) {
+			COL.mousestatuechanged=true;
 			var eve = COL.event();
 			eve.target = COL.onoverElement;
 			eve.button = e.button;
@@ -215,6 +222,7 @@ function newCOL() {
 		});
 		aEL(canvas_dom, "mouseout",
 		function() {
+			COL.mousestatuechanged=true;
 			COL.e.mouseoutcanvas();
 		});
 		aEL(document, "mousedown",
@@ -264,7 +272,6 @@ function newCOL() {
 			}
 
 		});
-
 		aEL(window, "keydown",
 		function(e) {
 			if (COL.canvasonfocus) {
@@ -316,7 +323,19 @@ function newCOL() {
 		COL.document.width = canvas_dom.width;
 		COL.document.height = canvas_dom.height;
 		COL.drawlist = [COL.document];
+		COL.MatrixTransform.off();
 	};
+
+	COL.MatrixTransform = {
+		on: function() {
+			COL.MatrixTransformMode = true;
+			COL.transform = COL.optionalFun.transformDirect;
+		},
+		off: function() {
+			COL.MatrixTransformMode = true;
+			COL.transform = COL.optionalFun.transformLinear;
+		}
+	}
 
 	COL.setBuffCanvas = function(buf) {
 		COL.buffercanvas = buf;
@@ -359,6 +378,7 @@ function newCOL() {
 				eventable: false,
 				imageobj: null,
 				needsort: true,
+				matrix: COL.MatrixTransformMode ? new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) : null,
 				z_index: null,
 				clipBy: "border",
 				drawlist: [],
@@ -377,7 +397,8 @@ function newCOL() {
 				clone: cF.clone,
 				addChild: cF.addChild,
 				removeChild: cF.removeChild,
-				fireEvent: COL.Graph.commonFunction.Event.fireEvent
+				fireEvent: cF.Event.fireEvent,
+				setMatrix: cF.setMatrix
 			};
 			if (opjson) {
 				for (var ob in opjson) {
@@ -533,6 +554,7 @@ function newCOL() {
 				newobj.parentNode = null;
 				newobj.childNode = [];
 				newobj.drawlist = [];
+				newobj.GraphID=COL.generateGraphID();
 				return newobj;
 			},
 			clone: function() {
@@ -568,9 +590,57 @@ function newCOL() {
 					}
 				}
 			},
+			setMatrix: function(floatarrayMatrix) {
+				if (!floatarrayMatrix) {
+					var rotate = this.rotate * 0.0174532925,
+					cos = Math.cos(rotate),
+					sin = Math.sin(rotate);
+					if (!this.matrix) this.matrix = new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+					this.matrix.set(COL.tools.multiplyMatrix([this.zoom.x, 0, 0, 0, this.zoom.y, 0, 0, 0, 0], [cos, -sin, 0, sin, cos, 0, 0, 0, 0], [1, 0, this.x + this.rotatecenter.x - this.positionpoint.x, 0, 1, this.y + this.rotatecenter.y - this.positionpoint.y, 0, 0, 0]));
+				} else {
+					this.matrix = floatarrayMatrix;
+				}
+			},
+			isPointInPath:function(ct,cObj){
+				if (cObj.overPath) {
+								cObj.overPath(ct);
+							} else if (cObj.drawfunction) {
+								cObj.drawfunction(ct);
+							} else {
+								COL.tools.defaultPathFun(ct, cObj);
+							}
+							if (ct.isPointInPath(COL.mouseX, COL.mouseY)) {
+								COL.newonoverElement = cObj;
+								/*if (COL.Debug.stat) {
+									ct.save();
+									ct.globalCompositeOperation = "lighter";
+									ct.fillStyle = "rgba(255,255,255,0.3)";
+									ct.fill();
+									ct.restore();
+								}*/
+							}
+			},
+			drawDebugstat:function(cct){
+				cct.save();
+			cct.setTransform(1, 0, 0, 1, 0, 0);
+			cct.font = "16px Arial";
+			cct.textBaseline = "bottom";
+			cct.globalCompositeOperation = "lighter";
+			cct.fillStyle = "red";
+			cct.fillText("mouseX:" + COL.mouseX + " Y:" + COL.mouseY + " mouseL:" + COL.mouseleft + " C:" + COL.mousecenter + " R:" + COL.mouseright + " FPS:" + COL.fps.v + " Items:" + COL.Debug.itemcount, 0, COL.canvas.height);
+			cct.fillText("onmouseoverGraphID:" + (COL.onoverElement ? COL.onoverElement.GraphID: "null") + " onfocusGraphID:" + (COL.focus ? COL.focus.GraphID: "null"), 0, COL.canvas.height - 20);
+			cct.strokeStyle = "red";
+			cct.globalCompositeOperation = "source-over";
+			cct.moveTo(COL.mouseX, COL.mouseY + 6);
+			cct.lineTo(COL.mouseX, COL.mouseY - 6);
+			cct.moveTo(COL.mouseX - 6, COL.mouseY);
+			cct.lineTo(COL.mouseX + 6, COL.mouseY);
+			cct.stroke();
+			cct.restore();
+			COL.fps.c++;
+			},
 			t: {
 				vary: function(ct) {
-					ct.beginPath();
 					ct.textBaseline = this.baseline;
 					ct.lineWidth = this.textborderWidth;
 					ct.strokeStyle = this.textborderColor;
@@ -587,22 +657,28 @@ function newCOL() {
 						ct.translate(0, this.lineHeight / 2);
 						if (this.columndirection === 0) {
 							for (var i = 0; i < this.varylist.length; i++) {
+								ct.save();
 								if (this.fill) {
 									ct.fillText(this.varylist[i], this.innerX, this.innerY);
 								}
 								if (this.textborderWidth) {
+									ct.shadowBlur = 0;
 									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
 								}
+								ct.restore();
 								ct.translate(0, this.lineHeight);
 							}
 						} else if (this.columndirection == 1) {
 							for (var i = this.varylist.length - 1; i > 0; i--) {
+								ct.save();
 								if (this.fill) {
 									ct.fillText(this.varylist[i], this.innerX, this.innerY);
 								}
 								if (this.textborderWidth) {
+									ct.shadowBlur = 0;
 									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
 								}
+								ct.restore();
 								ct.translate(0, this.lineHeight);
 							}
 						}
@@ -619,6 +695,7 @@ function newCOL() {
 										ct.fillText(thisline[im], this.innerX, this.innerY);
 									}
 									if (this.textborderWidth) {
+										ct.shadowBlur = 0;
 										ct.strokeText(thisline[im], this.innerX, this.innerY);
 									}
 									ct.restore();
@@ -638,6 +715,7 @@ function newCOL() {
 										ct.fillText(thisline[im], this.innerX, this.innerY);
 									}
 									if (this.textborderWidth) {
+										ct.shadowBlur = 0;
 										ct.strokeText(thisline[im], this.innerX, this.innerY);
 									}
 									ct.restore();
@@ -649,9 +727,10 @@ function newCOL() {
 					}
 				},
 				prepareText: function() {
-					if ((!this.imageobj)||(!this.imageobj.getContext)) {
-						this.imageobj= document.createElement("canvas");
-					}var imgobj=this.imageobj;
+					if ((!this.imageobj) || (!this.imageobj.getContext)) {
+						this.imageobj = document.createElement("canvas");
+					}
+					var imgobj = this.imageobj;
 					var ct = imgobj.getContext("2d");
 					ct.clearRect(0, 0, imgobj.width, imgobj.height);
 					this.varylist = this.text.split(/\n/g);
@@ -667,9 +746,10 @@ function newCOL() {
 
 					this.font = font;
 					ct.font = font;
-					this.plusoffsetX=this.shadowBlur+this.shadowOffset.x;
-					this.plusoffsetY=this.shadowBlur+this.shadowOffset.y;
-					var addedwidth=this.shadowBlur*2+Math.abs(this.shadowOffset.x),addedheight=this.shadowBlur*2+Math.abs(this.shadowOffset.y);
+					this.plusoffsetX = this.shadowBlur + (this.shadowOffset.x < 0 ? -this.shadowOffset.x: 0);
+					this.plusoffsetY = this.shadowBlur + (this.shadowOffset.y < 0 ? -this.shadowOffset.y: 0);
+					var addedwidth = this.shadowBlur * 2 + Math.abs(this.shadowOffset.x),
+					addedheight = this.shadowBlur * 2 + Math.abs(this.shadowOffset.y);
 					if (this.autoSize) {
 						var w = 0,
 						tw;
@@ -678,23 +758,23 @@ function newCOL() {
 								tw = ct.measureText(this.varylist[i]).width;
 								w = tw > w ? tw: w;
 							}
-							imgobj.width = (this.width = (this.maxWidth >= w) ? this.maxWidth: w)+addedwidth;
-							 imgobj.height =(this.height = this.varylist.length * this.lineHeight)+addedheight;
+							imgobj.width = (this.width = (this.maxWidth >= w) ? this.maxWidth: w) + addedwidth;
+							imgobj.height = (this.height = this.varylist.length * this.lineHeight) + addedheight;
 						} else if (this.linedirection == 1) {
 							for (var i = 0; i < this.varylist.length; i++) {
 								tw = this.varylist[i].split("").length;
 								w = tw > w ? tw: w;
 							}
 							w *= this.fontSize;
-							this.width = imgobj.width = this.varylist.length * this.lineHeight;
-							this.height = imgobj.height = (this.maxWidth >= w) ? this.maxWidth: w;
+							 imgobj.width =(this.width = this.varylist.length * this.lineHeight)+addedwidth;
+							 imgobj.height =(this.height = (this.maxWidth >= w) ? this.maxWidth: w)+addedheight;
 						}
 
 					} else {
 						imgobj.width = (this.width >= 0) ? this.width: 100;
 						imgobj.height = (this.height >= 0) ? this.height: 30;
 					}
-					ct.translate( this.plusoffsetX,this.plusoffsetY);
+					ct.translate(this.plusoffsetX, this.plusoffsetY);
 					this.vary(ct);
 				},
 				setSize: function(width, height) {
@@ -710,7 +790,7 @@ function newCOL() {
 			},
 			Event: {
 				addEvent: function(name, fun) {
-					if (typeof name == "string") name=name.replace(/^on/, "");
+					if (typeof name == "string") name = name.replace(/^on/, "");
 					if (!this.events[name]) this.events[name] = [];
 					if (typeof(fun) == "function" && this.events[name]) {
 						this.events[name].push(fun);
@@ -729,23 +809,25 @@ function newCOL() {
 					if (typeof ev.ename == "string") ev.ename.replace(/^on/, "");
 					if (this.events && this.events[ev.ename]) {
 						var earr = this.events[ev.ename];
-								var middleindex, starti = 0,
-								endi = earr.length - 1,evid=ev.EventID;
-								while (endi - starti) { //当前后定位不重合
-									middleindex = Math.floor((starti + endi) / 2);
-									if (earr[middleindex].EventID == evid) {
-										earr.splice(middleindex, 1) ;break;
-									} else if (earr[middleindex + 1].EventID >evid) {
-										endi = middleindex;
-									} else {
-										starti = middleindex + 1;
-									}
-								}
+						var middleindex, starti = 0,
+						endi = earr.length - 1,
+						evid = ev.EventID;
+						while (endi - starti) { //当前后定位不重合
+							middleindex = Math.floor((starti + endi) / 2);
+							if (earr[middleindex].EventID == evid) {
+								earr.splice(middleindex, 1);
+								break;
+							} else if (earr[middleindex + 1].EventID > evid) {
+								endi = middleindex;
+							} else {
+								starti = middleindex + 1;
+							}
+						}
 					}
 
 				},
 				fireEvent: function(evename, eobj) {
-					var events=this.events;
+					var events = this.events;
 					if (events && events[evename]) {
 						for (var i = events[evename].length; i--;) {
 							if (typeof(events[evename][i]) == "function") {
@@ -766,6 +848,7 @@ function newCOL() {
 				if (graph.parentNode) {
 					graph.parentNode.removeChild(graph);
 				}
+				delete graph;
 				return true;
 			}
 			return false;
@@ -778,10 +861,14 @@ function newCOL() {
 			if (d[i].display) {
 				cObj = d[i];
 				ct.save();
-				ct.translate(cObj.x + cObj.rotatecenter.x - cObj.positionpoint.x, cObj.y + cObj.rotatecenter.y - cObj.positionpoint.y);
-				ct.beginPath();
-				ct.rotate(cObj.rotate * 0.017453);
-				ct.scale(cObj.zoom.x, cObj.zoom.y);
+				COL.transform(ct, cObj);
+				if(COL.Debug.stat){
+					ct.moveTo(0,3);
+					ct.lineTo(0,-3);
+					ct.moveTo(3,0);
+					ct.lineTo(-3,0);
+					ct.stroke();
+				}
 				if (cObj.opacity !== null) ct.globalAlpha = cObj.opacity;
 				if (cObj.overflow == "hidden") {
 					ct.beginPath();
@@ -808,18 +895,18 @@ function newCOL() {
 				if (cObj.beforedrawfun) cObj.beforedrawfun(ct);
 				if (cObj.backgroundColor) {
 					ct.fillStyle = cObj.backgroundColor;
-					ct.fillRect( - (cObj.rotatecenter.x), -(cObj.rotatecenter.y), cObj.width, cObj.height);
+					ct.fillRect( - cObj.rotatecenter.x, -cObj.rotatecenter.y, cObj.width, cObj.height);
 				}
 				switch (cObj.drawtype) {
 				case "function":
 					{
-						ct.translate( - cObj.rotatecenter.x, -cObj.rotatecenter.y);
+						ct.transform(1,0,0,1,- cObj.rotatecenter.x,-cObj.rotatecenter.y);
 						if (cObj.drawfunction) cObj.drawfunction(ct);
 						break;
 					}
 				case "image":
 					{
-						ct.translate( - cObj.rotatecenter.x, -cObj.rotatecenter.y);
+						ct.transform(1,0,0,1,- cObj.rotatecenter.x,-cObj.rotatecenter.y);
 						if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
 							ct.drawImage(cObj.imageobj, 0, 0);
 						}
@@ -828,16 +915,19 @@ function newCOL() {
 					}
 				case "text":
 					{
-						ct.translate( - cObj.rotatecenter.x, -cObj.rotatecenter.y);
+						ct.transform(1,0,0,1,- cObj.rotatecenter.x,-cObj.rotatecenter.y);
 						if (cObj.realtimeVary) {
 							ct.save();
 							cObj.vary(ct);
 							ct.restore();
 						} else {
 							if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
-								ct.translate(- this.plusoffsetX,-this.plusoffsetY);
+								ct.save();
+								ct.transform(1,0,0,1,- cObj.plusoffsetX, -cObj.plusoffsetY);
 								ct.drawImage(cObj.imageobj, 0, 0);
+								ct.restore();
 							}
+
 						}
 
 						break;
@@ -845,32 +935,30 @@ function newCOL() {
 				}
 				ct.save();
 				if (cObj.eventable) {
-					if (COL.mouseX) {
-						if (cObj.overPath) {
-							cObj.overPath(ct);
-						} else if (cObj.drawfunction) {
-							cObj.drawfunction(ct);
-						} else {
-							COL.tools.defaultPathFun(ct, cObj);
-						}
-						if (ct.isPointInPath(COL.mouseX, COL.mouseY)) {
-							COL.newonoverElement = cObj;
-							if (COL.Debug.stat) {
-								ct.save();
-								ct.globalCompositeOperation = "lighter";
-								ct.fillStyle = "rgba(255,255,255,0.3)";
-								ct.fill();
-								ct.restore();
+					if (COL.simpleMouseCheckMode) {
+						if (COL.mouseX&&COL.mouseY
+							) {
+							if(COL.mouseX+ cObj.positionpoint.x  <= cObj.x+ cObj.width &&
+							 COL.mouseY +cObj.positionpoint.y <= cObj.y+ cObj.height&&
+							  COL.mouseX+cObj.positionpoint.x>= cObj.x && 
+							COL.mouseY+ cObj.positionpoint.y>= cObj.y 
+							){
+								if(COL.mousestatuechanged){
+									COL.Graph.commonFunction.isPointInPath(ct,cObj);
+								}
 							}
 						}
+					}else if(COL.mousestatuechanged){
+						COL.Graph.commonFunction.isPointInPath(ct,cObj);
+						// COL.mousestatuechanged=false;
 					}
+					
 				}
 				if (COL.Debug.stat) {
 					COL.Debug.itemcount++;
 					ct.save();
 					ct.beginPath();
 					ct.strokeRect(0, 0, cObj.width, cObj.height);
-					//ct.stroke();
 					var zx = cObj.zoom.x,
 					zy = cObj.zoom.y;
 					if (cObj.parentNode) {
@@ -914,7 +1002,8 @@ function newCOL() {
 				ct.restore();
 				if (cObj.afterdrawfun) cObj.afterdrawfun(ct);
 				ct.restore();
-				ct.translate( - cObj.rotatecenter.x, -cObj.rotatecenter.y);
+				ct.transform(1,0,0,1,- cObj.rotatecenter.x, -cObj.rotatecenter.y);
+				//ct.translate( - cObj.rotatecenter.x, -cObj.rotatecenter.y);
 				if (cObj.childNode.length) {
 					COL.drawElement(cObj.drawlist, ct);
 				}
@@ -924,6 +1013,51 @@ function newCOL() {
 
 	};
 
+	/*把队列中的图形按index绘制出来*/
+	/*draw all graphs whose [display=true]*/
+	// var cct;
+	COL.draw = function() {
+		COL.newonoverElement = null;
+		var cct = COL.cct;
+		COL.Debug.itemcount = 0;
+		if (COL.autoClear) {
+			cct.clearRect(0, 0, COL.canvas.width, COL.canvas.height);
+			if (COL.buffercontext) COL.buffercontext.clearRect(0, 0, COL.document.width, COL.document.height);
+		}
+		COL.drawElement(COL.drawlist, COL.currentcontext);
+		if (COL.Debug.stat) {
+			COL.Graph.commonFunction.drawDebugstat(cct);
+		}
+		COL.mousestatuechanged=false;
+		if (COL.newonoverElement!=null&&COL.newonoverElement != COL.onoverElement) {
+			if (COL.onoverElement) {
+				var eve = COL.event();
+				eve.target = COL.onoverElement;
+				COL.onoverElement.fireEvent("mouseout", eve);
+				COL.tosign.click = COL.tosign.centerclick = COL.tosign.rightcilck = false;
+			}
+			COL.onoverElement = COL.newonoverElement;
+			if (COL.onoverElement) {
+				var eve = COL.event();
+				eve.target = COL.onoverElement;
+				COL.onoverElement.fireEvent("mouseover", eve);
+			}
+		}
+	};
+
+	COL.optionalFun = {
+		transformDirect: function(ct, obj) {
+			if (obj.matrix) {
+				ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
+			}
+
+		},
+		transformLinear: function(ct, obj) {
+			ct.transform(1,0,0,1,obj.x + obj.rotatecenter.x - obj.positionpoint.x, obj.y + obj.rotatecenter.y - obj.positionpoint.y);
+			ct.rotate(obj.rotate * 0.017453);
+			ct.scale(obj.zoom.x, obj.zoom.y);
+		}
+	};
 	COL.mousePosition = {
 		fun: null,
 		offsetx: 0,
@@ -942,56 +1076,34 @@ function newCOL() {
 		}
 	};
 
-	/*把队列中的图形按index绘制出来*/
-	/*draw all graphs whose [display=true]*/
-	// var cct;
-	COL.draw = function() {
-		COL.newonoverElement = null;
-		var cct = COL.cct;
-		if (COL.Debug.stat) {
-			COL.Debug.itemcount = 0;
-		}
-		if (COL.autoClear) {
-			cct.clearRect(0, 0, COL.canvas.width, COL.canvas.height);
-			if (COL.buffercontext) COL.buffercontext.clearRect(0, 0, COL.document.width, COL.document.height);
-		}
-		COL.drawElement(COL.drawlist, COL.currentcontext);
-		if (COL.Debug.stat) {
-			cct.save();
-			cct.setTransform(1, 0, 0, 1, 0, 0);
-			cct.font = "16px Arial";
-			cct.textBaseline = "bottom";
-			cct.globalCompositeOperation = "lighter";
-			cct.fillStyle = "red";
-			cct.fillText("mouseX:" + COL.mouseX + " Y:" + COL.mouseY + " mouseL:" + COL.mouseleft + " C:" + COL.mousecenter + " R:" + COL.mouseright + " FPS:" + COL.fps.v + " Items:" + COL.Debug.itemcount, 0, COL.canvas.height);
-			cct.fillText("onmouseoverGraphID:" + (COL.onoverElement ? COL.onoverElement.GraphID: "null") + " onfocusGraphID:" + (COL.focus ? COL.focus.GraphID: "null"), 0, COL.canvas.height - 20);
-			cct.strokeStyle = "red";
-			cct.globalCompositeOperation = "source-over";
-			cct.moveTo(COL.mouseX, COL.mouseY + 6);
-			cct.lineTo(COL.mouseX, COL.mouseY - 6);
-			cct.moveTo(COL.mouseX - 6, COL.mouseY);
-			cct.lineTo(COL.mouseX + 6, COL.mouseY);
-			cct.stroke();
-			cct.restore();
-			COL.fps.c++;
-		}
-		if (COL.newonoverElement != COL.onoverElement) {
-			if (COL.onoverElement) {
-				var eve = COL.event();
-				eve.target = COL.onoverElement;
-				COL.onoverElement.fireEvent("mouseout", eve);
-				COL.tosign.click = COL.tosign.centerclick = COL.tosign.rightcilck = false;
-			}
-			COL.onoverElement = COL.newonoverElement;
-			if (COL.onoverElement) {
-				var eve = COL.event();
-				eve.target = COL.onoverElement;
-				COL.onoverElement.fireEvent("mouseover", eve);
-			}
-		}
-	};
-
 	COL.tools = {
+		multiplyMatrix: function() {
+			var mats = arguments;
+			if (mats) {
+				if (mats.length > 1) {
+					var mp, mn;
+					for (var i = mats.length; i--;) {
+						var pm = i - 1;
+						if (pm >= 0) {
+							mp = mats[pm];
+							mn = mats[i];
+							var ta = new Float64Array(9);
+							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
+							ta[1] = mp[0] * mn[1] + mp[1] * mn[4] + mp[2] * mn[7];
+							ta[2] = mp[0] * mn[2] + mp[1] * mn[5] + mp[2] * mn[8];
+							ta[3] = mp[3] * mn[0] + mp[4] * mn[3] + mp[5] * mn[6];
+							ta[4] = mp[3] * mn[1] + mp[4] * mn[4] + mp[5] * mn[7];
+							ta[5] = mp[3] * mn[2] + mp[4] * mn[5] + mp[5] * mn[8];
+							ta[8] = ta[7] = ta[6] = 0;
+							mats[pm] = (ta);
+						}
+					}
+					return mats[0];
+				}
+			} else {
+				return mats[0];
+			}
+		},
 		getnum: function(string) { //提取字符串里首次出现的数字串
 			if (!string) return 0;
 			else {
@@ -1144,9 +1256,10 @@ function newCOL() {
 		window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
 		window.cancelRequestAnimationFrame = window[vendors[x] + 'CancelRequestAnimationFrame'];
 	}
-	if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element) {
+	if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element,interval) {
 		var currTime = new Date().getTime();
-		var timeToCall = Math.max(0, 1000 / 60 - (currTime - lastTime));
+		var timeToCall =interval||( Math.max(0, 1000 / 60 - (currTime - lastTime)));
+		callback(0);
 		var id = window.setTimeout(function() {
 			callback(currTime + timeToCall);
 		},
@@ -1158,3 +1271,4 @@ function newCOL() {
 		clearTimeout(id);
 	};
 } ());
+
