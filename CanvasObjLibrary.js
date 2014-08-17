@@ -332,7 +332,7 @@ function newCOL() {
 			COL.transform = COL.optionalFun.transformDirect;
 		},
 		off: function() {
-			COL.MatrixTransformMode = true;
+			COL.MatrixTransformMode = false;
 			COL.transform = COL.optionalFun.transformLinear;
 		}
 	}
@@ -378,7 +378,7 @@ function newCOL() {
 				eventable: false,
 				imageobj: null,
 				needsort: true,
-				matrix: COL.MatrixTransformMode ? new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) : null,
+				matrix: COL.MatrixTransformMode ? new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) : null,
 				z_index: null,
 				clipBy: "border",
 				drawlist: [],
@@ -579,7 +579,7 @@ function newCOL() {
 				if (this.childNode[graph.GraphID]) {
 					//this.childNode[graph.GraphID] = null;
 					graph.parentNode = null;
-					delete this.childNode[graph.GraphID];
+					//delete this.childNode[graph.GraphID];
 					var ind = 0;
 					for (var ele in this.drawlist) {
 						if (this.drawlist[ele].GraphID == graph.GraphID) {
@@ -611,13 +611,6 @@ function newCOL() {
 							}
 							if (ct.isPointInPath(COL.mouseX, COL.mouseY)) {
 								COL.newonoverElement = cObj;
-								/*if (COL.Debug.stat) {
-									ct.save();
-									ct.globalCompositeOperation = "lighter";
-									ct.fillStyle = "rgba(255,255,255,0.3)";
-									ct.fill();
-									ct.restore();
-								}*/
 							}
 			},
 			drawDebugstat:function(cct){
@@ -641,16 +634,16 @@ function newCOL() {
 			},
 			t: {
 				vary: function(ct) {
-					ct.textBaseline = this.baseline;
-					ct.lineWidth = this.textborderWidth;
-					ct.strokeStyle = this.textborderColor;
+					if(this.baseline)ct.textBaseline = this.baseline;
+					if(this.textborderWidth)ct.lineWidth = this.textborderWidth;
+					if(this.textborderColor)ct.strokeStyle = this.textborderColor;
 					ct.fillStyle = this.color || COL.font.color || "#000";
 					if (this.shadowBlur > 0) {
 						ct.font = this.font;
 						ct.shadowBlur = this.shadowBlur;
-						ct.shadowColor = this.shadowColor;
-						ct.shadowOffsetX = this.shadowOffset.x;
-						ct.shadowOffsetY = this.shadowOffset.y;
+						if(this.shadowColor)ct.shadowColor = this.shadowColor;
+						if(this.shadowOffset.x)ct.shadowOffsetX = this.shadowOffset.x;
+						if(this.shadowOffset.y)ct.shadowOffsetY = this.shadowOffset.y;
 					}
 					ct.font = this.font;
 					if (this.linedirection === 0) {
@@ -743,7 +736,6 @@ function newCOL() {
 					else {
 						font += (" " + COL.fontFamily);
 					}
-
 					this.font = font;
 					ct.font = font;
 					this.plusoffsetX = this.shadowBlur + (this.shadowOffset.x < 0 ? -this.shadowOffset.x: 0);
@@ -856,7 +848,6 @@ function newCOL() {
 	};
 
 	COL.drawElement = function(d, ct) {
-		var currentObj;
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
 				cObj = d[i];
@@ -925,6 +916,11 @@ function newCOL() {
 								ct.save();
 								ct.transform(1,0,0,1,- cObj.plusoffsetX, -cObj.plusoffsetY);
 								ct.drawImage(cObj.imageobj, 0, 0);
+								if(COL.Debug.stat){
+									ct.strokeStyle="#ccc";
+									ct.strokeRect(0, 0, cObj.imageobj.width, cObj.imageobj.height);
+									ct.transform(1,0,0,1, cObj.plusoffsetX, cObj.plusoffsetY);
+								}
 								ct.restore();
 							}
 
@@ -1082,13 +1078,12 @@ function newCOL() {
 			if (mats) {
 				if (mats.length > 1) {
 					var mp, mn;
+					var ta = new Float32Array(9);
 					for (var i = mats.length; i--;) {
 						var pm = i - 1;
 						if (pm >= 0) {
 							mp = mats[pm];
-							mn = mats[i];
-							var ta = new Float64Array(9);
-							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
+							mn = mats[i];							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
 							ta[1] = mp[0] * mn[1] + mp[1] * mn[4] + mp[2] * mn[7];
 							ta[2] = mp[0] * mn[2] + mp[1] * mn[5] + mp[2] * mn[8];
 							ta[3] = mp[3] * mn[0] + mp[4] * mn[3] + mp[5] * mn[6];
