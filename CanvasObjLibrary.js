@@ -416,6 +416,7 @@ function newCOL() {
 		NewTextObj: function(text, fontsize, opjson) {
 			var t = COL.Graph.New();
 			t.drawtype = "text";
+			t.autoVary = true;
 			t.realtimeVary = false;
 			t.text = text || " ";
 			t.varylist = [];
@@ -453,7 +454,7 @@ function newCOL() {
 			t.prepareText = COL.Graph.commonFunction.t.prepareText;
 			t.setSize = COL.Graph.commonFunction.t.setSize;
 			t.setText = COL.Graph.commonFunction.t.setText;
-			t.prepareText();
+			if (t.autoVary) t.prepareText();
 			return t;
 		},
 		Eventable: function(graph) {
@@ -577,25 +578,21 @@ function newCOL() {
 			},
 			removeChild: function(graph) {
 				if (this.childNode[graph.GraphID]) {
-					//this.childNode[graph.GraphID] = null;
-					graph.parentNode = null;
-					//delete this.childNode[graph.GraphID];
-					var ind = 0;
-					for (var ele in this.drawlist) {
-						if (this.drawlist[ele].GraphID == graph.GraphID) {
-							this.drawlist.splice(ind, 1);
-							break;
-						}
-						ind++;
-					}
+				graph.parentNode = null;
+				this.childNode[graph.GraphID] = null;
+				delete this.childNode[graph.GraphID];
+				var ind=this.drawlist.lastIndexOf(graph);
+				if(ind>=0){
+					this.drawlist.splice(ind, 1);
 				}
+			}
 			},
 			setMatrix: function(floatarrayMatrix) {
 				if (!floatarrayMatrix) {
 					var rotate = this.rotate * 0.0174532925,
 					cos = Math.cos(rotate),
 					sin = Math.sin(rotate);
-					if (!this.matrix) this.matrix = new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+					if (!this.matrix) this.matrix = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 					this.matrix.set(COL.tools.multiplyMatrix([this.zoom.x, 0, 0, 0, this.zoom.y, 0, 0, 0, 0], [cos, -sin, 0, sin, cos, 0, 0, 0, 0], [1, 0, this.x + this.rotatecenter.x - this.positionpoint.x, 0, 1, this.y + this.rotatecenter.y - this.positionpoint.y, 0, 0, 0]));
 				} else {
 					this.matrix = floatarrayMatrix;
@@ -751,14 +748,14 @@ function newCOL() {
 								w = tw > w ? tw: w;
 							}
 							imgobj.width = (this.width = (this.maxWidth >= w) ? this.maxWidth: w) + addedwidth;
-							imgobj.height = (this.height = this.varylist.length * this.lineHeight) + addedheight;
+							imgobj.height = (this.height = this.varylist.length *  (this.lineHeight > this.fontSize ? this.lineHeight: this.fontSize)) + addedheight;
 						} else if (this.linedirection == 1) {
 							for (var i = 0; i < this.varylist.length; i++) {
 								tw = this.varylist[i].split("").length;
 								w = tw > w ? tw: w;
 							}
 							w *= this.fontSize;
-							 imgobj.width =(this.width = this.varylist.length * this.lineHeight)+addedwidth;
+							 imgobj.width =(this.width = this.varylist.length *  (this.lineHeight > this.fontSize ? this.lineHeight: this.fontSize))+addedwidth;
 							 imgobj.height =(this.height = (this.maxWidth >= w) ? this.maxWidth: w)+addedheight;
 						}
 
@@ -766,7 +763,7 @@ function newCOL() {
 						imgobj.width = (this.width >= 0) ? this.width: 100;
 						imgobj.height = (this.height >= 0) ? this.height: 30;
 					}
-					ct.translate(this.plusoffsetX, this.plusoffsetY);
+					ct.transform(1, 0, 0, 1, this.plusoffsetX, this.plusoffsetY);
 					this.vary(ct);
 				},
 				setSize: function(width, height) {
@@ -1083,14 +1080,15 @@ function newCOL() {
 						var pm = i - 1;
 						if (pm >= 0) {
 							mp = mats[pm];
-							mn = mats[i];							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
-							ta[1] = mp[0] * mn[1] + mp[1] * mn[4] + mp[2] * mn[7];
-							ta[2] = mp[0] * mn[2] + mp[1] * mn[5] + mp[2] * mn[8];
-							ta[3] = mp[3] * mn[0] + mp[4] * mn[3] + mp[5] * mn[6];
+							mn = mats[i];
+							ta[0] = mp[0] * mn[0] + mp[1] * mn[3] + mp[2] * mn[6];
+							ta[1] = (mp[0] + mn[4]) * mn[1] + mp[2] * mn[7];
+							ta[2] = (mp[0] + mn[8]) * mn[2] + mp[1] * mn[5];
+							ta[3] = mp[3] * (mn[0] + mp[4]) + mp[5] * mn[6];
 							ta[4] = mp[3] * mn[1] + mp[4] * mn[4] + mp[5] * mn[7];
-							ta[5] = mp[3] * mn[2] + mp[4] * mn[5] + mp[5] * mn[8];
+							ta[5] = mp[3] * mn[2] + (mp[4] + mn[8]) * mn[5];
 							ta[8] = ta[7] = ta[6] = 0;
-							mats[pm] = (ta);
+							mats[pm] = ta;
 						}
 					}
 					return mats[0];
