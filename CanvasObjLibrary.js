@@ -323,6 +323,7 @@ function newCOL() {
 		COL.context = canvas_dom.getContext("2d");
 		COL.currentcontext = COL.buffercontext || COL.context;
 		COL.cct = COL.currentcontext;
+		//COL.MatrixTransform.on();
 		COL.document = COL.Graph.New();
 		COL.Graph.Eventable(COL.document);
 		COL.document.drawtype = "image";
@@ -396,7 +397,7 @@ function newCOL() {
 				eventable: false,
 				imageobj: null,
 				needsort: false,
-				matrix: COL.MatrixTransformMode ? new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]) : null,
+				matrix: COL.MatrixTransformMode ? COL.tools.baseMatrix(): null,
 				z_index: null,
 				clipBy: "border",
 				drawlist: [],
@@ -566,7 +567,6 @@ function newCOL() {
 			setSize: function(w, h) {
 				this.width = w;
 				this.height = h;
-
 			},
 			New: function() {
 				var newobj = Object.create(this);
@@ -609,35 +609,23 @@ function newCOL() {
 				COL.matrixchanged = true;
 				if(this.relativesize.width>=0)this.width=this.relativesize.width*this.parentNode.width;
 				if(this.relativesize.height>=0)this.height=this.relativesize.height*this.parentNode.height;
-				if (!floatarrayMatrix) {
+				if (!floatarrayMatrix) { 
 					var rotate = this.rotate * 0.0174532925,
 					cos = Math.cos(rotate),
 					sin = Math.sin(rotate),
 					pn=!!this.parentNode;
-					if (!this.matrix) this.matrix = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+					if (!this.matrix) this.matrix = COL.tools.baseMatrix();
 					var rotatex=this.relativerotatecenter.x?this.relativerotatecenter.x*this.width:this.rotatecenter.x,
 					rotatey=this.relativerotatecenter.y?this.relativerotatecenter.y*this.height:this.rotatecenter.y;
-					this.matrix=(COL.tools.multiplyMatrix(
+					this.matrix=COL.tools.multiplyMatrix(
 						[1, 0, -rotatex, 0, 1, -rotatey, 0, 0, 0],
 						[this.zoom.x, 0, 0, 0, this.zoom.y, 0, 0, 0, 0], 
 						[cos, -sin, 0, sin, cos, 0, 0, 0, 0], 
-						[1, 0, (this.relativeposition.x&&pn?this.relativeposition.x*this.parentNode.width:this.x)  + rotatex - (this.relativepositionpoint.x?this.relativepositionpoint.x*this.width:this.positionpoint.x), 0, 1, (this.relativeposition.y&&pn?this.relativeposition.y*this.parentNode.height:this.y) + rotatey - (this.relativepositionpoint.y?this.relativepositionpoint.y*this.height:this.positionpoint.y), 0, 0, 0]));
+						[1, 0, ((this.relativeposition.x&&pn)?this.relativeposition.x*this.parentNode.width:this.x)  + rotatex - (this.relativepositionpoint.x?this.relativepositionpoint.x*this.width:this.positionpoint.x), 0, 1, ((this.relativeposition.y&&pn)?this.relativeposition.y*this.parentNode.height:this.y) + rotatey - (this.relativepositionpoint.y?this.relativepositionpoint.y*this.height:this.positionpoint.y), 0, 0, 0]);
 				} else {
 					this.matrix = floatarrayMatrix;
 				}
 			},
-			/*isPointInPath: function(ct, cObj) {
-				if (cObj.overPath) {
-					cObj.overPath(ct);
-				} else if (cObj.drawfunction) {
-					cObj.drawfunction(ct);
-				} else {
-					COL.tools.defaultPathFun(ct, cObj);
-				}
-				if (ct.isPointInPath(COL.mouseX, COL.mouseY)) {
-					COL.newonoverElement = cObj;
-				}
-			},*/
 			drawDebugstat: function(cct) {
 				cct.save();
 				cct.setTransform(1, 0, 0, 1, 0, 0);
@@ -767,7 +755,7 @@ function newCOL() {
 					this.plusoffsetX = this.shadowBlur + (this.shadowOffset.x < 0 ? -this.shadowOffset.x: 0);
 					this.plusoffsetY = this.shadowBlur + (this.shadowOffset.y < 0 ? -this.shadowOffset.y: 0);
 					var addedwidth = this.shadowBlur * 2 + Math.abs(this.shadowOffset.x),
-					addedheight = this.shadowBlur * 2 + Math.abs(this.shadowOffset.y);
+					addedheight = this.shadowBlur * 2 +this.fontSize+ Math.abs(this.shadowOffset.y);
 					if (this.autoSize) {
 						var w = 0,
 						tw;
@@ -780,7 +768,7 @@ function newCOL() {
 							imgobj.height = (this.height = this.varylist.length * (this.lineHeight > this.fontSize ? this.lineHeight: this.fontSize)) + addedheight;
 						} else if (this.linedirection == 1) {
 							for (var i = 0; i < this.varylist.length; i++) {
-								tw = this.varylist[i].split("").length;
+								tw = this.varylist[i].length;
 								w = tw > w ? tw: w;
 							}
 							w *= this.fontSize;
@@ -884,6 +872,7 @@ function newCOL() {
 				ct.save();
 				COL.transform(ct, cObj);
 				if (COL.Debug.stat) {
+					ct.save();
 					var rotatex=cObj.relativerotatecenter.x?cObj.relativerotatecenter.x*cObj.width:cObj.rotatecenter.x,
 					rotatey=cObj.relativerotatecenter.y?cObj.relativerotatecenter.y*cObj.height:cObj.rotatecenter.y;
 					ct.beginPath();
@@ -892,10 +881,15 @@ function newCOL() {
 					ct.moveTo(rotatex+3, rotatey);
 					ct.lineTo( rotatex- 3, rotatey);
 					ct.stroke();
+					ct.restore();
 				}
-				if (cObj.opacity !== null) ct.globalAlpha = cObj.opacity;
+				if (cObj.opacity !== null){
+					if(cObj.opacity>=0){ct.globalAlpha = cObj.opacity;}else{
+						ct.globalAlpha =0;
+					}
+				}
 				if (cObj.overflow == "hidden") {
-					//ct.beginPath();
+					ct.beginPath();
 					switch (cObj.clipBy) {
 					case "border":
 						{
@@ -904,9 +898,7 @@ function newCOL() {
 						}
 					case "drawfunction":
 						{
-							ct.save();
 							cObj.drawfunction ? cObj.drawfunction(ct) : COL.tools.defaultPathFun(ct, cObj);
-
 							break;
 						}
 					default:
@@ -927,7 +919,7 @@ function newCOL() {
 				case "function":
 					{
 						if (cObj.drawfunction) {
-							ct.save()
+							ct.save();
 							cObj.drawfunction(ct);
 							ct.restore();
 						}	
@@ -938,7 +930,6 @@ function newCOL() {
 						if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
 							ct.drawImage(cObj.imageobj, 0, 0);
 						}
-
 						break;
 					}
 				case "text":
@@ -951,12 +942,7 @@ function newCOL() {
 							if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
 								ct.save();
 								ct.transform(1, 0, 0, 1, -cObj.plusoffsetX, -cObj.plusoffsetY);
-								/*if(!cObj.rotate&&cObj.imageobj.width>canvas_dom.width&&cObj.zoom.x>=1){
-									var befofe=cObj.x-cObj.rotatecenter.x ,after=
-									ct.drawImage(cObj.imageobj,(cObj.x<0)?-cObj.x:0,0,canvas_dom.width,cObj.imageobj.height,0,0,canvas_dom.width-(),cObj.imageobj.height*cObj.zoom.y);
-								}else{*/
-									ct.drawImage(cObj.imageobj, 0, 0);/*
-								}*/
+								ct.drawImage(cObj.imageobj, 0, 0);
 								if (COL.Debug.stat) {
 									ct.strokeStyle = "#ccc";
 									ct.strokeRect(0, 0, cObj.imageobj.width, cObj.imageobj.height);
@@ -964,7 +950,6 @@ function newCOL() {
 								}
 								ct.restore();
 							}
-
 						}
 						break;
 					}
@@ -1014,7 +999,6 @@ function newCOL() {
 					}
 					ct.restore();
 				}
-				//ct.restore();
 				if (cObj.afterdrawfun) cObj.afterdrawfun(ct);
 				ct.restore();
 				if (cObj.childNode.length) {
@@ -1074,6 +1058,7 @@ function newCOL() {
 		//COL.newonoverElement = null;
 		var cct = COL.cct;
 		COL.Debug.itemcount = 0;
+		cct.setTransform(1,0,0,1,0,0);
 		if (COL.autoClear) {
 			cct.clearRect(0, 0, COL.width, COL.height);
 		}
@@ -1105,13 +1090,14 @@ function newCOL() {
 			ct.translate(
 				((obj.relativeposition.x&&pn)?obj.relativeposition.x*obj.parentNode.width:obj.x) + rotatex - (obj.relativepositionpoint.x?obj.relativepositionpoint.x*obj.width:obj.positionpoint.x),
 				((obj.relativeposition.y&&pn)?obj.relativeposition.y*obj.parentNode.height:obj.y)+rotatey- (obj.relativepositionpoint.y?obj.relativepositionpoint.y*obj.height:obj.positionpoint.y));
-			ct.rotate(obj.rotate * 0.017453);
+			ct.rotate(obj.rotate * 0.0174532925);
 			ct.scale(obj.zoom.x, obj.zoom.y);
 			ct.translate(-rotatex,-rotatey);
 		}
-	};
+	}; 
 
 	COL.tools = {
+		baseMatrix:function(){return new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);},
 		matrix: new Float32Array(9),
 		multiplyMatrix: function() {
 			var mats = arguments;
@@ -1223,7 +1209,7 @@ function newCOL() {
 				linear.func(linear.process);
 			}
 		},
-		paixurule: function(a, b) { //index的排序规则
+		sortrule: function(a, b) { //index的排序规则
 			return a.z_index - b.z_index;
 		},
 		get_a_color: function() {
@@ -1245,11 +1231,10 @@ function newCOL() {
 		arraybyZ_index: function(graph) { //让图形的子元素排序
 			if (graph.childNode) {
 				graph.drawlist = graph.childNode.slice(0);
-				graph.drawlist.sort(COL.tools.paixurule);
+				graph.drawlist.sort(COL.tools.sortrule);
 				for (var i = 0; graph.drawlist[i]; i++) {}
 				graph.drawlist.length = i;
 			}
-			//if (graph.childNode) graph.drawlist = graph.childNode.sort(COL.tools.paixurule);
 		},
 		defaultPathFun: function(ct, graph) {
 			ct.rect(0, 0, graph.width, graph.height);
