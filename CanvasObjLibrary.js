@@ -63,6 +63,7 @@ function newCOL() {
 				COL.mouseY = null;
 				if (COL.onoverElement) {
 					var eve =new COL.event();
+					eve.target=COL.onoverElement;
 					COL.onoverElement.fireEvent("mouseout", eve);
 				}
 				COL.onoverElement = null;
@@ -323,7 +324,7 @@ function newCOL() {
 		COL.context = canvas_dom.getContext("2d");
 		COL.currentcontext = COL.buffercontext || COL.context;
 		COL.cct = COL.currentcontext;
-		//COL.MatrixTransform.on();
+		COL.MatrixTransform.off();
 		COL.document = COL.Graph.New();
 		COL.Graph.Eventable(COL.document);
 		COL.document.drawtype = "image";
@@ -429,8 +430,9 @@ function newCOL() {
 		NewImageObj: function(image) {
 			var m = COL.Graph.New();
 			if (image) {
-				m.userImage(image);
+				m.useImage(image);
 			}
+			return m;
 		},
 		NewTextObj: function(text, fontsize, opjson) {
 			var t = COL.Graph.New();
@@ -517,13 +519,13 @@ function newCOL() {
 					image.onload = function() {
 						set();
 					};
+				}else{
+					try {
+						set();
+					} catch(e) {
+						console.log(e);
+					}
 				}
-				try {
-					set();
-				} catch(e) {
-					console.log(e);
-				}
-
 			},
 			borderPathFun: function(ct) {
 				ct.rect(0, 0, this.width, this.height);
@@ -568,12 +570,15 @@ function newCOL() {
 				this.width = w;
 				this.height = h;
 			},
-			New: function() {
+			New: function(inherit) {
 				var newobj = Object.create(this);
 				newobj.parentNode = null;
 				newobj.childNode = [];
 				newobj.drawlist = [];
 				newobj.GraphID = COL.generateGraphID();
+				if(inherit===true){
+					return newobj;
+				}
 				return COL.tools.clone(newobj);
 			},
 			clone: function() {
