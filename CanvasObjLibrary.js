@@ -62,7 +62,7 @@ function newCOL() {
 				COL.mouseX = null;
 				COL.mouseY = null;
 				if (COL.onoverElement) {
-					var eve =new COL.event();
+					var eve =COL.event();
 					eve.target=COL.onoverElement;
 					COL.onoverElement.fireEvent("mouseout", eve);
 				}
@@ -76,11 +76,14 @@ function newCOL() {
 			onmoveele: null,
 			draging: false
 		},
-		event: function() {
-			this.stopPropagation=function() {
+		eventobj:{
+			stopPropagation:function() {
 				this.Propagation = false;
-			}
-			this.Propagation=true;
+			},
+			Propagation:true
+		},
+		event: function() {
+			return Object.create(COL.eventobj);
 		},
 
 		/*在当前基础上新建一个对象*/
@@ -153,25 +156,24 @@ function newCOL() {
 			COL.mouseX = e.layerX;
 			COL.mouseY = e.layerY;
 			var idata = COL.eocct.getImageData(COL.mouseX, COL.mouseY, 1, 1).data;
-			//console.log(idata);
 			var color = idata[0] * 1000000 + idata[1] * 1000 + idata[2];
 			COL.newonoverElement = COL.colorarray[color];
-			if (COL.onoverElement != COL.newonoverElement) {
+			if (COL.onoverElement !== COL.newonoverElement) {
 				if (COL.onoverElement) {
-					var eve = new COL.event();
+					var eve = COL.event();
 					eve.target = COL.onoverElement;
 					COL.onoverElement.fireEvent("mouseout", eve);
 					COL.tosign.click = COL.tosign.centerclick = COL.tosign.rightcilck = false;
 				}
 				COL.onoverElement = COL.newonoverElement;
 				if (COL.onoverElement) {
-					var eve =new COL.event();
+					var eve =COL.event();
 					eve.target = COL.onoverElement;
 					COL.onoverElement.fireEvent("mouseover", eve);
 				}
 
 			}
-			var eve =new COL.event();
+			var eve =COL.event();
 			eve.target = COL.onoverElement;
 			//COL.mousestatuechanged = true;
 			if (COL.onoverElement) {
@@ -185,7 +187,7 @@ function newCOL() {
 			//e.preventDefault();
 			COL.mouseX = e.layerX;
 			COL.mouseY = e.layerY;
-			var eve =new COL.event();
+			var eve =COL.event();
 			eve.target = COL.onoverElement;
 			eve.button = e.button;
 			COL.tosign.click = true;
@@ -211,7 +213,7 @@ function newCOL() {
 		aEL(canvas_dom, "mouseup",
 		function(e) {
 			//COL.mousestatuechanged = true;
-			var eve = new COL.event();
+			var eve = COL.event();
 			eve.target = COL.onoverElement;
 			eve.button = e.button;
 			switch (eve.button) {
@@ -267,7 +269,7 @@ function newCOL() {
 		aEL(canvas_dom, _mousewheele,
 		function(e) {
 			e = e || window.event;
-			var eve = new COL.event();
+			var eve = COL.event();
 			eve.target = COL.onoverElement;
 			var data = e.wheelDelta ? e.wheelDelta: e.detail;
 			if (data == -3 || data == 120) {
@@ -286,7 +288,7 @@ function newCOL() {
 
 				if (!COL.keys[e.keyCode]) {
 					//e.preventDefault();
-					var eve =new COL.event();
+					var eve =COL.event();
 					eve.keyCode = e.keyCode;
 					COL.keys[e.keyCode] = true;
 					if (COL.focus) {
@@ -299,7 +301,7 @@ function newCOL() {
 		function(e) {
 			if (COL.canvasonfocus) {
 				if (COL.keys[e.keyCode]) {
-					var eve =new COL.event();
+					var eve =COL.event();
 					eve.keyCode = e.keyCode;
 					COL.keys[e.keyCode] = false;
 					if (COL.focus) {
@@ -312,7 +314,7 @@ function newCOL() {
 		aEL(window, "keypress",
 		function(e) {
 			if (COL.canvasonfocus) {
-				var eve =new COL.event();
+				var eve =COL.event();
 				eve.keyCode = e.keyCode;
 				COL.keys[e.keyCode] = false;
 				if (COL.focus) {
@@ -349,77 +351,19 @@ function newCOL() {
 	}
 	COL.Graph = {
 		New: function(opjson) {
-			var cF = COL.Graph.commonFunction;
-			var g = {
-				name: null,
-				GraphID: COL.generateGraphID(),
-				y: 0,
-				x: 0,
-				width: 1,
-				height: 1,
-				positionpoint: {
-					x: 0,
-					y: 0
-				},
-				rotate: 0,
-				rotatecenter: {
-					x: 0,
-					y: 0
-				},
-				zoom: {
-					x: 1,
-					y: 1
-				},
-				display: true,
-				opacity: null,
-				beforedrawfun: null,
-				relativeposition:{
-					x:0,
-					y:0
-				},
-				relativesize:{
-					width:-1,
-					height:-1
-				},
-				relativepositionpoint:{
-					x:0,
-					y:0
-				},
-				relativerotatecenter:{
-					x:0,
-					y:0
-				},
-				afterdrawfun: null,
-				overflow: null,
-				drawtype: "function",
-				//function、image、text
-				drawfunction: null,
-				backgroundColor: null,
-				eventable: false,
-				imageobj: null,
-				needsort: false,
-				matrix: (COL.MatrixTransformMode===true ? COL.tools.baseMatrix(): null),
-				z_index: null,
-				clipBy: "border",
-				drawlist: [],
-				childNode: [],
-				parentNode: null,
-				set: cF.set,
-				drawpic: cF.drawpic,
-				setZoom: cF.setZoom,
-				useImage: cF.useImage,
-				borderPathFun: cF.borderPathFun,
-				zindex: cF.zindex,
-				setRotateCenter: cF.setRotateCenter,
-				setPositionPoint: cF.setPositionPoint,
-				setSize: cF.setSize,
-				New: cF.New,
-				clone: cF.clone,
-				addChild: cF.addChild,
-				removeChild: cF.removeChild,
-				fireEvent: cF.Event.fireEvent,
-				setMatrix: cF.setMatrix
-			};
+			//var cF = COL.Graph.commonFunction;//cF
+			var g=Object.create(COL.Graph.rawObj.baseobj);
+			g.GraphID=COL.generateGraphID();
+			g.positionpoint={x: 0,y: 0};
+			g.rotatecenter={x: 0,y: 0};
+			g.zoom={x: 1,y: 1};
+			g.relativeposition={x: 0,y: 0};
+			g.relativesize={width: -1,height: -1};
+			g.relativepositionpoint= {x: 0,y: 0};
+			g.relativerotatecenter={x: 0,y: 0};
+			g.matrix=(COL.MatrixTransformMode===true ? COL.tools.baseMatrix(): null);
+			g.drawlist=[];
+			g.childNode=[];
 			if (opjson) {
 				for (var ob in opjson) {
 					g[ob] = opjson[ob];
@@ -479,11 +423,11 @@ function newCOL() {
 		},
 		Eventable: function(graph) {
 			graph.eventable = true;
-			graph.overPath = null;
+			//graph.overPath = null;
 			graph.pricolor = COL.tools.get_a_unique_color(graph);
 			graph.events = {};
-			graph.addEvent = COL.Graph.commonFunction.Event.addEvent;
-			graph.removeEvent = COL.Graph.commonFunction.Event.removeEvent;
+			//graph.addEvent = COL.Graph.commonFunction.Event.addEvent;
+			//graph.removeEvent = COL.Graph.commonFunction.Event.removeEvent;
 		},
 		commonFunction: {
 			set: function(json) {
@@ -872,7 +816,50 @@ function newCOL() {
 			return false;
 		}
 	};
-
+	var cF=COL.Graph.commonFunction;
+	COL.Graph.rawObj={
+		baseobj:{
+			name: null,
+			y: 0,
+			x: 0,
+			width: 1,
+			height: 1,
+			rotate: 0,
+			display: true,
+			opacity: null,
+			beforedrawfun: null,
+			afterdrawfun: null,
+			overflow: null,
+			drawtype: "function",
+			//function、image、text
+			drawfunction: null,
+			backgroundColor: null,
+			eventable: false,
+			imageobj: null,
+			needsort: false,
+			z_index: null,
+			clipBy: "border",
+			parentNode: null,
+			set: cF.set,
+			drawpic: cF.drawpic,
+			setZoom: cF.setZoom,
+			useImage: cF.useImage,
+			borderPathFun: cF.borderPathFun,
+			zindex: cF.zindex,
+			setRotateCenter: cF.setRotateCenter,
+			setPositionPoint: cF.setPositionPoint,
+			setSize: cF.setSize,
+			New: cF.New,
+			clone: cF.clone,
+			addChild: cF.addChild,
+			removeChild: cF.removeChild,
+			fireEvent: cF.Event.fireEvent,
+			setMatrix: cF.setMatrix,
+			overPath:null,
+			addEvent:cF.Event.addEvent,
+			removeEvent:cF.Event.removeEvent
+		}
+	};
 	COL.drawElement = function(d, ct) {
 		for (var i = 0; i < d.length; i++) {
 			if (d[i].display) {
