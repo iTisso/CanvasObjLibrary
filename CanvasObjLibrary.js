@@ -398,7 +398,7 @@ function newCOL() {
 				eventable: false,
 				imageobj: null,
 				needsort: false,
-				matrix: COL.MatrixTransformMode ? COL.tools.baseMatrix(): null,
+				matrix: (COL.MatrixTransformMode===true ? COL.tools.baseMatrix(): null),
 				z_index: null,
 				clipBy: "border",
 				drawlist: [],
@@ -594,8 +594,11 @@ function newCOL() {
 					} else {
 						this.drawlist.push(graph);
 					}
-					this.setMatrix();
-					graph.setMatrix();
+					if(COL.MatrixTransformMode){
+						this.setMatrix();
+						graph.setMatrix();
+					}
+					
 				}
 			},
 			removeChild: function(graph) {
