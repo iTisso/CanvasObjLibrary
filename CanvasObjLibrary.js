@@ -121,7 +121,7 @@ function newCOL() {
 			COL.imagecreater.creatercontext = COL.imagecreater.creatercanvas.getContext("2d");
 		},
 		drawpic: function(_width, _height, _draw) {
-			if (!COL.imagecreater.creatercontext) COL.imagecreater.init();
+			COL.imagecreater.creatercontext||COL.imagecreater.init();
 			var ct = COL.imagecreater.creatercontext,
 			cv = COL.imagecreater.creatercanvas;
 			COL.imagecreater.creatercanvas.width = _width;
@@ -450,9 +450,7 @@ function newCOL() {
 				}
 			},
 			useImage: function(image) {
-				if (!this.imageobj) {
-					this.imageobj = document.createElement("canvas");
-				}
+				this.imageobj||(this.imageobj = document.createElement("canvas"));
 				var _this = this;
 				function set() {
 					_this.width = _this.imageobj.width = image.width;
@@ -476,9 +474,7 @@ function newCOL() {
 			},
 			zindex: function(index) {
 				this.z_index = index;
-				if (this.parentNode) {
-					COL.tools.arraybyZ_index(this.parentNode);
-				}
+				!this.parentNode||COL.tools.arraybyZ_index(this.parentNode);
 			},
 			setRotateCenter: function() {
 				if (arguments.length == 2) {
@@ -551,7 +547,7 @@ function newCOL() {
 					this.childNode[graph.GraphID] = null;
 					delete this.childNode[graph.GraphID];
 					var ind = this.drawlist.lastIndexOf(graph);
-					if (ind >= 0) {
+					if (typeof ind=="number"&&ind >= 0) {
 						this.drawlist.splice(ind, 1);
 					}
 					COL.matrixchanged=true;
@@ -559,14 +555,14 @@ function newCOL() {
 			},
 			setMatrix: function(floatarrayMatrix) {
 				COL.matrixchanged = true;
-				if(this.relativesize.width>=0)this.width=this.relativesize.width*this.parentNode.width;
-				if(this.relativesize.height>=0)this.height=this.relativesize.height*this.parentNode.height;
+				this.relativesize.width<0||(this.width=this.relativesize.width*this.parentNode.width);
+				this.relativesize.height<0||(this.height=this.relativesize.height*this.parentNode.height);
 				if (!floatarrayMatrix) { 
 					var rotate = this.rotate * 0.0174532925,
 					cos = Math.cos(rotate),
 					sin = Math.sin(rotate),
 					pn=!!this.parentNode;
-					if (!this.matrix) this.matrix = COL.tools.baseMatrix();
+					this.matrix||(this.matrix = COL.tools.baseMatrix());
 					var rotatex=this.relativerotatecenter.x?this.relativerotatecenter.x*this.width:this.rotatecenter.x,
 					rotatey=this.relativerotatecenter.y?this.relativerotatecenter.y*this.height:this.rotatecenter.y;
 					this.matrix=COL.tools.multiplyMatrix(
@@ -599,96 +595,86 @@ function newCOL() {
 			},
 			t: {
 				vary: function(ct) {
-					if (this.baseline) ct.textBaseline = this.baseline;
-					if (this.textborderWidth) ct.lineWidth = this.textborderWidth;
-						if (this.textborderColor) ct.strokeStyle = this.textborderColor;
-						ct.fillStyle = this.color || COL.font.color || "#000";
-						if (this.shadowBlur > 0) {
-							ct.font = this.font;
-							ct.shadowBlur = this.shadowBlur;
-							if (this.shadowColor) ct.shadowColor = this.shadowColor;
-							if (this.shadowOffset.x) ct.shadowOffsetX = this.shadowOffset.x;
-							if (this.shadowOffset.y) ct.shadowOffsetY = this.shadowOffset.y;
-						}
+					this.baseline&&(ct.textBaseline = this.baseline);
+					this.textborderWidth&&(ct.lineWidth = this.textborderWidth);
+					this.textborderColor&&(ct.strokeStyle = this.textborderColor);
+					ct.fillStyle = this.color || COL.font.color || "#000";
+					if (this.shadowBlur > 0) {
 						ct.font = this.font;
-						if (this.linedirection === 0) {
-							ct.translate(0, this.lineHeight / 2);
-							if (this.columndirection === 0) {
-								for (var i = 0; i < this.varylist.length; i++) {
-									ct.save();
-									if (this.fill) {
-										ct.fillText(this.varylist[i], this.innerX, this.innerY);
-									}
-									if (this.textborderWidth) {
-										ct.shadowBlur = 0;
-										ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-									}
-									ct.restore();
-									ct.translate(0, this.lineHeight);
+						ct.shadowBlur = this.shadowBlur;
+						this.shadowColor&&(ct.shadowColor = this.shadowColor);
+						this.shadowOffset.x&&(ct.shadowOffsetX = this.shadowOffset.x);
+						this.shadowOffset.y&&(ct.shadowOffsetY = this.shadowOffset.y);
+					}
+					ct.font = this.font;
+					if (this.linedirection === 0) {
+						ct.translate(0, this.lineHeight / 2);
+						if (this.columndirection === 0) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								ct.save();
+								this.fill&&ct.fillText(this.varylist[i], this.innerX, this.innerY);
+								if (this.textborderWidth) {
+									ct.shadowBlur = 0;
+									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
 								}
-							} else if (this.columndirection == 1) {
-								for (var i = this.varylist.length - 1; i > 0; i--) {
-									ct.save();
-									if (this.fill) {
-										ct.fillText(this.varylist[i], this.innerX, this.innerY);
-									}
-									if (this.textborderWidth) {
-										ct.shadowBlur = 0;
-										ct.strokeText(this.varylist[i], this.innerX, this.innerY);
-									}
-									ct.restore();
-									ct.translate(0, this.lineHeight);
-								}
+								ct.restore();
+								ct.translate(0, this.lineHeight);
 							}
-						} else if (this.linedirection == 1) {
-							if (this.columndirection === 0) {
-								for (var i = 0; i < this.varylist.length; i++) {
-									ct.save();
-									ct.translate(i * this.lineHeight, this.fontSize / 2);
-									var thisline = this.varylist[i].split("");
-									for (var im = 0; im < thisline.length; im++) {
-										ct.save();
-										ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
-										if (this.fill) {
-											ct.fillText(thisline[im], this.innerX, this.innerY);
-										}
-										if (this.textborderWidth) {
-											ct.shadowBlur = 0;
-											ct.strokeText(thisline[im], this.innerX, this.innerY);
-										}
-										ct.restore();
-										ct.translate(0, this.fontSize);
-									}
-									ct.restore();
+						} else if (this.columndirection == 1) {
+							for (var i = this.varylist.length - 1; i > 0; i--) {
+								ct.save();
+								ithis.fill&&ct.fillText(this.varylist[i], this.innerX, this.innerY);
+								if (this.textborderWidth) {
+									ct.shadowBlur = 0;
+									ct.strokeText(this.varylist[i], this.innerX, this.innerY);
 								}
-							} else if (this.columndirection == 1) {
-								for (var i = this.varylist.length - 1; i > 0; i--) {
-									ct.save();
-									ct.translate((this.varylist.length - 1 - i) * this.lineHeight, this.fontSize / 2);
-									var thisline = this.varylist[i].split("");
-									for (var im = 0; im < thisline.length; im++) {
-										ct.save();
-										ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
-										if (this.fill) {
-											ct.fillText(thisline[im], this.innerX, this.innerY);
-										}
-										if (this.textborderWidth) {
-											ct.shadowBlur = 0;
-											ct.strokeText(thisline[im], this.innerX, this.innerY);
-										}
-										ct.restore();
-										ct.translate(0, this.fontSize);
-									}
-									ct.restore();
-								}
+								ct.restore();
+								ct.translate(0, this.lineHeight);
 							}
 						}
-					
+					} else if (this.linedirection == 1) {
+						if (this.columndirection === 0) {
+							for (var i = 0; i < this.varylist.length; i++) {
+								ct.save();
+								ct.translate(i * this.lineHeight, this.fontSize / 2);
+								var thisline = this.varylist[i].split("");
+								for (var im = 0; im < thisline.length; im++) {
+									ct.save();
+									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
+									this.fill&&ct.fillText(thisline[im], this.innerX, this.innerY);
+									if (this.textborderWidth) {
+										ct.shadowBlur = 0;
+										ct.strokeText(thisline[im], this.innerX, this.innerY);
+									}
+									ct.restore();
+									ct.translate(0, this.fontSize);
+								}
+								ct.restore();
+							}
+						} else if (this.columndirection == 1) {
+							for (var i = this.varylist.length - 1; i > 0; i--) {
+								ct.save();
+								ct.translate((this.varylist.length - 1 - i) * this.lineHeight, this.fonSize / 2);
+								var thisline = this.varylist[i].split("");
+								for (var im = 0; im < thisline.length; im++) {
+									ct.save();
+									ct.translate(this.lineHeight - ct.measureText(thisline[im]).width, 0);
+									this.fill&&ct.fillText(thisline[im], this.innerX, this.innerY);
+									if (this.textborderWidth) {
+										ct.shadowBlur = 0;
+										ct.strokeText(thisline[im], this.innerX, this.innerY);
+									}
+									ct.restore();
+									ct.translate(0, this.fontSize);
+								}
+								ct.restore();
+							}
+						}
+					}
+				
 				},
 				prepareText: function() {
-					if ((!this.imageobj) || (!this.imageobj.getContext)) {
-						this.imageobj = document.createElement("canvas");
-					}
+					((!this.imageobj) || (!this.imageobj.getContext))&&(this.imageobj = document.createElement("canvas"));
 					var imgobj = this.imageobj;
 					var ct = imgobj.getContext("2d");
 					ct.clearRect(0, 0, imgobj.width, imgobj.height);
@@ -749,7 +735,7 @@ function newCOL() {
 			Event: {
 				addEvent: function(name, fun) {
 					if (typeof name == "string") name = name.replace(/^on/, "");
-					if (!this.events[name]) this.events[name] = [];
+					this.events[name]||(this.events[name] = []);
 					if (typeof(fun) == "function" && this.events[name]) {
 						this.events[name].push(fun);
 						var eid = (++COL.tmpEventID);
@@ -796,6 +782,8 @@ function newCOL() {
 					if (eobj.Propagation) {
 						if (this.parentNode) {
 							this.parentNode.fireEvent(evename, eobj);
+						}else{
+							delete eobj;
 						}
 					}
 				}
@@ -904,8 +892,8 @@ function newCOL() {
 					ct.clip();
 				}
 				ct.save();
-				if (cObj.Composite) ct.globalCompositeOperation = cObj.Composite;
-				if (cObj.beforedrawfun) cObj.beforedrawfun(ct);
+				cObj.Composite&&(ct.globalCompositeOperation = cObj.Composite);
+				cObj.beforedrawfun&&cObj.beforedrawfun(ct);
 				if (cObj.backgroundColor) {
 					ct.fillStyle = cObj.backgroundColor;
 					ct.fillRect(0, 0, cObj.width, cObj.height);
@@ -922,9 +910,7 @@ function newCOL() {
 					}
 				case "image":
 					{
-						if (cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) {
-							ct.drawImage(cObj.imageobj, 0, 0);
-						}
+						(cObj.imageobj && cObj.imageobj.width && cObj.imageobj.height) &&ct.drawImage(cObj.imageobj, 0, 0);
 						break;
 					}
 				case "text":
@@ -994,11 +980,9 @@ function newCOL() {
 					}
 					ct.restore();
 				}
-				if (cObj.afterdrawfun) cObj.afterdrawfun(ct);
+				cObj.afterdrawfun&&cObj.afterdrawfun(ct);
 				ct.restore();
-				if (cObj.childNode.length) {
-					COL.drawElement(cObj.drawlist, ct);
-				}
+				cObj.childNode.length&&COL.drawElement(cObj.drawlist, ct);
 				ct.restore();
 			}
 		}
@@ -1054,9 +1038,7 @@ function newCOL() {
 		var cct = COL.cct;
 		COL.Debug.itemcount = 0;
 		cct.setTransform(1,0,0,1,0,0);
-		if (COL.autoClear) {
-			cct.clearRect(0, 0, COL.width, COL.height);
-		}
+		COL.autoClear&&cct.clearRect(0, 0, COL.width, COL.height);
 		COL.drawElement(COL.drawlist, COL.currentcontext);
 		if (COL.matrixchanged === true || COL.MatrixTransformMode === false) {
 			COL.F_drawEventobj();
@@ -1072,9 +1054,7 @@ function newCOL() {
 
 	COL.optionalFun = {
 		transformDirect: function(ct, obj) {
-			if (obj.matrix) {
-				ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
-			}
+			obj.matrix&&ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
 		},
 		transformLinear: function(ct, obj) {
 			var pn=!!obj.parentNode;
@@ -1121,7 +1101,7 @@ function newCOL() {
 			}
 		},
 		getnum: function(string) { //提取字符串里首次出现的数字串
-			if (!string) return 0;
+			if(string)return 0;
 			else {
 				var a = Number(string.match(/\d+/)[0]);
 				if (a) return a;
@@ -1135,7 +1115,7 @@ function newCOL() {
 		},
 		Linear: {
 			go: function(start, end, time, func, _hz) {
-				if (!window.linear) window.linear = [];
+				iwindow.linear||(window.linear = []);
 				var ind = COL.tools.findEmptyPlace(window.linear);
 				var linear = window.linear[ind] = {};
 				linear.start = start;
@@ -1255,17 +1235,13 @@ function newCOL() {
 			COL.fps.c = 0;
 		},
 		clone:function(o){
-			if(typeof(o) != 'object') return o;
+			if(typeof(o) != 'object')return o;
 			if(o == null) return o;
 			var nob ={};
 			for(var i in o)
 				nob[i] = COL.tools.clone(o[i]);
 			return nob;
 		}
-		/*,
-		dichotomySearch:function(array,fun){
-			if(typeof array=="object")
-		}*/
 	};
 
 	COL.Debug = {
