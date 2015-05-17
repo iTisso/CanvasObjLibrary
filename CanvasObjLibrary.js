@@ -342,28 +342,32 @@ function newCOL() {
 		on: function() {
 			COL.MatrixTransformMode = true;
 			COL.matrixchanged = true;
-			COL.transform = COL.optionalFun.transformDirect;
 		},
 		off: function() {
 			COL.MatrixTransformMode = false;
-			COL.transform = COL.optionalFun.transformLinear;
+		}
+	};
+	COL.transform=function(ct,obj){
+		if(COL.MatrixTransformMode&&obj.matrix&&obj.usematrix){
+			ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
+		}else{
+			var pn=!!obj.parentNode;
+			if(obj.relativesize.width>=0&&pn)obj.width=obj.relativesize.width*obj.parentNode.width;
+			if(obj.relativesize.height>=0&&pn)obj.height=obj.relativesize.height*obj.parentNode.height;
+			var rotatex=obj.relativerotatecenter.x?obj.relativerotatecenter.x*obj.width:obj.rotatecenter.x,
+			rotatey=obj.relativerotatecenter.y?obj.relativerotatecenter.y*obj.height:obj.rotatecenter.y;
+			ct.translate(
+				((obj.relativeposition.x&&pn)?obj.relativeposition.x*obj.parentNode.width:obj.x) + rotatex - (obj.relativepositionpoint.x?obj.relativepositionpoint.x*obj.width:obj.positionpoint.x),
+				((obj.relativeposition.y&&pn)?obj.relativeposition.y*obj.parentNode.height:obj.y)+rotatey- (obj.relativepositionpoint.y?obj.relativepositionpoint.y*obj.height:obj.positionpoint.y));
+			obj.rotate&&ct.rotate(obj.rotate * 0.0174532925);
+			ct.scale(obj.zoom.x, obj.zoom.y);
+			ct.translate(-rotatex,-rotatey);
 		}
 	}
 	COL.Graph = {
 		New: function(opjson) {
 			//var cF = COL.Graph.commonFunction;//cF
-			var g=Object.create(COL.Graph.rawObj.baseobj);
-			g.GraphID=COL.generateGraphID();
-			g.positionpoint={x: 0,y: 0};
-			g.rotatecenter={x: 0,y: 0};
-			g.zoom={x: 1,y: 1};
-			g.relativeposition={x: 0,y: 0};
-			g.relativesize={width: -1,height: -1};
-			g.relativepositionpoint= {x: 0,y: 0};
-			g.relativerotatecenter={x: 0,y: 0};
-			g.matrix=(COL.MatrixTransformMode===true ? COL.tools.baseMatrix(): null);
-			g.drawlist=[];
-			g.childNode=[];
+			var g=COL.Graph.rawObj.baseobj.New(true,true);
 			if (opjson) {
 				for (var ob in opjson) {
 					g[ob] = opjson[ob];
@@ -510,18 +514,29 @@ function newCOL() {
 				this.width = w;
 				this.height = h;
 			},
-			New: function(inherit) {
-				var newobj = Object.create(this);
+			New: function(inherit,newPositionObj,newZoom) {//获得一个可选继承和使用新位置对象的元素
+				var newobj = this.clone();
 				newobj.parentNode = null;
 				newobj.childNode = [];
 				newobj.drawlist = [];
 				newobj.GraphID = COL.generateGraphID();
+				COL.MatrixTransformMode&&this.usematrix&&(newobj.matrix=COL.tools.baseMatrix());
+				if(newPositionObj){
+					newobj.positionpoint={x: 0,y: 0};
+					newobj.rotatecenter={x: 0,y: 0};
+					newobj.relativeposition={x: 0,y: 0};
+					newobj.relativesize={width: -1,height: -1};
+					newobj.relativepositionpoint= {x: 0,y: 0};
+					newobj.relativerotatecenter={x: 0,y: 0};
+				}
+				(newZoom!==false)&&(newobj.zoom={x: 1,y: 1});
 				if(inherit===true){
 					return newobj;
 				}
+				//不使用继承的话会完全拷贝一个新的图形对象出来
 				return COL.tools.clone(newobj);
 			},
-			clone: function() {
+			clone: function() {//获得一个完全继承的对象
 				var newobj = Object.create(this);
 				return newobj;
 			},
@@ -565,13 +580,14 @@ function newCOL() {
 					this.matrix||(this.matrix = COL.tools.baseMatrix());
 					var rotatex=this.relativerotatecenter.x?this.relativerotatecenter.x*this.width:this.rotatecenter.x,
 					rotatey=this.relativerotatecenter.y?this.relativerotatecenter.y*this.height:this.rotatecenter.y;
-					this.matrix=COL.tools.multiplyMatrix(
+					COL.tools.multiplyMatrix(
 						[1, 0, -rotatex, 0, 1, -rotatey, 0, 0, 0],
 						[this.zoom.x, 0, 0, 0, this.zoom.y, 0, 0, 0, 0], 
 						[cos, -sin, 0, sin, cos, 0, 0, 0, 0], 
-						[1, 0, ((this.relativeposition.x&&pn)?this.relativeposition.x*this.parentNode.width:this.x)  + rotatex - (this.relativepositionpoint.x?this.relativepositionpoint.x*this.width:this.positionpoint.x), 0, 1, ((this.relativeposition.y&&pn)?this.relativeposition.y*this.parentNode.height:this.y) + rotatey - (this.relativepositionpoint.y?this.relativepositionpoint.y*this.height:this.positionpoint.y), 0, 0, 0]);
+						[1, 0, ((this.relativeposition.x&&pn)?this.relativeposition.x*this.parentNode.width:this.x)  + rotatex - (this.relativepositionpoint.x?this.relativepositionpoint.x*this.width:this.positionpoint.x), 0, 1, ((this.relativeposition.y&&pn)?this.relativeposition.y*this.parentNode.height:this.y) + rotatey - (this.relativepositionpoint.y?this.relativepositionpoint.y*this.height:this.positionpoint.y), 0, 0, 0],
+						this.matrix);
 				} else {
-					this.matrix = floatarrayMatrix;
+					this.matrix = new Float32Array(floatarrayMatrix);
 				}
 			},
 			drawDebugstat: function(cct) {
@@ -828,6 +844,7 @@ function newCOL() {
 			z_index: null,
 			clipBy: "border",
 			parentNode: null,
+			usematrix:true,
 			set: cF.set,
 			drawpic: cF.drawpic,
 			setZoom: cF.setZoom,
@@ -1052,35 +1069,17 @@ function newCOL() {
 		}
 	};
 
-	COL.optionalFun = {
-		transformDirect: function(ct, obj) {
-			obj.matrix&&ct.transform(obj.matrix[0], obj.matrix[1], obj.matrix[3], obj.matrix[4], obj.matrix[2], obj.matrix[5]);
-		},
-		transformLinear: function(ct, obj) {
-			var pn=!!obj.parentNode;
-			if(obj.relativesize.width>=0&&pn)obj.width=obj.relativesize.width*obj.parentNode.width;
-			if(obj.relativesize.height>=0&&pn)obj.height=obj.relativesize.height*obj.parentNode.height;
-			var rotatex=obj.relativerotatecenter.x?obj.relativerotatecenter.x*obj.width:obj.rotatecenter.x,
-			rotatey=obj.relativerotatecenter.y?obj.relativerotatecenter.y*obj.height:obj.rotatecenter.y;
-			ct.translate(
-				((obj.relativeposition.x&&pn)?obj.relativeposition.x*obj.parentNode.width:obj.x) + rotatex - (obj.relativepositionpoint.x?obj.relativepositionpoint.x*obj.width:obj.positionpoint.x),
-				((obj.relativeposition.y&&pn)?obj.relativeposition.y*obj.parentNode.height:obj.y)+rotatey- (obj.relativepositionpoint.y?obj.relativepositionpoint.y*obj.height:obj.positionpoint.y));
-			ct.rotate(obj.rotate * 0.0174532925);
-			ct.scale(obj.zoom.x, obj.zoom.y);
-			ct.translate(-rotatex,-rotatey);
-		}
-	}; 
-
 	COL.tools = {
 		baseMatrix:function(){return new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);},
 		matrix: new Float32Array(9),
 		multiplyMatrix: function() {
 			var mats = arguments;
 			if (mats) {
-				if (mats.length > 1) {
-					var mp, mn;
-					var ta = COL.tools.matrix;
-					for (var i = mats.length; i--;) {
+				if (mats.length-1 > 1) {
+					var mp, mn,
+					ta = COL.tools.matrix,
+					out=mats[mats.length-1];
+					for (var i = mats.length-1; i--;) {
 						var pm = i - 1;
 						if (pm >= 0) {
 							mp = mats[pm];
@@ -1094,12 +1093,11 @@ function newCOL() {
 							mats[pm] = ta;
 						}
 					}
-					return mats[0];
+					for(i=0;i<9;i++)out[i]=ta[i];
 				}
-			} else {
-				return mats[0];
-			}
+			} 
 		},
+
 		getnum: function(string) { //提取字符串里首次出现的数字串
 			if(string)return 0;
 			else {
