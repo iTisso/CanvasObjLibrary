@@ -12,99 +12,168 @@ Glib.getGraphObj=function(type,optionjson){
 	return Glib.Graph[type](optionjson);
 }
 Glib.Graph['star']=function(optionjson){
-	var g=Glib.lib.Graph.New();
+	var g=GraphPrototype.star.New(true,true);
 	if(optionjson){
-			for(op in optionjson){
-				g[op]=optionjson[op];
-			}
+		for(op in optionjson){
+			g[op]=optionjson[op];
 		}
-	g.r=g.r||10;
+	}
 	g.width=2*g.r;
 	g.height=2*g.r;
-	g.graphFun=function(ct){
-		ct.translate(g.r, g.r);
-		ct .rotate(Math.PI/2*3);
-		ct.beginPath();
-		ct.fillStyle =g.color||"#000";
-		ct.moveTo(g.r, 0);
-		for (var i = 0; i < 9; i++) {
-			ct.rotate(Math.PI / 5);
-			if (i % 2 == 0) {
-				ct.lineTo(g.r*0.3819653, 0);
-			} else {
-				ct.lineTo(g.r, 0);
-			}
-		}
-		ct .rotate(Math.PI*7/10);
-		ct.translate(-g.r, -g.r);
-	}
-	g.setR=function(r){
-		g.r=r;
-		g.width=2*r;
-		g.height=2*r;
-	}
-	g.drawfunction=function(ct){
-		g.graphFun(ct);
-		ct.fill();
-	}
 	return g;
 };
 
 Glib.Graph['arc'] = function(optionjson) {
-	var g = Glib.lib.Graph.New();
+	var g = GraphPrototype.arc.New(true,true);
 	if(optionjson){
-			for(op in optionjson){
-				g[op]=optionjson[op];
-			}
+		for(op in optionjson){
+			g[op]=optionjson[op];
 		}
-	g.r = g.r || 10;
+	}
 	g.width = 2 * g.r;
 	g.height = 2 * g.r;
-	g.graphFun = function(ct) {
-		ct.arc(g.r, g.r, g.r, g.startAngle || 0, g.endAngle || 2*Math.PI, g.anticlockwise || true);
-		ct.closePath();
-	}
-	g.setR = function(r) {
-		g.r = r;
-		g.width = 2 * r;
-		g.height = 2 * r;
-	}
-	g.drawfunction = function(ct) {
-		ct.fillStyle = g.fillColor|| "#66CCFF";
-		ct.strokeStyle = g.borderColor || "#000";
-		ct.lineWidth =g.borderWidth|| 0;
-		g.graphFun(ct);
-		ct.fill();
-	}
 	return g;
-}
+};
+Glib.Graph['circle'] = function(optionjson) {
+	var g = GraphPrototype.circle.New(true,true);
+	if(optionjson){
+		for(op in optionjson){
+			g[op]=optionjson[op];
+		}
+	}
+	g.width = 2 * g.r;
+	g.height = 2 * g.r;
+	return g;
+};
 Glib.Graph['rect'] = function(optionjson) {
-		var g = Glib.lib.Graph.New();
+		var g = GraphPrototype.rect.New(true,true);
 		if(optionjson){
 			for(op in optionjson){
 				g[op]=optionjson[op];
 			}
 		}
-
-		g.width = g.width || 50;
-		g.height = g.height || 50;
-		if(g.iffill===null)g.iffill = true;
+		return g;
+	};
+var GraphPrototype={
+	circle:new function(){
+		var g = Glib.lib.Graph.New();
+		g.r = 10;
 		g.graphFun = function(ct) {
-			ct.rect(0, 0, g.width, g.height);
+			ct.beginPath();
+			ct.moveTo(this.r+this.r,this.r);
+			ct.arc(this.r, this.r, this.r, 0, 2*Math.PI, false);
+			ct.closePath();
 		}
-		g.drawfunction = function(ct) {
-			g.graphFun(ct);
-			if (g.iffill) {
-				ct.fillColor = g.fillColor|| "#000";
-				ct.fill();
+		g.setR = function(r) {
+			this.r = r;
+			this.width = 2 * r;
+			this.height = 2 * r;
+		}
+		g.drawfunction = function(ct,color) {
+			ct.fillStyle = color||this.fillColor|| "#66CCFF";
+			if(!color&&this.borderWidth){
+				ct.strokeStyle = this.borderColor || "#000";
+				ct.lineWidth =this.borderWidth|| 0;
 			}
-			if (g.borderWidth  > 0) {
-				ct.strokeStyle = g.borderColor|| "#000";
-				ct.lineWidth = g.borderWidth ;
+			this.graphFun(ct);
+			ct.fill();
+			if(!color&&this.borderWidth){
 				ct.stroke();
 			}
 		}
+		g.eventRange=g.drawfunction;
+		return g;
+	},
+	arc:new function(){
+		var g = Glib.lib.Graph.New();
+		g.r = 10;
+		g.startAngle=0;
+		g.endAngle=2*Math.PI;
+		g.anticlockwise=false;
+		g.graphFun = function(ct) {
+			ct.beginPath();
+			ct.moveTo(this.r+this.r*Math.cos(this.startAngle),this.r+this.r*Math.sin(this.startAngle));
+			ct.arc(this.r, this.r, this.r, this.startAngle, this.endAngle, this.anticlockwise);
+			ct.closePath();
+		}
+		g.setR = function(r) {
+			this.r = r;
+			this.width = 2 * r;
+			this.height = 2 * r;
+		}
+		g.drawfunction = function(ct,color) {
+			ct.fillStyle = color||this.fillColor|| "#66CCFF";
+			if(!color&&this.borderWidth){
+				ct.strokeStyle = this.borderColor || "#000";
+				ct.lineWidth =this.borderWidth|| 0;
+			}
+			this.graphFun(ct);
+			ct.fill();
+			if(!color&&this.borderWidth){
+				ct.stroke();
+			}
+		}
+		g.eventRange=g.drawfunction;
+		return g;
+	},
+	rect:new function(){
+		var g = Glib.lib.Graph.New();
+		g.width =50;
+		g.height =50;
+		g.iffill = true;
+		g.graphFun = function(ct) {
+			ct.rect(0, 0, this.width, this.height);
+		}
+		g.drawfunction = function(ct,color) {
+			this.graphFun(ct);
+			if (this.iffill||color) {
+				ct.fillStyle  = color||this.fillColor|| "#000";
+				ct.fill();
+			}
+			if(!color&&this.borderWidth  > 0) {
+				ct.strokeStyle = this.borderColor|| "#000";
+				ct.lineWidth = this.borderWidth ;
+				ct.stroke();
+			}
+		}
+		g.eventRange=g.drawfunction;
+		return g;
+	},
+	star:new function(){
+		var g=Glib.lib.Graph.New();
+		g.r=10;
+		g.width=2*g.r;
+		g.height=2*g.r;
+		g.graphFun=function(ct,color){
+			ct.rotate(Math.PI/2*3);
+			ct.beginPath();
+			ct.fillStyle =color||this.color||"#000";
+			ct.moveTo(this.r, 0);
+			for (var i = 0; i < 9; i++) {
+				ct.rotate(Math.PI / 5);
+				if (i % 2 == 0) {
+					ct.lineTo(this.r*0.3819653, 0);
+				} else {
+					ct.lineTo(this.r, 0);
+				}
+			}
+			ct.closePath();
+		}
+		g.strokeetR=function(r){
+			this.return=r;
+			this.width=2*r;
+			this.height=2*r;
+		}
+		g.drawfunction=function(ct,color){
+			this.graphFun(ct,color);
+			ct.fill();
+		}
+		g.eventRange=g.drawfunction;
 		return g;
 	}
+};
+
 return Glib;
 }
+
+
