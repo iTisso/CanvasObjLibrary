@@ -73,7 +73,6 @@ function newCOL() {
 			click: false,
 			centerclick: false,
 			rightcilck: false,
-			onmoveele: null,
 			draging: false
 		},
 		eventobj:{
@@ -334,7 +333,6 @@ function newCOL() {
 		COL.document.width = canvas_dom.width;
 		COL.document.height = canvas_dom.height;
 		COL.drawlist = [COL.document];
-		COL.MatrixTransform.off();
 		COL.adjustcanvas();
 	};
 
