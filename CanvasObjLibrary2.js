@@ -29,8 +29,8 @@ class CanvasObjectLibrary{
 					lineHeight: null,
 					fontSize: 14,
 					fontFamily: "Arial",
-					borderWidth: 0,
-					borderColor: "#000",
+					strokeWidth: 0,
+					strokeColor: "#000",
 					shadowBlur: 0,
 					shadowColor: "#000",
 					shadowOffsetX:0,
@@ -76,6 +76,7 @@ class CanvasObjectLibrary{
 			},
 			tmp:{
 				graphID:0,
+				onOverGraph:null,
 				//matrix:new Float32Array(9),
 			},
 			
@@ -253,17 +254,20 @@ const COL_Class={
 	},
 	Graph:host=>{
 		return class Graph extends host.class.GraphEventEmitter{
-			constructor(name=''){
+			constructor(){
 				super();
-				this.name=name;
+				//this.name=name;
+				this.host=host;
 				this.GID=host.generateGraphID();
 				Object.defineProperties(this,{
 					style:{value: new host.class.GraphStyle(),configurable:true},
 					childNodes:{value: []},
-					parentNode:{value: undefined,configurable:true,}
+					parentNode:{value: undefined,configurable:true}
 				});
-				this.mouseOverPath;
 			}
+		}
+		createShadow(){
+
 		}
 		//add a graph to childNodes' end
 		appendChild(graph){
@@ -386,6 +390,16 @@ const COL_Class={
 				}
 			}
 		}
+		checkIfOnOver(){
+			const m=this.host.stat.mouse;
+			if(m.x === null)return false;
+			if(this===this.host.tmp.onOverGraph)return true;
+			if(this.host.context.isPointInPath(m.x,m.y)){
+				this.host.tmp.onOverGraph=this;
+				return true;
+			}
+			return false;
+		}
 	},
 	GraphStyle:host=>{
 		return class GraphStyle{
@@ -395,7 +409,7 @@ const COL_Class={
 			inhertGraph(graph){//inhert a graph's style
 				if(!(graph instanceof host.class.Graph))
 					throw(new TypeError('graph is not a Graph instance'));
-				this.__proto__=graph.style;
+				this.inhertStyle(graph.style);
 			}
 			inhertStyle(style){
 				if(!(style instanceof host.class.GraphStyle))
@@ -407,46 +421,125 @@ const COL_Class={
 			}
 		}
 	},
-	ImageGraph:host=>{
+	FunctionGraph:host=>{
 		return class ImageGraph extends this.class.Graph{
-			constructor(name=''){
-				super(name);
+			constructor(drawer){
+				super();
+				if(drawer instanceof Function){
+					this.drawer=drawer;
+				}
 			}
-			use(img){
-				if(this.img instanceof Image && this.img instanceof HTMLCanvasElement)
-					this.img=img;
-			}
-			get width(){
-				if(this.img instanceof Image)return this.img.naturalWidth;
-				if(this.img instanceof HTMLCanvasElement)return this.img.width;
-				return 0;
-			}
-			get height(){
-				if(this.img instanceof Image)return this.img.naturalHeight;
-				if(this.img instanceof HTMLCanvasElement)return this.img.height;
-				return 0;
+			drawer(ct){
+				//onover point check
+				ct.beginPath();
+				ct.rect(0,0,this.style.width,this.style.height);
+				this.checkIfOnOver();
 			}
 		}
 	},
-	FunctionGraph:host=>{
-		return class ImageGraph extends this.class.Graph{
-			constructor(name=''){
-				super(name);
-				
+	ImageGraph:host=>{
+		return class ImageGraph extends this.class.FunctionGraph{
+			constructor(image){
+				super();
+				if(image)this.use(image);
+			}
+			use(image){
+				if(this.image instanceof Image && this.image instanceof HTMLCanvasElement){
+					this.image=image;
+					return true;
+				}
+				throw(new TypeError('image is not an Image object or a canvas'));
+			}
+			get width(){
+				if(this.image instanceof Image)return this.image.naturalWidth;
+				if(this.image instanceof HTMLCanvasElement)return this.image.width;
+				return 0;
+			}
+			get height(){
+				if(this.image instanceof Image)return this.image.naturalHeight;
+				if(this.image instanceof HTMLCanvasElement)return this.image.height;
+				return 0;
+			}
+			drawer(ct){
+				//onover point check
+				ct.beginPath();
+				ct.drawImage(this.image, 0, 0);
+				this.checkIfOnOver();
 			}
 		}
 	},
 	TextGraph:host=>{
-		return class ImageGraph extends this.class.Graph{
-			constructor(name=''){
-				super(name);
-				this.text;
-				this.realtimeVary;
-				this.varylist=[];
+		return class ImageGraph extends this.class.FunctionGraph{
+			constructor(text=''){
+				super();
+				this.text=text;
+				this.font=Object.create(this.default.font);
+				this._fontString='';
+				this.realtimeRender=false;
+				this.renderList=null;
 				this.autoSize=true;
+				this._cache=null;
+				Object.defineProperty(this,'_cache',{configurable:true});
 			}
-			prepare(){}
-			render(ct){}
+			prepare(){//prepare text details
+				if(!this._cache && !this.realtimeRender){
+					Object.defineProperty(this,'_cache',{value:document.createElement("canvas")});
+				}
+				let font = "";
+				(this.font.fontStyle)&&(font = this.fontStyle);
+				(this.font.fontVariant)&&(font =`${font} ${this.fontVariant}`);
+				(this.font.fontWeight)&&(font =`${font} ${this.fontWeight}`);
+				font =`${font} ${this.fontSize}px`;
+				(this.font.fontFamily)&&(font =`${font} ${this.fontFamily}`);
+				this._fontString = font;
+
+				if(this.realtimeRender)return;
+				const imgobj = this._cache,ct = imgobj.getContext("2d");
+				ct.font = font;
+				ct.clearRect(0, 0, imgobj.width, imgobj.height);
+				this.renderList = this.text.split(/\n/g);
+				this.estimatePadding=Math.max(
+					this.font.shadowBlur+5+Math.max(Math.abs(this.font.shadowOffsetY),Math.abs(this.font.shadowOffsetX)),
+					this.font.strokeWidth+3
+				);
+				if (this.autoSize) {
+					let w = 0,tw;
+					for (let i = this.renderList.length; i -- ;) {
+						tw = ct.measureText(this.renderList[i]).width;
+						(tw>w)&&(w=tw);//max
+					}
+					if (!this.vertical) {
+						imgobj.width = (this.style.width = w) + this.estimatePadding*2;
+						imgobj.height = (this.style.height = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
+					}else{
+						imgobj.height = (this.style.height = w*1.5) + this.estimatePadding*2;
+						imgobj.width = (this.style.width = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
+					}
+
+				} else {
+					imgobj.width = this.style.width;
+					imgobj.height = this.style.height;
+				}
+				ct.transform(1, 0, 0, 1, this.estimatePadding, this.this.estimatePadding);
+				this.vary(ct);
+			}
+			render(ct){//render text
+				if(!this.renderList)return;
+			}
+			drawer(ct){
+				//onover point check
+				ct.beginPath();
+				ct.rect(0,0,this.style.width,this.style.height);
+				this.checkIfOnOver();
+				if(this.realtimeRender){//realtime render the text
+					this.render(ct);
+				}else{//draw the cache
+					if(!this.cache){
+						this.prepare();
+					}
+					ct.
+				}
+			}
 		}
 	},
 }
