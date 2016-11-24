@@ -37,9 +37,9 @@ class CanvasObjectLibrary{
 					shadowOffsetY:0,
 					fill:true,
 					lineHeight:18,
-					vertical:false,
+					//vertical:false,//abandoned
 					reverse:false,
-					//baseline: "middle",
+					//textBaseline: "middle",//abandoned
 				},
 				style:{
 					//x:0,
@@ -59,6 +59,7 @@ class CanvasObjectLibrary{
 					positionPointY:0,
 					zoomPointY:0,
 					zoomPointY:0,
+					composite:null,
 				},
 			},
 			stat:{
@@ -80,7 +81,7 @@ class CanvasObjectLibrary{
 				//matrix:new Float32Array(9),
 			},
 			
-			document: null,//document Graph
+			root: null,//root Graph
 
 			class:{},
 
@@ -105,13 +106,14 @@ class CanvasObjectLibrary{
 		for(let c in COL_Class)this.class[c]=COL_Class[c](this);
 
 		//init root graph
-		this.document=new this.class.Graph();
-		this.document.name='document';
-		//prevent document's parentNode being modified
-		Object.defineProperty(this.document,'parentNode',{configurable:false});
+		this.root=new this.class.Graph();
+		this.root.name='root';
+		this.root.drawer=null;
+		//prevent root's parentNode being modified
+		Object.defineProperty(this.root,'parentNode',{configurable:false});
 
 		//adjust canvas drawing size
-		this.adjustcanvas();
+		this.adjustCanvas();
 
 		const canvas=this.canvas;
 		//add events
@@ -132,7 +134,7 @@ class CanvasObjectLibrary{
 			mousemove:e=>this._commonEventHandle(e),
 			mousedown:e=>{
 				this.stat.canvasOnFocus=true;
-				//this.stat.onfocus=(this.stat.onover||this.document);
+				//this.stat.onfocus=(this.stat.onover||this.root);
 				this._commonEventHandle(e)
 			},
 			mouseup:e=>this._commonEventHandle(e),
@@ -142,7 +144,7 @@ class CanvasObjectLibrary{
 			wheel:e=>{
 				const ce=new this.class.WheelEvent('wheel');
 				ce.originEvent=e;
-				(this.stat.onover||this.document).emit(ce);
+				(this.stat.onover||this.root).emit(ce);
 			},
 			keydown:e=>this._commonEventHandle(e),
 			keyup:e=>this._commonEventHandle(e),
@@ -161,9 +163,11 @@ class CanvasObjectLibrary{
 		});
 	}
 	generateGraphID(){return ++this.tmp.graphID;}
-	adjustcanvas(width=this.canvas.offsetWidth,height=this.canvas.offsetHeight){
-		this.document.width =this.canvas.width= width;
-		this.document.height =this.canvas.height= height;
+	adjustCanvas(width=this.canvas.offsetWidth,height=this.canvas.offsetHeight){
+		this.root.style.width =this.canvas.width= width;
+		this.root.style.height =this.canvas.height= height;
+		const ce=new this.class.Event('resize');
+		this.root.emit(ce);
 	}
 	_commonEventHandle(e){
 		if(e instanceof MouseEvent){
@@ -171,14 +175,63 @@ class CanvasObjectLibrary{
 			this.stat.mouse.y=e.layerY;
 			const ce=new this.class.MouseEvent(e.type);
 			ce.originEvent=e;
-			(this.stat.onover||this.document).emit(ce);
+			(this.stat.onover||this.root).emit(ce);
 		}else if(e instanceof MouseEvent){
 			const ce=new this.class.KeyboardEvent(e.type);
 			ce.originEvent=e;
-			(this.stat.onover||this.document).emit(ce);
+			(this.stat.onover||this.root).emit(ce);
 		}
 	}
-	draw(){}
+	draw(){
+		const ct=this.context;
+		ct.setTransform(1,0,0,1,0,0);
+		this.autoClear&&ct.clearRect(0,0,this.canvas.width,this.canvas.height);
+		this.drawGraph(this.document);
+		if(this.tmp.onOverGraph!==this.stat.onover){//new onover graph
+			const oldOnover=this.stat.onover;
+			this.stat.onover=this.tmp.onOverGraph;
+			const ceout=new this.class.MouseEvent('mouseout');
+			oldOnover.emit(ce);
+
+			const ceover=new this.class.MouseEvent('mouseover');
+			this.stat.onover.emit(ce);
+		}
+		this.tmp.onOverGraph=null;
+	}
+	drawGraph(g){
+		const ct=this.context,style=g.style;
+		if(style.hidden)return;
+		ct.save();
+		ct.globalCompositeOperation = style.composite;
+		ct.globalAlpha = style.opacity;
+		//offset
+		if(style.positionPointX || style.positionPointY)
+			ct.translate(-style.positionPointX,-style.positionPointY);
+		//rotate
+		if(style.rotate){
+			/*if(style.rotatePointX || style.rotatePointY)
+				ct.translate(-style.rotatePointX,-style.rotatePointY);*/
+			ct.rotate(style.rotate * 0.0174532925);
+			if(style.rotatePointX || style.rotatePointY)
+				ct.translate(-style.rotatePointX,-style.rotatePointY);
+		}
+		//zoom
+		if(style.zoomX!==1 || style.zoomY!==1){
+			if(style.zoomPointX || style.zoomPointY)
+				ct.translate(style.zoomPointX,style.zoomPointX);
+			ct.scale(style.zoomX,style.zoomY);
+			if(style.zoomPointX || style.zoomPointY)
+				ct.translate(-style.zoomPointX,-style.zoomPointX);
+		}
+		if(g.drawer){
+			g.drawer(ct);
+		}
+		if(g.childNodes.length){
+			for(let c of g.childNodes)
+				this.drawGraph(c);
+		}
+		ct.restore();
+	}
 }
 
 const COL_Class={
@@ -258,7 +311,7 @@ const COL_Class={
 				super();
 				//this.name=name;
 				this.host=host;
-				this.GID=host.generateGraphID();
+				this.GID=this.host.generateGraphID();
 				Object.defineProperties(this,{
 					style:{value: new host.class.GraphStyle(),configurable:true},
 					childNodes:{value: []},
@@ -267,7 +320,15 @@ const COL_Class={
 			}
 		}
 		createShadow(){
-
+			const shadow=Object.create(this);
+			shadow.GID=this.host.generateGraphID();
+			shadow.shadowParent=this;
+			Object.defineProperties(shadow,{
+				style:{value: new host.class.GraphStyle(this.style),configurable:true},
+				//childNodes:{value: []},
+				parentNode:{value: undefined,configurable:true}
+			});
+			return shadow;
 		}
 		//add a graph to childNodes' end
 		appendChild(graph){
@@ -403,18 +464,31 @@ const COL_Class={
 	},
 	GraphStyle:host=>{
 		return class GraphStyle{
-			constructor(){
+			constructor(inhertFrom){
+				if(inhertFrom && this.inhhert(inhertFrom))return;
 				this.__proto__=host.default.style;
 			}
 			inhertGraph(graph){//inhert a graph's style
 				if(!(graph instanceof host.class.Graph))
 					throw(new TypeError('graph is not a Graph instance'));
 				this.inhertStyle(graph.style);
+				return true;
 			}
 			inhertStyle(style){
 				if(!(style instanceof host.class.GraphStyle))
 					throw(new TypeError('graph is not a Graph instance'));
 				this.__proto__=style;
+				return true;
+			}
+			inhert(from){
+				if(from instanceof host.class.Graph){
+					this.inhertGraph(from);
+					return true;
+				}else if(from instanceof host.class.GraphStyle){
+					this.inhertStyle(from);
+					return true;
+				}
+				return false;
 			}
 			cancelInhert(){
 				this.__proto__=Object.prototype;
@@ -508,36 +582,48 @@ const COL_Class={
 						tw = ct.measureText(this.renderList[i]).width;
 						(tw>w)&&(w=tw);//max
 					}
-					if (!this.vertical) {
+					/*if (!this.vertical) {*/
 						imgobj.width = (this.style.width = w) + this.estimatePadding*2;
 						imgobj.height = (this.style.height = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
-					}else{
+					/*}else{
 						imgobj.height = (this.style.height = w*1.5) + this.estimatePadding*2;
 						imgobj.width = (this.style.width = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
-					}
+					}*/
 
 				} else {
 					imgobj.width = this.style.width;
 					imgobj.height = this.style.height;
 				}
-				ct.transform(1, 0, 0, 1, this.estimatePadding, this.this.estimatePadding);
-				this.vary(ct);
+				ct.translate(this.estimatePadding, this.this.estimatePadding);
+				this.render(ct);
 			}
 			render(ct){//render text
 				if(!this.renderList)return;
+				ct.font=this._fontString;//set font
+				ct.textBaseline = 'top';
+				ct.lineWidth = this.font.strokeWidth;
+				ct.strokeStyle = this.font.strokeColor;
+				ct.shadowBlur = this.font.shadowBlur;
+				ct.shadowOffsetX = this.font.shadowOffsetX;
+				ct.shadowOffsetY = this.font.shadowOffsetY;
+				for (let i = this.renderList.length;i--;) {
+					this.font.fill&&ct.fillText(this.renderList[i],0, this.font.lineHeight*i);
+					this.font.strokeWidth&&ct.strokeText(this.renderList[i], 0, this.font.lineHeight*i);
+				}
 			}
 			drawer(ct){
-				//onover point check
 				ct.beginPath();
-				ct.rect(0,0,this.style.width,this.style.height);
-				this.checkIfOnOver();
 				if(this.realtimeRender){//realtime render the text
+					//onover point check
+					ct.rect(0,0,this.style.width,this.style.height);
+					this.checkIfOnOver();
 					this.render(ct);
 				}else{//draw the cache
-					if(!this.cache){
+					if(!this._cache){
 						this.prepare();
 					}
-					ct.
+					ct.drawImage(this._cache, -this.estimatePadding, -this.estimatePadding);
+					this.checkIfOnOver();
 				}
 			}
 		}
