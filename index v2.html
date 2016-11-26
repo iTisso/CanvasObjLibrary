@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+	body{margin: 20px;
+		padding:10px;}
+</style>
+<div id="par">
+<canvas id="canvas" style="position:fixed;height:600px;width:600px;left:0px;top:0px;"></canvas></div>
+
+<script type="text/javascript" src="pics.js"></script>
+<script src="CanvasObjLibrary2.js"></script>
+<script src="GraphLib2.js"></script>
+<script type="text/javascript">
+canvas=document.querySelector("#canvas");
+	canvas.height=canvas.offsetHeight;
+	canvas.width=canvas.offsetWidth;
+	gui=newCOL();
+	Glib=getGraphlib(gui);
+	Glib.SetCanvasLib(gui);
+	gui.setCanvas(canvas);
+	gui.imageSmoothing.on();
+
+	a=gui.Graph.New();
+	 b=gui.Graph.New();
+	cm=gui.Graph.New();
+	s=Glib.getGraphObj('arc',{r:200,color:"#66ccff"});
+	rf=gui.Graph.NewTextObj("图片里的对象");
+	
+	k=gui.Graph.NewTextObj("abcde喵\n( •ॢϖ •ॢ)~にや",60);
+	//k.fontSize="60";
+	k.fontFamily="DFPKanTeiRyu-XB";
+	k.shadowBlur=10	
+	k.textborderWidth=1;
+	k.textborderColor="#fff"
+	k.prepareText();
+
+	a.drawpic(405,360,drawfunctions.taiko);
+	b.drawfunction=drawfunctions.pongleft
+
+	a.setRotateCenter("center");
+ 	b.setRotateCenter("center");
+	k.setRotateCenter("center");
+	s.setRotateCenter("center");
+
+	a.x=100,a.y=300;
+ 	b.width=405/2,b.height=360;
+	k.x=100;k.y=200;
+	s.x=200;s.y=200;
+	rf.x=100;rf.y=50;
+
+	k.Composite="lighter";
+	//rf.Composite="lighter";
+
+	gui.Graph.Eventable(a);
+	gui.Graph.Eventable(b);
+	gui.Graph.Eventable(cm);
+	gui.Graph.Eventable(k);
+
+k.addEvent("onclick",function(e){
+		setInterval(function(){
+	k.rotate+=0.01;
+},1000/60);
+});
+k.addEvent("onmousewheel",function(e){
+		switch(e.wheel){
+			case 0:k.rotate+=4;break;
+			case 1:k.rotate-=4;break;
+		}
+});
+
+	a.opacity=0.5
+	cm.opacity=1;
+	a.drawtype="image";
+	cm.drawtype="image";
+	a.setZoom(0.4);
+	rf.setZoom(3);
+
+	a.addEvent("onmouseover",function(e){a.setZoom(0.5);});
+ 	a.addEvent("onmouseout",function(e){a.setZoom(0.4);});
+
+
+ 	cm.addEvent("onclick",function(e){
+ 		gui.tools.Linear.go(0,36000,300000,function(rotate){
+ 			//console.log(rotate)
+			cm.rotate=rotate;
+		},60);
+ 	});
+
+
+	m=new Image();
+	m.src=getpic()
+	m.onload=function(e){
+		cm.useImage(m);
+		cm.setRotateCenter("center");
+	}
+
+
+a.overPath=function(ct){
+	ct.beginPath();
+		ct.moveTo(5, 120);
+		ct.lineTo(5, 230);
+		ct.bezierCurveTo(5, 390, 400, 390, 400, 230);
+		ct.lineTo(400, 120);
+		ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
+		
+}
+
+	
+
+	//b.addChild(cm);
+ 	a.addChild(b);
+ 	a.addChild(cm);
+ 	cm.addChild(rf);
+
+	
+	a.zindex(10);
+	b.zindex(100);
+	cm.setZoom(0.5)
+
+	gui.document.addChild(a);	
+	gui.document.addChild(k);	
+	gui.document.addChild(s);	
+
+	gui.Debug.on()
+function am(){
+	gui.context.clearRect(0,0,gui.canvas.offsetWidth,gui.canvas.offsetHeight);
+	gui.draw();
+	requestAnimationFrame(am);
+} 
+requestAnimationFrame(am);
+</script>

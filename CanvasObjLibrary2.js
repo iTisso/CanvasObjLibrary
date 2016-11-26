@@ -134,7 +134,7 @@ class CanvasObjectLibrary{
 			mousemove:e=>this._commonEventHandle(e),
 			mousedown:e=>{
 				this.stat.canvasOnFocus=true;
-				//this.stat.onfocus=(this.stat.onover||this.root);
+				this.stat.onfocus=this.stat.onover;
 				this._commonEventHandle(e)
 			},
 			mouseup:e=>this._commonEventHandle(e),
@@ -217,15 +217,18 @@ class CanvasObjectLibrary{
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
-			if(style.zoomPointX || style.zoomPointY)
-				ct.translate(style.zoomPointX,style.zoomPointX);
+			/*if(style.zoomPointX || style.zoomPointY)
+				ct.translate(style.zoomPointX,style.zoomPointX);*/
 			ct.scale(style.zoomX,style.zoomY);
 			if(style.zoomPointX || style.zoomPointY)
 				ct.translate(-style.zoomPointX,-style.zoomPointX);
 		}
-		if(g.drawer){
-			g.drawer(ct);
+		if(this.style.clipOverflow===true){
+			ct.beginPath();
+			ct.rect(0,0,style.width,style.height);
+			ct.clip();
 		}
+		if(g.drawer)g.drawer(ct);
 		if(g.childNodes.length){
 			for(let c of g.childNodes)
 				this.drawGraph(c);
@@ -461,6 +464,11 @@ const COL_Class={
 			}
 			return false;
 		}
+		remove(){//remove it from the related objects
+			if(this.parentNode)this.parentNode.removeChild(this);
+			if(this.host.onover===this)this.host.onover=null;
+			if(this.host.onfocus===this)this.host.onfocus=null;
+		}
 	},
 	GraphStyle:host=>{
 		return class GraphStyle{
@@ -692,7 +700,7 @@ if(!Float32Array.__proto__.from) {
 		window.cancelRequestAnimationFrame = window[vendors[x] + 'CancelRequestAnimationFrame'];
 	}
 	if (!window.requestAnimationFrame) window.requestAnimationFrame = function(callback, element, interval) {
-		var currTime = new Date().getTime();
+		var currTime = Date.now();
 		var timeToCall = interval || (Math.max(0, 1000 / 60 - (currTime - lastTime)));
 		callback(0);
 		var id = window.setTimeout(function() {
