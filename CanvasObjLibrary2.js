@@ -14,6 +14,8 @@ function addEvents(target,events={}){
 //class:CanvasObjectLibrary
 class CanvasObjectLibrary{
 	constructor(canvas){
+		if(canvas instanceof HTMLCanvasElement === false)
+			throw(new TypeError('canvas required'));
 		Object.assign(this,{
 			/*The main canvas*/
 			canvas: canvas,
@@ -115,7 +117,7 @@ class CanvasObjectLibrary{
 		//adjust canvas drawing size
 		this.adjustCanvas();
 
-		const canvas=this.canvas;
+		//const canvas=this.canvas;
 		//add events
 		addEvents(canvas,{
 			mouseout:e=>{
