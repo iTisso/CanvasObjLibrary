@@ -4,10 +4,8 @@ member:LuoJia
 */
 'use strict';
 (function(){
-window.CanvasObjectLibrary=CanvasObjectLibrary;
-
 function addEvents(target,events={}){
-	for(let e of events)target.addEventListener(e,events[e]);
+	for(let e in events)target.addEventListener(e,events[e]);
 }
 
 
@@ -16,6 +14,7 @@ class CanvasObjectLibrary{
 	constructor(canvas){
 		if(canvas instanceof HTMLCanvasElement === false)
 			throw(new TypeError('canvas required'));
+		const COL=this;
 		Object.assign(this,{
 			/*The main canvas*/
 			canvas: canvas,
@@ -39,13 +38,13 @@ class CanvasObjectLibrary{
 					shadowOffsetY:0,
 					fill:true,
 					lineHeight:18,
-					//vertical:false,//abandoned
 					reverse:false,
+					//vertical:false,//abandoned
 					//textBaseline: "middle",//abandoned
 				},
 				style:{
-					//x:0,
-					//y:0,
+					x:0,
+					y:0,
 					zoomX:1,
 					zoomY:1,
 					width:1,
@@ -62,6 +61,7 @@ class CanvasObjectLibrary{
 					zoomPointY:0,
 					zoomPointY:0,
 					composite:null,
+					debugBorderColor:'black',
 				},
 			},
 			stat:{
@@ -80,7 +80,6 @@ class CanvasObjectLibrary{
 			tmp:{
 				graphID:0,
 				onOverGraph:null,
-				//matrix:new Float32Array(9),
 			},
 			
 			root: null,//root Graph
@@ -89,17 +88,17 @@ class CanvasObjectLibrary{
 
 			autoClear:true,
 			//Debug info
-			Debug:{
+			debug:{
 				switch:false,
 				objInfo:false,
-				itemCount:0,
+				count:0,
 				FPS:0,
 				drawTimeRecorder:new Int32Array(3),//记录三帧绘制时的时间来计算fps
 				on:function(){
-					COL.Debug.switch=true;
+					COL.debug.switch=true;
 				},
 				off:function(){
-					COL.Debug.switch=false;
+					COL.debug.switch=false;
 
 				},
 			},
@@ -152,15 +151,15 @@ class CanvasObjectLibrary{
 			keyup:e=>this._commonEventHandle(e),
 			keypress:e=>this._commonEventHandle(e),
 		});
-		addEvents(window,{
+		addEvents(document,{
 			mousedown:e=>{
-				if(e.target===this.canvas){this.stat.canvasOnFocus=true;}
-				else{this.stat.canvasOnFocus=false;}
+				if(e.target!==this.canvas){this.stat.canvasOnFocus=false;}
 			},
 			mouseout:e=>{
-				if(this.stat.canvasOnOver)
+				if(this.stat.mouse.x !== null){
 					const eve=new window.MouseEvent('mouseout');
 					this.canvas.dispatchEvent(eve);
+				}
 			}
 		});
 	}
@@ -186,29 +185,35 @@ class CanvasObjectLibrary{
 	}
 	draw(){
 		const ct=this.context;
+		this.debug.count=0;
 		ct.setTransform(1,0,0,1,0,0);
 		this.autoClear&&ct.clearRect(0,0,this.canvas.width,this.canvas.height);
-		this.drawGraph(this.document);
+		this.drawGraph(this.root);
+		this.debug.switch&&this.drawDebug();
 		if(this.tmp.onOverGraph!==this.stat.onover){//new onover graph
 			const oldOnover=this.stat.onover;
 			this.stat.onover=this.tmp.onOverGraph;
-			const ceout=new this.class.MouseEvent('mouseout');
-			oldOnover.emit(ce);
+			if(oldOnover){
+				const ceout=new this.class.MouseEvent('mouseout');
+				oldOnover.emit(ceout);
+			}
 
-			const ceover=new this.class.MouseEvent('mouseover');
-			this.stat.onover.emit(ce);
+			if(this.stat.onover){
+				const ceover=new this.class.MouseEvent('mouseover');
+				this.stat.onover.emit(ceover);
+			}
 		}
 		this.tmp.onOverGraph=null;
 	}
 	drawGraph(g){
 		const ct=this.context,style=g.style;
 		if(style.hidden)return;
+		this.debug.count++;
 		ct.save();
 		ct.globalCompositeOperation = style.composite;
 		ct.globalAlpha = style.opacity;
-		//offset
-		if(style.positionPointX || style.positionPointY)
-			ct.translate(-style.positionPointX,-style.positionPointY);
+		//position & offset
+		ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
 		//rotate
 		if(style.rotate){
 			/*if(style.rotatePointX || style.rotatePointY)
@@ -225,7 +230,25 @@ class CanvasObjectLibrary{
 			if(style.zoomPointX || style.zoomPointY)
 				ct.translate(-style.zoomPointX,-style.zoomPointX);
 		}
-		if(this.style.clipOverflow===true){
+		if(this.debug.switch){
+			ct.save();
+			ct.beginPath();
+			ct.globalAlpha=0.5;
+			ct.globalCompositeOperation = null;
+			ct.strokeStyle=g.style.debugBorderColor;
+			ct.strokeWidth=1;
+			ct.strokeRect(0,0,style.width,style.height);
+			ct.globalAlpha=1;
+			ct.strokeStyle='green';
+			ct.beginPath();
+			ct.moveTo(style.positionPointX-10,style.positionPointY);
+			ct.lineTo(style.positionPointX+10,style.positionPointY);
+			ct.moveTo(style.positionPointX,style.positionPointY+10);
+			ct.lineTo(style.positionPointX,style.positionPointY-10);
+			ct.stroke();
+			ct.restore();
+		}
+		if(g.style.clipOverflow===true){
 			ct.beginPath();
 			ct.rect(0,0,style.width,style.height);
 			ct.clip();
@@ -237,6 +260,26 @@ class CanvasObjectLibrary{
 		}
 		ct.restore();
 	}
+	drawDebug(){
+		const ct=this.context;
+		ct.save();
+		ct.beginPath();
+		ct.setTransform(1, 0, 0, 1, 0, 0);
+		ct.font = "16px Arial";
+		ct.textBaseline = "bottom";
+		ct.globalCompositeOperation = "lighter";
+		ct.fillStyle = "red";
+		ct.fillText("point:" + this.stat.mouse.x + "," + this.stat.mouse.y + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
+		ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
+		ct.strokeStyle = "red";
+		ct.globalCompositeOperation = "source-over";
+		ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
+		ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
+		ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
+		ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
+		ct.stroke();
+		ct.restore();
+	}
 }
 
 const COL_Class={
@@ -246,6 +289,7 @@ const COL_Class={
 			constructor(type){
 				this.propagation=true;
 				this.type=type;
+				this.timeStamp=Date.now();
 			}
 			stopPropagation(){
 				this.propagation=false;
@@ -310,168 +354,6 @@ const COL_Class={
 			}
 		}
 	},
-	Graph:host=>{
-		return class Graph extends host.class.GraphEventEmitter{
-			constructor(){
-				super();
-				//this.name=name;
-				this.host=host;
-				this.GID=this.host.generateGraphID();
-				Object.defineProperties(this,{
-					style:{value: new host.class.GraphStyle(),configurable:true},
-					childNodes:{value: []},
-					parentNode:{value: undefined,configurable:true}
-				});
-			}
-		}
-		createShadow(){
-			const shadow=Object.create(this);
-			shadow.GID=this.host.generateGraphID();
-			shadow.shadowParent=this;
-			Object.defineProperties(shadow,{
-				style:{value: new host.class.GraphStyle(this.style),configurable:true},
-				//childNodes:{value: []},
-				parentNode:{value: undefined,configurable:true}
-			});
-			return shadow;
-		}
-		//add a graph to childNodes' end
-		appendChild(graph){
-			if(!(graph instanceof host.class.Graph))
-				throw(new TypeError('graph is not a Graph instance'));
-			if(graph===this)return false;
-			if(graph.parentNode!==this){
-				Object.defineProperty(graph, 'parentNode', {
-				  value: this,
-				});
-			}else{
-				let i=this.findChild(graph);
-				if(i>=0)this.childNodes.splice(i,1);
-			}
-			this.childNodes.push(graph);
-		}
-		//insert this graph after the graph
-		insertAfert(graph){
-			if(!(graph instanceof host.class.Graph))
-				throw(new TypeError('graph is not a Graph instance'));
-			if(graph===this)return false;
-			let p=graph.parentNode,io,it;
-			if(!p)return false;
-			it=p.findChild(graph);
-			if(it<0)return false;
-			if(p!==this.parentNode){
-				Object.defineProperty(this, 'parentNode', {
-				  value: p,
-				});
-			}else{
-				io=p.findChild(this);
-				if(io>=0)p.childNodes.splice(io,1);
-			}
-			this.childNodes.splice((io<it)?it:it+1);
-		}
-		//insert this graph before the graph
-		insertBefore(graph){
-			if(!(graph instanceof host.class.Graph))
-				throw(new TypeError('graph is not a Graph instance'));
-			if(graph===this)return false;
-			let p=graph.parentNode,io,it;
-			if(!p)return false;
-			it=p.findChild(graph);
-			if(it<0)return false;
-			if(p!==this.parentNode){
-				Object.defineProperty(this, 'parentNode', {
-				  value: p,
-				});
-			}else{
-				io=p.findChild(this);
-				if(io>=0)p.childNodes.splice(io,1);
-			}
-			this.childNodes.splice((io<it)?it-1:it);
-		}
-		findChild(graph){
-			for(let i=this.childNodes.length;i--;)
-				if(this.childNodes[i]===graph)return i;
-			return -1;
-		}
-		removeChild(graph){
-			let i=this.findChild(graph);
-			if(i<0)return;
-			this.childNodes.splice(i,1);
-			Object.defineProperty(this, 'parentNode', {
-			  value: undefined,
-			});
-		}
-		zoom(x,y){
-			if (arguments.length == 1) {
-				this.style.zoomX = this.style.zoomY = x;
-			}
-			else{
-				this.style.zoomX = x;
-				this.style.zoomY = y;
-			}
-		}
-		setSize(w,h){
-			this.style.width = w;
-			this.style.height = h;
-		}
-		setRotatePoint(x,y){
-			if (arguments.length == 2) {
-				this.style.rotatePointX = x;
-				this.style.rotatePointY = y;
-			} else if (arguments.length == 1) {
-				switch (x) {
-					case "center":{
-						this.style.rotatePointX = this.style.width / 2;
-						this.style.rotatePointY = this.style.height / 2;
-						break;
-					}
-				}
-			}
-		}
-		setPositionPoint(x,y){
-			if (arguments.length == 2) {
-				this.style.positionPointX = x;
-				this.style.positionPointY = y;
-			} else if (arguments.length == 1) {
-				switch (x) {
-					case "center":{
-						this.style.positionPointX = this.style.width / 2;
-						this.style.positionPointY = this.style.height / 2;
-						break;
-					}
-				}
-			}
-		}
-		setZoomPoint(x,y){
-			if (arguments.length == 2) {
-				this.style.zoomPointY = x;
-				this.style.zoomPointY = y;
-			} else if (arguments.length == 1) {
-				switch (x) {
-					case "center":{
-						this.style.zoomPointY = this.style.width / 2;
-						this.style.zoomPointY = this.style.height / 2;
-						break;
-					}
-				}
-			}
-		}
-		checkIfOnOver(){
-			const m=this.host.stat.mouse;
-			if(m.x === null)return false;
-			if(this===this.host.tmp.onOverGraph)return true;
-			if(this.host.context.isPointInPath(m.x,m.y)){
-				this.host.tmp.onOverGraph=this;
-				return true;
-			}
-			return false;
-		}
-		remove(){//remove it from the related objects
-			if(this.parentNode)this.parentNode.removeChild(this);
-			if(this.host.onover===this)this.host.onover=null;
-			if(this.host.onfocus===this)this.host.onfocus=null;
-		}
-	},
 	GraphStyle:host=>{
 		return class GraphStyle{
 			constructor(inhertFrom){
@@ -505,13 +387,183 @@ const COL_Class={
 			}
 		}
 	},
+	Graph:host=>{
+		return class Graph extends host.class.GraphEventEmitter{
+			constructor(){
+				super();
+				//this.name=name;
+				this.host=host;
+				this.GID=this.host.generateGraphID();
+				Object.defineProperties(this,{
+					style:{value: new host.class.GraphStyle(),configurable:true},
+					childNodes:{value: []},
+					parentNode:{value: undefined,configurable:true}
+				});
+			}
+			createShadow(){
+				const shadow=Object.create(this);
+				shadow.GID=this.host.generateGraphID();
+				shadow.shadowParent=this;
+				Object.defineProperties(shadow,{
+					style:{value: new host.class.GraphStyle(this.style),configurable:true},
+					//childNodes:{value: []},
+					parentNode:{value: undefined,configurable:true}
+				});
+				return shadow;
+			}
+			//add a graph to childNodes' end
+			appendChild(graph){
+				if(!(graph instanceof host.class.Graph))
+					throw(new TypeError('graph is not a Graph instance'));
+				if(graph===this)return false;
+				if(graph.parentNode!==this){
+					Object.defineProperty(graph, 'parentNode', {
+					  value: this,
+					});
+				}else{
+					let i=this.findChild(graph);
+					if(i>=0)this.childNodes.splice(i,1);
+				}
+				this.childNodes.push(graph);
+			}
+			//insert this graph after the graph
+			insertAfert(graph){
+				if(!(graph instanceof host.class.Graph))
+					throw(new TypeError('graph is not a Graph instance'));
+				if(graph===this)return false;
+				let p=graph.parentNode,io,it;
+				if(!p)return false;
+				it=p.findChild(graph);
+				if(it<0)return false;
+				if(p!==this.parentNode){
+					Object.defineProperty(this, 'parentNode', {
+					  value: p,
+					});
+				}else{
+					io=p.findChild(this);
+					if(io>=0)p.childNodes.splice(io,1);
+				}
+				this.childNodes.splice((io<it)?it:it+1);
+			}
+			//insert this graph before the graph
+			insertBefore(graph){
+				if(!(graph instanceof host.class.Graph))
+					throw(new TypeError('graph is not a Graph instance'));
+				if(graph===this)return false;
+				let p=graph.parentNode,io,it;
+				if(!p)return false;
+				it=p.findChild(graph);
+				if(it<0)return false;
+				if(p!==this.parentNode){
+					Object.defineProperty(this, 'parentNode', {
+					  value: p,
+					});
+				}else{
+					io=p.findChild(this);
+					if(io>=0)p.childNodes.splice(io,1);
+				}
+				this.childNodes.splice((io<it)?it-1:it);
+			}
+			findChild(graph){
+				for(let i=this.childNodes.length;i--;)
+					if(this.childNodes[i]===graph)return i;
+				return -1;
+			}
+			removeChild(graph){
+				let i=this.findChild(graph);
+				if(i<0)return;
+				this.childNodes.splice(i,1);
+				Object.defineProperty(this, 'parentNode', {
+				  value: undefined,
+				});
+			}
+			zoom(x,y){
+				if (arguments.length == 1) {
+					this.style.zoomX = this.style.zoomY = x;
+				}
+				else{
+					this.style.zoomX = x;
+					this.style.zoomY = y;
+				}
+			}
+			setSize(w,h){
+				this.style.width = w;
+				this.style.height = h;
+			}
+			setRotatePoint(x,y){
+				if (arguments.length == 2) {
+					this.style.rotatePointX = x;
+					this.style.rotatePointY = y;
+				} else if (arguments.length == 1) {
+					switch (x) {
+						case "center":{
+							this.style.rotatePointX = this.style.width / 2;
+							this.style.rotatePointY = this.style.height / 2;
+							break;
+						}
+					}
+				}
+			}
+			setPositionPoint(x,y){
+				if (arguments.length == 2) {
+					this.style.positionPointX = x;
+					this.style.positionPointY = y;
+				} else if (arguments.length == 1) {
+					switch (x) {
+						case "center":{
+							this.style.positionPointX = this.style.width / 2;
+							this.style.positionPointY = this.style.height / 2;
+							break;
+						}
+					}
+				}
+			}
+			setZoomPoint(x,y){
+				if (arguments.length == 2) {
+					this.style.zoomPointY = x;
+					this.style.zoomPointY = y;
+				} else if (arguments.length == 1) {
+					switch (x) {
+						case "center":{
+							this.style.zoomPointY = this.style.width / 2;
+							this.style.zoomPointY = this.style.height / 2;
+							break;
+						}
+					}
+				}
+			}
+			checkIfOnOver(){
+				const m=this.host.stat.mouse;
+				if(m.x === null)return false;
+				if(this===this.host.tmp.onOverGraph)return true;
+				if(this.host.debug.switch){
+					this.host.context.save();
+					this.host.context.strokeStyle='yellow';
+					this.host.context.stroke();
+					this.host.context.restore();
+				}
+				if(this.host.context.isPointInPath(m.x,m.y)){
+					this.host.tmp.onOverGraph=this;
+					return true;
+				}
+				return false;
+			}
+			delete(){//remove it from the related objects
+				if(this.parentNode)this.parentNode.removeChild(this);
+				if(this.host.onover===this)this.host.onover=null;
+				if(this.host.onfocus===this)this.host.onfocus=null;
+			}
+		}
+		
+	},
 	FunctionGraph:host=>{
-		return class ImageGraph extends this.class.Graph{
+		return class ImageGraph extends host.class.Graph{
 			constructor(drawer){
 				super();
 				if(drawer instanceof Function){
 					this.drawer=drawer;
 				}
+				this.style.debugBorderColor='#f00';
 			}
 			drawer(ct){
 				//onover point check
@@ -522,17 +574,18 @@ const COL_Class={
 		}
 	},
 	ImageGraph:host=>{
-		return class ImageGraph extends this.class.FunctionGraph{
+		return class ImageGraph extends host.class.FunctionGraph{
 			constructor(image){
 				super();
 				if(image)this.use(image);
+				this.style.debugBorderColor='#0f0';
 			}
 			use(image){
-				if(this.image instanceof Image && this.image instanceof HTMLCanvasElement){
+				if(image instanceof Image && image instanceof HTMLCanvasElement){
 					this.image=image;
 					return true;
 				}
-				throw(new TypeError('image is not an Image object or a canvas'));
+				throw(new TypeError('Wrong image type'));
 			}
 			get width(){
 				if(this.image instanceof Image)return this.image.naturalWidth;
@@ -552,8 +605,24 @@ const COL_Class={
 			}
 		}
 	},
+	CanvasGraph:host=>{
+		return class CanvasGraph extends host.class.ImageGraph{
+			constructor(){
+				super();
+				this.image=document.createElement('canvas');
+				this.context=this.image.getContext('2d');
+				this.autoClear=true;
+			}
+			draw(func){
+				if(this.autoClear)this.context.clearRect(0,0,this.width,this.height);
+				func(this.context);
+			}
+			set width(w){this.image.width=w;}
+			set height(h){this.image.height=h;}
+		}
+	},
 	TextGraph:host=>{
-		return class ImageGraph extends this.class.FunctionGraph{
+		return class ImageGraph extends host.class.FunctionGraph{
 			constructor(text=''){
 				super();
 				this.text=text;
@@ -562,6 +631,7 @@ const COL_Class={
 				this.realtimeRender=false;
 				this.renderList=null;
 				this.autoSize=true;
+				this.style.debugBorderColor='#00f';
 				this._cache=null;
 				Object.defineProperty(this,'_cache',{configurable:true});
 			}
@@ -640,6 +710,7 @@ const COL_Class={
 	},
 }
 
+window.CanvasObjectLibrary=CanvasObjectLibrary;
 
 
 //code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
@@ -673,7 +744,7 @@ if(!Float32Array.__proto__.from) {
             throw new TypeError("# is not a constructor");
         if(this.__proto__ !== typedArrayClass)
         	throw new TypeError("this is not a typed array.");
-        func = func || elem=>{return elem;};
+        func = func || (elem=>{return elem;});
         if (typeof func !== "function")
         	throw new TypeError("specified argument is not a function");
         obj = Object(obj);
@@ -715,4 +786,6 @@ if(!Float32Array.__proto__.from) {
 	if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function(id) {
 		clearTimeout(id);
 	};
-} ());
+}());
+
+}());

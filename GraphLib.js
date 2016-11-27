@@ -1,12 +1,11 @@
 (function(){
-window.Graphlib=Graphlib;
 
 class Graphlib{
 	construct(COL){
 		if(COL instanceof CanvasObjectLibrary === false)
 			throw(new TypeError('CanvasObjectLibrary instance required'));
 		this.COL=COL;
-		for(let c in graphs)this.[c]=graphs[c](this);
+		for(let c in graphs)this[c]=graphs[c](this);
 
 	}
 }
@@ -114,5 +113,6 @@ const graphs={
 	},
 }
 
+window.Graphlib=Graphlib;
 })();
 
