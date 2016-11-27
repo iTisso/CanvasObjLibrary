@@ -1,10 +1,13 @@
 <meta charset="utf-8">
-<style>body{margin: 0px;padding:0px;}</style>
+<style>
+body{margin: 0px;padding:0px;}
+canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
+</style>
 <script src="CanvasObjLibrary.js"></script>
 <script src="GraphLib.js"></script>
 
 
-<canvas style="position:fixed;height:100%;width:100%;left:0px;top:0px;"></canvas>
+<canvas></canvas>
 
 
 <script>
@@ -58,11 +61,11 @@ taikoImg.draw(function(ct){
 });
 
 var taiko=new col.class.FunctionGraph();
-taiko.style.x=300;
-taiko.style.y=200;
+taiko.style.x=600;
+taiko.style.y=500;
 taiko.style.width=405;
 taiko.style.height=360;
-taiko.setPositionPoint('center');
+taiko.style.setPositionPoint('center');
 taiko.stat={l1:false,l2:false,r1:false,r2:false,};
 taiko.drawer=function(ct){
 	ct.drawImage(taikoImg.image,0,0);
@@ -109,11 +112,64 @@ taiko.drawer=function(ct){
 }
 col.root.appendChild(taiko);
 
+
+
+
+//image
+var imageGraph=new col.class.ImageGraph(),
+	image=new Image();
+image.src='https://io.luojia.me/img/s/2014/04/COL.png';
+imageGraph.use(image);
+
+imageGraph.style.x=200;
+imageGraph.style.y=200;
+imageGraph.style.positionPointX=20;
+imageGraph.style.positionPointY=20;
+//imageGraph.style.rotatePointX=50;
+//imageGraph.style.rotatePointY=50;
+imageGraph.style.skewPointX=50;
+imageGraph.style.skewPointY=50;
+
+col.root.appendChild(imageGraph);
+
+var star=new Glib.star();
+star.enableEvent=true;
+star.setRadius(30);
+star.style.setRotatePoint('center');
+star.style.setZoomPoint('center');
+star.style.x=600;
+star.style.y=50;
+col.root.appendChild(star);
+star.on('mouseover',function(e){
+	this.style.zoomX=1.5;
+	this.style.zoomY=1.5;
+});
+star.on('mouseout',function(e){
+	delete this.style.zoomX;
+	delete this.style.zoomY;
+});
+star.on('click',function(e){
+	this.delete();
+});
+
+var shadowStars=[];
+for(let i=100;i--;){
+	let s=star.createShadow();
+	shadowStars.push(s);
+	s.style.x=i%10*60;
+	s.style.y=(i-(i%10))/10*60;
+	s.insertBefore(taiko);
+}
+
 col.debug.on();
 
+var run=true;
+
 function am(){
+	//imageGraph.style.rotate+=1;
+	star.style.rotate+=1;
 	col.draw();
-	requestAnimationFrame(am);
+	run&&requestAnimationFrame(am);
 } 
 requestAnimationFrame(am);
 </script>

@@ -60,6 +60,10 @@ class CanvasObjectLibrary{
 					positionPointY:0,
 					zoomPointY:0,
 					zoomPointY:0,
+					skewX:1,
+					skewY:1,
+					skewPointX:0,
+					skewPointY:0,
 					composite:null,
 					debugBorderColor:'black',
 				},
@@ -90,16 +94,16 @@ class CanvasObjectLibrary{
 			//Debug info
 			debug:{
 				switch:false,
-				objInfo:false,
 				count:0,
 				FPS:0,
-				drawTimeRecorder:new Int32Array(3),//记录三帧绘制时的时间来计算fps
+				_lastFrameTime:Date.now(),
+				_recordOffset:0,
+				_timeRecorder:new Uint32Array(15),//记录5帧绘制时的时间来计算fps
 				on:function(){
 					COL.debug.switch=true;
 				},
 				off:function(){
 					COL.debug.switch=false;
-
 				},
 			},
 		});
@@ -107,9 +111,9 @@ class CanvasObjectLibrary{
 		for(let c in COL_Class)this.class[c]=COL_Class[c](this);
 
 		//init root graph
-		this.root=new this.class.Graph();
+		this.root=new this.class.FunctionGraph();
 		this.root.name='root';
-		this.root.drawer=null;
+		//this.root.drawer=null;
 		//prevent root's parentNode being modified
 		Object.defineProperty(this.root,'parentNode',{configurable:false});
 
@@ -205,6 +209,33 @@ class CanvasObjectLibrary{
 		}
 		this.tmp.onOverGraph=null;
 	}
+	drawDebug(){
+		const ct=this.context,d=this.debug,r=d._timeRecorder,n=Date.now();
+		//fps
+		r[d._recordOffset++]=n-d._lastFrameTime;
+		d._lastFrameTime=n;
+		if(d._recordOffset===15)d._recordOffset=0;
+		d.FPS=(15000/(r[0]+r[1]+r[2]+r[3]+r[4]+r[5]+r[6]+r[7]+r[8]+r[9]+r[10]+r[11]+r[12]+r[13]+r[14]))|0;
+		//draw
+		ct.save();
+		ct.beginPath();
+		ct.setTransform(1, 0, 0, 1, 0, 0);
+		ct.font = "16px Arial";
+		ct.textBaseline = "bottom";
+		ct.globalCompositeOperation = "lighter";
+		ct.fillStyle = "red";
+		ct.fillText("point:" + this.stat.mouse.x + "," + this.stat.mouse.y + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
+		ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
+		ct.strokeStyle = "red";
+		ct.globalCompositeOperation = "source-over";
+		ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
+		ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
+		ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
+		ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
+		ct.stroke();
+		ct.restore();
+	}
+
 	drawGraph(g){
 		const ct=this.context,style=g.style;
 		if(style.hidden)return;
@@ -214,18 +245,26 @@ class CanvasObjectLibrary{
 		ct.globalAlpha = style.opacity;
 		//position & offset
 		ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
+		//skew
+		if(style.skewX || style.skewY){
+			if(style.skewPointX || style.skewPointY)
+				ct.translate(style.skewPointX,style.skewPointY);
+			ct.scale(style.skewX,style.skewY);
+			if(style.skewPointX || style.skewPointY)
+				ct.translate(-style.skewPointX,-style.skewPointY);
+		}
 		//rotate
 		if(style.rotate){
-			/*if(style.rotatePointX || style.rotatePointY)
-				ct.translate(-style.rotatePointX,-style.rotatePointY);*/
+			if(style.rotatePointX || style.rotatePointY)
+				ct.translate(style.rotatePointX,style.rotatePointY);
 			ct.rotate(style.rotate * 0.0174532925);
 			if(style.rotatePointX || style.rotatePointY)
 				ct.translate(-style.rotatePointX,-style.rotatePointY);
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
-			/*if(style.zoomPointX || style.zoomPointY)
-				ct.translate(style.zoomPointX,style.zoomPointX);*/
+			if(style.zoomPointX || style.zoomPointY)
+				ct.translate(style.zoomPointX,style.zoomPointX);
 			ct.scale(style.zoomX,style.zoomY);
 			if(style.zoomPointX || style.zoomPointY)
 				ct.translate(-style.zoomPointX,-style.zoomPointX);
@@ -234,11 +273,33 @@ class CanvasObjectLibrary{
 			ct.save();
 			ct.beginPath();
 			ct.globalAlpha=0.5;
-			ct.globalCompositeOperation = null;
+			ct.globalCompositeOperation = 'source-over';
 			ct.strokeStyle=g.style.debugBorderColor;
-			ct.strokeWidth=1;
+			ct.strokeWidth=1.5;
 			ct.strokeRect(0,0,style.width,style.height);
+			ct.strokeWidth=1;
 			ct.globalAlpha=1;
+			ct.strokeStyle='#6cf';
+			ct.beginPath();
+			ct.moveTo(style.skewPointX-10,style.skewPointY);
+			ct.lineTo(style.skewPointX+10,style.skewPointY);
+			ct.moveTo(style.skewPointX,style.skewPointY+10);
+			ct.lineTo(style.skewPointX,style.skewPointY-10);
+			ct.stroke();
+			ct.strokeStyle='blue';
+			ct.beginPath();
+			ct.moveTo(style.rotatePointX-5,style.rotatePointY);
+			ct.lineTo(style.rotatePointX+5,style.rotatePointY);
+			ct.moveTo(style.rotatePointX,style.rotatePointY+5);
+			ct.lineTo(style.rotatePointX,style.rotatePointY-5);
+			ct.stroke();
+			ct.strokeStyle='olive';
+			ct.beginPath();
+			ct.moveTo(style.zoomPointX-3,style.zoomPointY);
+			ct.lineTo(style.zoomPointX+3,style.zoomPointY);
+			ct.moveTo(style.zoomPointX,style.zoomPointY+3);
+			ct.lineTo(style.zoomPointX,style.zoomPointY-3);
+			ct.stroke();
 			ct.strokeStyle='green';
 			ct.beginPath();
 			ct.moveTo(style.positionPointX-10,style.positionPointY);
@@ -258,26 +319,6 @@ class CanvasObjectLibrary{
 			for(let c of g.childNodes)
 				this.drawGraph(c);
 		}
-		ct.restore();
-	}
-	drawDebug(){
-		const ct=this.context;
-		ct.save();
-		ct.beginPath();
-		ct.setTransform(1, 0, 0, 1, 0, 0);
-		ct.font = "16px Arial";
-		ct.textBaseline = "bottom";
-		ct.globalCompositeOperation = "lighter";
-		ct.fillStyle = "red";
-		ct.fillText("point:" + this.stat.mouse.x + "," + this.stat.mouse.y + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
-		ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
-		ct.strokeStyle = "red";
-		ct.globalCompositeOperation = "source-over";
-		ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
-		ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
-		ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
-		ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
-		ct.stroke();
 		ct.restore();
 	}
 }
@@ -333,7 +374,7 @@ const COL_Class={
 				if(e.type in this._events){
 					const hs=this._events[e.type];
 					try{
-						for(let h of hs)h(e);
+						for(let h of hs)h.call(this,e);
 					}catch(e){
 						console.error(e);
 					}
@@ -357,8 +398,8 @@ const COL_Class={
 	GraphStyle:host=>{
 		return class GraphStyle{
 			constructor(inhertFrom){
-				if(inhertFrom && this.inhhert(inhertFrom))return;
-				this.__proto__=host.default.style;
+				if(inhertFrom && this.inhert(inhertFrom))return;
+				this.__proto__.__proto__=host.default.style;
 			}
 			inhertGraph(graph){//inhert a graph's style
 				if(!(graph instanceof host.class.Graph))
@@ -384,6 +425,68 @@ const COL_Class={
 			}
 			cancelInhert(){
 				this.__proto__=Object.prototype;
+			}
+
+			getPoint(name){
+				switch(name){
+					case 'center':{
+						return [this.width / 2,this.height / 2];
+					}
+				}
+				return [0,0];
+			}
+			zoom(x,y){
+				if (arguments.length == 1) {
+					this.zoomX = this.zoomY = x;
+				}
+				else{
+					this.zoomX = x;
+					this.zoomY = y;
+				}
+			}
+			setSize(w,h){
+				this.width = w;
+				this.height = h;
+			}
+			setRotatePoint(x,y){
+				if (arguments.length == 2) {
+					this.rotatePointX = x;
+					this.rotatePointY = y;
+				} else if (arguments.length == 1) {
+					const point=this.getPoint(x);
+					this.rotatePointX = point[0];
+					this.rotatePointY = point[1];
+				}
+			}
+			setPositionPoint(x,y){
+				if (arguments.length == 2) {
+					this.positionPointX = x;
+					this.positionPointY = y;
+				} else if (arguments.length == 1) {
+					const point=this.getPoint(x);
+					this.positionPointX = point[0];
+					this.positionPointY = point[1];
+				}
+			}
+			setZoomPoint(x,y){
+				if (arguments.length == 2) {
+					this.zoomPointY = x;
+					this.zoomPointY = y;
+				} else if (arguments.length == 1) {
+					const point=this.getPoint(x);
+					this.zoomPointX = point[0];
+					this.zoomPointY = point[1];
+				}
+			}
+			setSkewPoint(x,y){
+				if (arguments.length == 2) {
+					this.zoomPointY = x;
+					this.zoomPointY = y;
+				} else if (arguments.length == 1) {
+					const point=this.getPoint(x);
+					this.skewPointX = point[0];
+					this.skewPointY = point[1];
+				}
 			}
 		}
 	},
@@ -443,7 +546,7 @@ const COL_Class={
 					io=p.findChild(this);
 					if(io>=0)p.childNodes.splice(io,1);
 				}
-				this.childNodes.splice((io<it)?it:it+1);
+				p.childNodes.splice((io<it)?it:it+1,0,this);
 			}
 			//insert this graph before the graph
 			insertBefore(graph){
@@ -462,7 +565,7 @@ const COL_Class={
 					io=p.findChild(this);
 					if(io>=0)p.childNodes.splice(io,1);
 				}
-				this.childNodes.splice((io<it)?it-1:it);
+				p.childNodes.splice((io<it)?it-1:it,0,this);
 			}
 			findChild(graph){
 				for(let i=this.childNodes.length;i--;)
@@ -477,61 +580,7 @@ const COL_Class={
 				  value: undefined,
 				});
 			}
-			zoom(x,y){
-				if (arguments.length == 1) {
-					this.style.zoomX = this.style.zoomY = x;
-				}
-				else{
-					this.style.zoomX = x;
-					this.style.zoomY = y;
-				}
-			}
-			setSize(w,h){
-				this.style.width = w;
-				this.style.height = h;
-			}
-			setRotatePoint(x,y){
-				if (arguments.length == 2) {
-					this.style.rotatePointX = x;
-					this.style.rotatePointY = y;
-				} else if (arguments.length == 1) {
-					switch (x) {
-						case "center":{
-							this.style.rotatePointX = this.style.width / 2;
-							this.style.rotatePointY = this.style.height / 2;
-							break;
-						}
-					}
-				}
-			}
-			setPositionPoint(x,y){
-				if (arguments.length == 2) {
-					this.style.positionPointX = x;
-					this.style.positionPointY = y;
-				} else if (arguments.length == 1) {
-					switch (x) {
-						case "center":{
-							this.style.positionPointX = this.style.width / 2;
-							this.style.positionPointY = this.style.height / 2;
-							break;
-						}
-					}
-				}
-			}
-			setZoomPoint(x,y){
-				if (arguments.length == 2) {
-					this.style.zoomPointY = x;
-					this.style.zoomPointY = y;
-				} else if (arguments.length == 1) {
-					switch (x) {
-						case "center":{
-							this.style.zoomPointY = this.style.width / 2;
-							this.style.zoomPointY = this.style.height / 2;
-							break;
-						}
-					}
-				}
-			}
+
 			checkIfOnOver(){
 				const m=this.host.stat.mouse;
 				if(m.x === null)return false;
@@ -557,7 +606,7 @@ const COL_Class={
 		
 	},
 	FunctionGraph:host=>{
-		return class ImageGraph extends host.class.Graph{
+		return class FunctionGraph extends host.class.Graph{
 			constructor(drawer){
 				super();
 				if(drawer instanceof Function){
@@ -579,10 +628,22 @@ const COL_Class={
 				super();
 				if(image)this.use(image);
 				this.style.debugBorderColor='#0f0';
+				this.enableEvent=true;
 			}
 			use(image){
-				if(image instanceof Image && image instanceof HTMLCanvasElement){
+				if(image instanceof Image){
 					this.image=image;
+					if (!image.complete) {
+						image.addEventListener('load',e=> {
+							this.resetStyleSize();
+						});
+					}else{
+						this.resetStyleSize();
+					}
+					return true;
+				}else if(image instanceof HTMLCanvasElement){
+					this.image=image;
+					this.resetStyleSize();
 					return true;
 				}
 				throw(new TypeError('Wrong image type'));
@@ -597,11 +658,19 @@ const COL_Class={
 				if(this.image instanceof HTMLCanvasElement)return this.image.height;
 				return 0;
 			}
+			resetStyleSize(){
+				this.style.width=this.width;
+				this.style.height=this.height;
+			}
 			drawer(ct){
 				//onover point check
 				ct.beginPath();
 				ct.drawImage(this.image, 0, 0);
-				this.checkIfOnOver();
+				if(this.enableEvent){
+					ct.beginPath();
+					ct.rect(0,0,this.style.width,this.style.height);
+					this.checkIfOnOver();
+				}
 			}
 		}
 	},
@@ -622,7 +691,7 @@ const COL_Class={
 		}
 	},
 	TextGraph:host=>{
-		return class ImageGraph extends host.class.FunctionGraph{
+		return class TextGraph extends host.class.FunctionGraph{
 			constructor(text=''){
 				super();
 				this.text=text;

@@ -1,7 +1,7 @@
 (function(){
 
 class Graphlib{
-	construct(COL){
+	constructor(COL){
 		if(COL instanceof CanvasObjectLibrary === false)
 			throw(new TypeError('CanvasObjectLibrary instance required'));
 		this.COL=COL;
@@ -66,6 +66,7 @@ const graphs={
 				super();
 			}
 			drawer(ct){
+				ct.translate(this.r,this.r);
 				ct.rotate(Math.PI/2*3);
 				ct.beginPath();
 				ct.moveTo(this.r, 0);
