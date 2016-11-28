@@ -1,6 +1,6 @@
 /*
-CopyRight(Left) iTisso
-member:LuoJia
+MIT LICENSE
+Copyright (c) 2016 iTisso
 */
 'use strict';
 (function(){
@@ -9,8 +9,8 @@ function addEvents(target,events={}){
 }
 
 
-//class:CanvasObjectLibrary
-class CanvasObjectLibrary{
+//class:CanvasObjLibrary
+class CanvasObjLibrary{
 	constructor(canvas){
 		if(canvas instanceof HTMLCanvasElement === false)
 			throw(new TypeError('canvas required'));
@@ -100,10 +100,10 @@ class CanvasObjectLibrary{
 				_recordOffset:0,
 				_timeRecorder:new Uint32Array(15),//记录5帧绘制时的时间来计算fps
 				on:function(){
-					COL.debug.switch=true;
+					this.switch=true;
 				},
 				off:function(){
-					COL.debug.switch=false;
+					this.switch=false;
 				},
 			},
 		});
@@ -215,7 +215,7 @@ class CanvasObjectLibrary{
 		r[d._recordOffset++]=n-d._lastFrameTime;
 		d._lastFrameTime=n;
 		if(d._recordOffset===15)d._recordOffset=0;
-		d.FPS=(15000/(r[0]+r[1]+r[2]+r[3]+r[4]+r[5]+r[6]+r[7]+r[8]+r[9]+r[10]+r[11]+r[12]+r[13]+r[14]))|0;
+		d.FPS=(15000/(r[0]+r[1]+r[2]+r[3]+r[4]+r[5]+r[6]+r[7]+r[8]+r[9]+r[10]+r[11]+r[12]+r[13]+r[14])+0.5)|0;
 		//draw
 		ct.save();
 		ct.beginPath();
@@ -247,27 +247,24 @@ class CanvasObjectLibrary{
 		ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
 		//skew
 		if(style.skewX || style.skewY){
-			if(style.skewPointX || style.skewPointY)
-				ct.translate(style.skewPointX,style.skewPointY);
+			const t=style.skewPointX || style.skewPointY;
+			t&&ct.translate(style.skewPointX,style.skewPointY);
 			ct.scale(style.skewX,style.skewY);
-			if(style.skewPointX || style.skewPointY)
-				ct.translate(-style.skewPointX,-style.skewPointY);
+			t&&ct.translate(-style.skewPointX,-style.skewPointY);
 		}
 		//rotate
 		if(style.rotate){
-			if(style.rotatePointX || style.rotatePointY)
-				ct.translate(style.rotatePointX,style.rotatePointY);
+			const t=style.rotatePointX || style.rotatePointY;
+			t&&ct.translate(style.rotatePointX,style.rotatePointY);
 			ct.rotate(style.rotate * 0.0174532925);
-			if(style.rotatePointX || style.rotatePointY)
-				ct.translate(-style.rotatePointX,-style.rotatePointY);
+			t&&ct.translate(-style.rotatePointX,-style.rotatePointY);
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
-			if(style.zoomPointX || style.zoomPointY)
-				ct.translate(style.zoomPointX,style.zoomPointX);
+			const t=style.zoomPointX || style.zoomPointY;
+			t&&ct.translate(style.zoomPointX,style.zoomPointX);
 			ct.scale(style.zoomX,style.zoomY);
-			if(style.zoomPointX || style.zoomPointY)
-				ct.translate(-style.zoomPointX,-style.zoomPointX);
+			t&&ct.translate(-style.zoomPointX,-style.zoomPointX);
 		}
 		if(this.debug.switch){
 			ct.save();
@@ -279,37 +276,17 @@ class CanvasObjectLibrary{
 			ct.strokeRect(0,0,style.width,style.height);
 			ct.strokeWidth=1;
 			ct.globalAlpha=1;
-			ct.strokeStyle='#6cf';
-			ct.beginPath();
-			ct.moveTo(style.skewPointX-10,style.skewPointY);
-			ct.lineTo(style.skewPointX+10,style.skewPointY);
-			ct.moveTo(style.skewPointX,style.skewPointY+10);
-			ct.lineTo(style.skewPointX,style.skewPointY-10);
-			ct.stroke();
-			ct.strokeStyle='blue';
-			ct.beginPath();
-			ct.moveTo(style.rotatePointX-5,style.rotatePointY);
-			ct.lineTo(style.rotatePointX+5,style.rotatePointY);
-			ct.moveTo(style.rotatePointX,style.rotatePointY+5);
-			ct.lineTo(style.rotatePointX,style.rotatePointY-5);
-			ct.stroke();
-			ct.strokeStyle='olive';
-			ct.beginPath();
-			ct.moveTo(style.zoomPointX-3,style.zoomPointY);
-			ct.lineTo(style.zoomPointX+3,style.zoomPointY);
-			ct.moveTo(style.zoomPointX,style.zoomPointY+3);
-			ct.lineTo(style.zoomPointX,style.zoomPointY-3);
-			ct.stroke();
 			ct.strokeStyle='green';
-			ct.beginPath();
-			ct.moveTo(style.positionPointX-10,style.positionPointY);
-			ct.lineTo(style.positionPointX+10,style.positionPointY);
-			ct.moveTo(style.positionPointX,style.positionPointY+10);
-			ct.lineTo(style.positionPointX,style.positionPointY-10);
-			ct.stroke();
+			ct.strokeRect(style.positionPointX-5,style.positionPointY-5,10,10);
+			ct.strokeStyle='blue';
+			ct.strokeRect(style.rotatePointX-4,style.rotatePointX-4,8,8);
+			ct.strokeStyle='olive';
+			ct.strokeRect(style.zoomPointX-3,style.zoomPointX-3,6,6);
+			ct.strokeStyle='#6cf';
+			ct.strokeRect(style.skewPointX-2,style.skewPointX-2,4,4);
 			ct.restore();
 		}
-		if(g.style.clipOverflow===true){
+		if(g.style.clipOverflow){
 			ct.beginPath();
 			ct.rect(0,0,style.width,style.height);
 			ct.clip();
@@ -599,8 +576,8 @@ const COL_Class={
 			}
 			delete(){//remove it from the related objects
 				if(this.parentNode)this.parentNode.removeChild(this);
-				if(this.host.onover===this)this.host.onover=null;
-				if(this.host.onfocus===this)this.host.onfocus=null;
+				if(this.host.stat.onover===this)this.host.stat.onover=null;
+				if(this.host.stat.onfocus===this)this.host.stat.onfocus=null;
 			}
 		}
 		
@@ -779,7 +756,7 @@ const COL_Class={
 	},
 }
 
-window.CanvasObjectLibrary=CanvasObjectLibrary;
+window.CanvasObjLibrary=CanvasObjLibrary;
 
 
 //code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign

@@ -3,8 +3,8 @@
 body{margin: 0px;padding:0px;}
 canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
 </style>
-<script src="CanvasObjLibrary.js"></script>
-<script src="GraphLib.js"></script>
+<script src="../CanvasObjLibrary.js"></script>
+<script src="../GraphLib.js"></script>
 
 
 <canvas></canvas>
@@ -12,7 +12,7 @@ canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
 
 <script>
 var canvas=document.querySelector("canvas"),
-	col=new CanvasObjectLibrary(canvas),
+	col=new CanvasObjLibrary(canvas),
 	Glib=new Graphlib(col);
 col.adjustCanvas();
 
@@ -21,6 +21,7 @@ window.addEventListener('resize',e=>col.adjustCanvas());
 var taikoImg=new col.class.CanvasGraph();
 taikoImg.width=405;
 taikoImg.height=360;
+//draw the taiko on the canvas graph once
 taikoImg.draw(function(ct){
 	ct.beginPath();
 	ct.lineWidth = 8;
