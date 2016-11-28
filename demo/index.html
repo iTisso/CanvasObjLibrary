@@ -113,10 +113,44 @@ taiko.drawer=function(ct){
 }
 col.root.appendChild(taiko);
 
+taiko.on('mousemove',e=>{
+	if(e.buttons && e.button===0){
+		taiko.style.x+=e.movementX;
+		taiko.style.y+=e.movementY;
+	}
+});
+var zxcv=new col.class.TextGraph('  z             x        c             v')
+zxcv.font.fontSize=35;
+zxcv.font.color='#e8d8ba';
+zxcv.style.y=94;
+zxcv.prepare();
+taiko.appendChild(zxcv);
+
+var keyToEvent={z:'l2',x:'l1',c:'r1',v:'r2'};
 //taiko effects
 col.root.on('keydown',e=>{
-	
+	if(e.key in keyToEvent){
+		if(e.repeat)return;
+		var s=keyToEvent[e.key];
+		taiko.stat[s]=true;
+		if(audio[s].playing){
+			audio[s].currentTime=0;
+		}else{
+			audio[s].currentTime&&(audio[s].currentTime=0);
+			audio[s].play();
+		}
+		setTimeout((g)=>{taiko.stat[g]=false;},80,keyToEvent[e.key]);
+	}
 });
+
+ var audio={
+ 	l1:new Audio(),
+    r1:new Audio(),
+    l2:new Audio(),
+    r2:new Audio()
+}
+audio.l1.src=audio.r1.src='pong.mp3';
+audio.l2.src=audio.r2.src='da.mp3';
 
 
 
@@ -173,7 +207,7 @@ var debugButton=new col.class.TextGraph('Debug'),
 	debugOff=new col.class.TextGraph('Off');
 debugButton.style.y=610;
 debugOn.style.x=50;
-debugOff.style.x=70;
+debugOff.style.x=80;
 debugButton.appendChild(debugOn);
 debugButton.appendChild(debugOff);
 
@@ -187,6 +221,7 @@ debugOff.on('click',e=>{
 	col.debug.off();
 });
 
+col.stat.canvasOnFocus=true;
 
 var run=true;
 

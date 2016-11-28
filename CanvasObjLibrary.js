@@ -70,8 +70,10 @@ class CanvasObjLibrary{
 			},
 			stat:{
 				mouse:{
-					x:0,
-					y:0
+					x:null,
+					y:null,
+					previousX:null,
+					previousY:null,
 				},
 				/*The currently focused on obj*/
 				onfocus: null,
@@ -84,6 +86,7 @@ class CanvasObjLibrary{
 			tmp:{
 				graphID:0,
 				onOverGraph:null,
+				toClickGraph:null,
 			},
 			
 			root: null,//root Graph
@@ -136,14 +139,21 @@ class CanvasObjLibrary{
 			mouseover:e=>{
 				this.stat.canvasOnOver=true;
 			},
-			mousemove:e=>this._commonEventHandle(e),
+			mousemove:e=>{
+				this.tmp.toClick=false;
+				this._commonEventHandle(e)
+			},
 			mousedown:e=>{
+				this.tmp.toClickGraph=this.stat.onover;
 				this.stat.canvasOnFocus=true;
 				this.stat.onfocus=this.stat.onover;
 				this._commonEventHandle(e)
 			},
 			mouseup:e=>this._commonEventHandle(e),
-			click:e=>this._commonEventHandle(e),
+			click:e=>{
+				if(this.tmp.toClickGraph)
+					this._commonEventHandle(e)
+			},
 			dblclick:e=>this._commonEventHandle(e),
 			selectstart:e=>e.preventDefault(),
 			wheel:e=>{
@@ -151,9 +161,6 @@ class CanvasObjLibrary{
 				ce.originEvent=e;
 				(this.stat.onover||this.root).emit(ce);
 			},
-			keydown:e=>this._commonEventHandle(e),
-			keyup:e=>this._commonEventHandle(e),
-			keypress:e=>this._commonEventHandle(e),
 		});
 		addEvents(document,{
 			mousedown:e=>{
@@ -164,7 +171,11 @@ class CanvasObjLibrary{
 					const eve=new window.MouseEvent('mouseout');
 					this.canvas.dispatchEvent(eve);
 				}
-			}
+			},
+			keydown:e=>this._commonEventHandle(e),
+			keyup:e=>this._commonEventHandle(e),
+			keypress:e=>this._commonEventHandle(e),
+
 		});
 	}
 	generateGraphID(){return ++this.tmp.graphID;}
@@ -176,12 +187,15 @@ class CanvasObjLibrary{
 	}
 	_commonEventHandle(e){
 		if(e instanceof MouseEvent){
+			this.stat.previousX=this.stat.mouse.x;
+			this.stat.previousY=this.stat.mouse.y;
 			this.stat.mouse.x=e.layerX;
 			this.stat.mouse.y=e.layerY;
 			const ce=new this.class.MouseEvent(e.type);
 			ce.originEvent=e;
 			(this.stat.onover||this.root).emit(ce);
 		}else if(e instanceof KeyboardEvent){
+			if(!this.stat.canvasOnFocus)return;
 			const ce=new this.class.KeyboardEvent(e.type);
 			ce.originEvent=e;
 			(this.stat.onfocus||this.root).emit(ce);
@@ -196,6 +210,7 @@ class CanvasObjLibrary{
 		this.debug.switch&&this.drawDebug();
 		if(this.tmp.onOverGraph!==this.stat.onover){//new onover graph
 			const oldOnover=this.stat.onover;
+			this.tmp.toClickGraph=null;
 			this.stat.onover=this.tmp.onOverGraph;
 			if(oldOnover){
 				const ceout=new this.class.MouseEvent('mouseout');
@@ -305,12 +320,25 @@ const COL_Class={
 		const COL=host;
 		return class Event{
 			constructor(type){
-				this.bubble=true;
 				this.type=type;
 				this.timeStamp=Date.now();
 			}
-			stopBubble(){
-				this.bubble=false;
+		}
+	},
+	GraphEvent:host=>{
+		const COL=host;
+		return class GraphEvent extends host.class.Event{
+			constructor(type){
+				super(type);
+				this.propagation=true;
+				this.stoped=false;
+				this.target=null;
+			}
+			stopPropagation(){
+				this.propagation=false;
+			}
+			stopImmediatePropagation(){
+				this.stoped=true;
 			}
 			get altKey(){return this.originEvent.altKey;}
 			get ctrlKey(){return this.originEvent.ctrlKey;}
@@ -319,12 +347,15 @@ const COL_Class={
 		}
 	},
 	MouseEvent:host=>{
-		return class MouseEvent extends host.class.Event{
+		return class MouseEvent extends host.class.GraphEvent{
 			constructor(type){
 				super(type);
 			}
 			get button(){return this.originEvent.button;}
 			get buttons(){return this.originEvent.buttons;}
+			get movementX(){return host.stat.mouse.x-host.stat.previousX;}
+			get movementY(){return host.stat.mouse.y-host.stat.previousY;}
+
 		}
 	},
 	WheelEvent:host=>{
@@ -335,17 +366,20 @@ const COL_Class={
 			get deltaX(){return this.originEvent.deltaX;}
 			get deltaY(){return this.originEvent.deltaY;}
 			get deltaZ(){return this.originEvent.deltaZ;}
+			get deltaMode(){return this.originEvent.deltaMode;}
 		}
 	},
 	KeyboardEvent:host=>{
-		return class KeyboardEvent extends host.class.Event{
+		return class KeyboardEvent extends host.class.GraphEvent{
 			constructor(type){
 				super(type);
 			}
-			get charCode(){return this.originEvent.charCode;}
-			get code(){return this.originEvent.code;}
 			get key(){return this.originEvent.key;}
+			get code(){return this.originEvent.code;}
+			get repeat(){return this.originEvent.repeat;}
 			get keyCode(){return this.originEvent.keyCode;}
+			get charCode(){return this.originEvent.charCode;}
+			get location(){return this.originEvent.location;}
 		}
 	},
 	GraphEventEmitter:host=>{
@@ -363,12 +397,12 @@ const COL_Class={
 				if(e.type in this._events){
 					const hs=this._events[e.type];
 					try{
-						for(let h of hs)h.call(this,e);
+						for(let h of hs){h.call(this,e);if(e.stoped)return;};
 					}catch(e){
 						console.error(e);
 					}
 				}
-				if(e.bubble===true && this.parentNode)setTimeout(function(p){p._resolve(e)},0,this.parentNode);
+				if(e.propagation===true && this.parentNode)this.parentNode._resolve(e);
 			}
 			on(name,handle){
 				if(!(handle instanceof Function))return;
@@ -702,7 +736,7 @@ const COL_Class={
 				(this.font.fontStyle)&&(font = this.fontStyle);
 				(this.font.fontVariant)&&(font =`${font} ${this.fontVariant}`);
 				(this.font.fontWeight)&&(font =`${font} ${this.fontWeight}`);
-				font =`${font} ${this.fontSize}px`;
+				font =`${font} ${this.font.fontSize}px`;
 				(this.font.fontFamily)&&(font =`${font} ${this.fontFamily}`);
 				this._fontString = font;
 
@@ -735,6 +769,7 @@ const COL_Class={
 				ct.font=this._fontString;//set font
 				ct.textBaseline = 'top';
 				ct.lineWidth = this.font.strokeWidth;
+				ct.fillStyle = this.font.color;
 				ct.strokeStyle = this.font.strokeColor;
 				ct.shadowBlur = this.font.shadowBlur;
 				ct.shadowOffsetX = this.font.shadowOffsetX;
