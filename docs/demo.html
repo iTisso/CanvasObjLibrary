@@ -1,0 +1,192 @@
+<meta charset="utf-8">
+<style>
+body{margin: 0px;padding:0px;}
+canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
+</style>
+<script src="../CanvasObjLibrary.js"></script>
+<script src="../GraphLib.js"></script>
+
+
+<canvas></canvas>
+
+
+<script>
+var canvas=document.querySelector("canvas"),
+	col=new CanvasObjLibrary(canvas),
+	Glib=new Graphlib(col);
+col.adjustCanvas();
+
+window.addEventListener('resize',e=>col.adjustCanvas());
+
+var taikoImg=new col.class.CanvasGraph();
+taikoImg.width=405;
+taikoImg.height=360;
+//draw the taiko on the canvas graph once
+taikoImg.draw(function(ct){
+	ct.beginPath();
+	ct.lineWidth = 8;
+	ct.fillStyle = 'rgb(184,61,43)';
+	ct.moveTo(5, 120);
+	ct.lineTo(5, 230);
+	ct.bezierCurveTo(5, 390, 400, 390, 400, 230);
+	ct.lineTo(400, 120);
+	ct.fill();
+	ct.stroke();
+	ct.beginPath();
+	ct.moveTo(5, 120);
+	ct.fillStyle = 'rgb(248,238,220)';
+	ct.bezierCurveTo(5, 280, 400, 280, 400, 120);
+	ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
+	ct.fill();
+	ct.stroke();
+	ct.strokeStyle = "rgb(220,202,165)";
+	ct.lineWidth = 4;
+	ct.moveTo(202.5, 0);
+	ct.lineTo(202.5, 500);
+	ct.clip();
+	ct.strokeStyle = "rgb(220,202,165)";
+	ct.moveTo(5, 120);
+	ct.bezierCurveTo(5, 280, 400, 280, 400, 120);
+	ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
+	ct.moveTo(40, 120);
+	ct.bezierCurveTo(40, 250, 365, 250, 365, 120);
+	ct.bezierCurveTo(365, 0, 40, 0, 40, 120);
+	ct.stroke();
+	ct.beginPath();
+	ct.strokeStyle = "#000";
+	ct.lineWidth = 8;
+	ct.moveTo(5, 120);
+	ct.bezierCurveTo(5, 280, 400, 280, 400, 120);
+	ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
+	ct.stroke();
+});
+
+var taiko=new col.class.FunctionGraph();
+taiko.style.x=600;
+taiko.style.y=500;
+taiko.style.width=405;
+taiko.style.height=360;
+taiko.style.setPositionPoint('center');
+taiko.stat={l1:false,l2:false,r1:false,r2:false,};
+taiko.drawer=function(ct){
+	ct.drawImage(taikoImg.image,0,0);
+	if(this.stat.l1){
+		ct.beginPath();
+		ct.fillStyle = 'rgb(231,71,33)';
+		ct.moveTo(198, 35);
+		ct.bezierCurveTo( - 8, 35, -3, 211, 198, 211);
+		ct.closePath();
+		ct.fill();
+	}
+	if(this.stat.l2){
+		ct.beginPath();
+		ct.fillStyle = 'rgb(55,151,202)';
+		ct.moveTo(198, 14);
+		ct.bezierCurveTo( - 46, 16, -49, 228, 198, 233);
+		ct.lineTo(198, 221);
+		ct.bezierCurveTo( - 20, 218, -22, 27, 198, 26);
+		ct.fill();
+	}
+	if(this.stat.r1){
+		ct.beginPath();
+		ct.fillStyle = 'rgb(231,71,33)';
+		ct.moveTo(207, 35);
+		ct.bezierCurveTo(413, 35, 408, 211, 207, 211);
+		ct.fill();
+	}
+	if(this.stat.r2){
+		ct.beginPath();
+		ct.fillStyle = 'rgb(55,151,202)';
+		ct.moveTo(207, 14);
+		ct.bezierCurveTo(452, 16, 454, 228, 207, 233);
+		ct.lineTo(207, 221);
+		ct.bezierCurveTo(425, 218, 427, 27, 207, 26);
+		ct.fill();
+	}
+	ct.beginPath();
+	ct.moveTo(5, 120);
+	ct.lineTo(5, 230);
+	ct.bezierCurveTo(5, 390, 400, 390, 400, 230);
+	ct.lineTo(400, 120);
+	ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
+	this.checkIfOnOver();
+}
+col.root.appendChild(taiko);
+
+
+
+
+//image
+var imageGraph=new col.class.ImageGraph(),
+	image=new Image();
+image.src='https://io.luojia.me/img/s/2014/04/COL.png';
+imageGraph.use(image);
+imageGraph.style.skewX=2
+imageGraph.style.x=200;
+imageGraph.style.y=200;
+imageGraph.style.positionPointX=20;
+imageGraph.style.positionPointY=20;
+imageGraph.style.setSkewPoint('center');
+imageGraph.style.setRotatePoint('center');
+
+col.root.appendChild(imageGraph);
+
+var star=new Glib.star();
+star.enableEvent=true;
+star.setRadius(30);
+star.style.setRotatePoint('center');
+star.style.setZoomPoint('center');
+star.style.x=600;
+star.style.y=50;
+col.root.appendChild(star);
+star.on('mouseover',function(e){
+	this.style.zoomX=1.5;
+	this.style.zoomY=1.5;
+});
+star.on('mouseout',function(e){
+	delete this.style.zoomX;
+	delete this.style.zoomY;
+});
+star.on('click',function(e){
+	this.delete();
+});
+
+var shadowStars=[];
+for(let i=100;i--;){
+	let s=star.createShadow();
+	shadowStars.push(s);
+	s.style.x=i%10*60;
+	s.style.y=(i-(i%10))/10*60;
+	s.insertBefore(taiko);
+}
+
+var debugButton=new col.class.TextGraph('Debug'),
+	debugOn=new col.class.TextGraph('On'),
+	debugOff=new col.class.TextGraph('Off');
+debugButton.style.y=610;
+debugOn.style.x=50;
+debugOff.style.x=70;
+debugButton.appendChild(debugOn);
+debugButton.appendChild(debugOff);
+
+col.root.appendChild(debugButton);
+
+
+debugOn.on('click',e=>{
+	col.debug.on();
+});
+debugOff.on('click',e=>{
+	col.debug.off();
+});
+
+
+var run=true;
+
+function am(){
+	imageGraph.style.rotate-=1;
+	star.style.rotate+=1;
+	col.draw();
+	run&&requestAnimationFrame(am);
+} 
+requestAnimationFrame(am);
+</script>
