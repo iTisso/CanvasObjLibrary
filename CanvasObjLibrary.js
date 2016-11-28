@@ -27,7 +27,7 @@ class CanvasObjectLibrary{
 					fontWeight: null,
 					fontVariant: null,
 					color: "#000",
-					lineHeight: null,
+					lineHeight: 14,
 					fontSize: 14,
 					fontFamily: "Arial",
 					strokeWidth: 0,
@@ -328,12 +328,12 @@ const COL_Class={
 		const COL=host;
 		return class Event{
 			constructor(type){
-				this.propagation=true;
+				this.bubble=true;
 				this.type=type;
 				this.timeStamp=Date.now();
 			}
-			stopPropagation(){
-				this.propagation=false;
+			stopBubble(){
+				this.bubble=false;
 			}
 		}
 	},
@@ -379,7 +379,7 @@ const COL_Class={
 						console.error(e);
 					}
 				}
-				if(e.propagation&&this.parentNode)this.parentNode._resolve(e);
+				if(e.bubble===true && this.parentNode)setTimeout(function(p){p._resolve(e)},0,this.parentNode);
 			}
 			on(name,handle){
 				if(!(handle instanceof Function))return;
@@ -695,11 +695,12 @@ const COL_Class={
 			constructor(text=''){
 				super();
 				this.text=text;
-				this.font=Object.create(this.default.font);
+				this.font=Object.create(host.default.font);
 				this._fontString='';
 				this.realtimeRender=false;
-				this.renderList=null;
+				this._renderList=null;
 				this.autoSize=true;
+				this.enableEvent=true;
 				this.style.debugBorderColor='#00f';
 				this._cache=null;
 				Object.defineProperty(this,'_cache',{configurable:true});
@@ -720,34 +721,28 @@ const COL_Class={
 				const imgobj = this._cache,ct = imgobj.getContext("2d");
 				ct.font = font;
 				ct.clearRect(0, 0, imgobj.width, imgobj.height);
-				this.renderList = this.text.split(/\n/g);
+				this._renderList = this.text.split(/\n/g);
 				this.estimatePadding=Math.max(
 					this.font.shadowBlur+5+Math.max(Math.abs(this.font.shadowOffsetY),Math.abs(this.font.shadowOffsetX)),
 					this.font.strokeWidth+3
 				);
 				if (this.autoSize) {
-					let w = 0,tw;
-					for (let i = this.renderList.length; i -- ;) {
-						tw = ct.measureText(this.renderList[i]).width;
+					let w = 0,tw,lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize;
+					for (let i = this._renderList.length; i -- ;) {
+						tw = ct.measureText(this._renderList[i]).width;
 						(tw>w)&&(w=tw);//max
 					}
-					/*if (!this.vertical) {*/
-						imgobj.width = (this.style.width = w) + this.estimatePadding*2;
-						imgobj.height = (this.style.height = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
-					/*}else{
-						imgobj.height = (this.style.height = w*1.5) + this.estimatePadding*2;
-						imgobj.width = (this.style.width = this.renderList.length * this.font.lineHeigh)+ (this.font.lineHeigh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
-					}*/
-
+					imgobj.width = (this.style.width = w) + this.estimatePadding*2;
+					imgobj.height = (this.style.height = this._renderList.length * lh)+ (lh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
 				} else {
 					imgobj.width = this.style.width;
 					imgobj.height = this.style.height;
 				}
-				ct.translate(this.estimatePadding, this.this.estimatePadding);
+				ct.translate(this.estimatePadding, this.estimatePadding);
 				this.render(ct);
 			}
 			render(ct){//render text
-				if(!this.renderList)return;
+				if(!this._renderList)return;
 				ct.font=this._fontString;//set font
 				ct.textBaseline = 'top';
 				ct.lineWidth = this.font.strokeWidth;
@@ -755,24 +750,29 @@ const COL_Class={
 				ct.shadowBlur = this.font.shadowBlur;
 				ct.shadowOffsetX = this.font.shadowOffsetX;
 				ct.shadowOffsetY = this.font.shadowOffsetY;
-				for (let i = this.renderList.length;i--;) {
-					this.font.fill&&ct.fillText(this.renderList[i],0, this.font.lineHeight*i);
-					this.font.strokeWidth&&ct.strokeText(this.renderList[i], 0, this.font.lineHeight*i);
+				for (let i = this._renderList.length;i--;) {
+					this.font.fill&&ct.fillText(this._renderList[i],0, this.font.lineHeight*i);
+					this.font.strokeWidth&&ct.strokeText(this._renderList[i], 0, this.font.lineHeight*i);
 				}
 			}
 			drawer(ct){
 				ct.beginPath();
 				if(this.realtimeRender){//realtime render the text
 					//onover point check
-					ct.rect(0,0,this.style.width,this.style.height);
-					this.checkIfOnOver();
+					if(this.enableEvent){
+						ct.rect(0,0,this.style.width,this.style.height);
+						this.checkIfOnOver();
+					}
 					this.render(ct);
 				}else{//draw the cache
 					if(!this._cache){
 						this.prepare();
 					}
 					ct.drawImage(this._cache, -this.estimatePadding, -this.estimatePadding);
-					this.checkIfOnOver();
+					if(this.enableEvent){
+						ct.rect(0,0,this.style.width,this.style.height);
+						this.checkIfOnOver();
+					}
 				}
 			}
 		}

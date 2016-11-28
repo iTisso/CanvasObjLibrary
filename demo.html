@@ -120,15 +120,13 @@ var imageGraph=new col.class.ImageGraph(),
 	image=new Image();
 image.src='https://io.luojia.me/img/s/2014/04/COL.png';
 imageGraph.use(image);
-
+imageGraph.style.skewX=2
 imageGraph.style.x=200;
 imageGraph.style.y=200;
 imageGraph.style.positionPointX=20;
 imageGraph.style.positionPointY=20;
-//imageGraph.style.rotatePointX=50;
-//imageGraph.style.rotatePointY=50;
-imageGraph.style.skewPointX=50;
-imageGraph.style.skewPointY=50;
+imageGraph.style.setSkewPoint('center');
+imageGraph.style.setRotatePoint('center');
 
 col.root.appendChild(imageGraph);
 
@@ -161,12 +159,30 @@ for(let i=100;i--;){
 	s.insertBefore(taiko);
 }
 
-col.debug.on();
+var debugButton=new col.class.TextGraph('Debug'),
+	debugOn=new col.class.TextGraph('On'),
+	debugOff=new col.class.TextGraph('Off');
+debugButton.style.y=610;
+debugOn.style.x=50;
+debugOff.style.x=70;
+debugButton.appendChild(debugOn);
+debugButton.appendChild(debugOff);
+
+col.root.appendChild(debugButton);
+
+
+debugOn.on('click',e=>{
+	col.debug.on();
+});
+debugOff.on('click',e=>{
+	col.debug.off();
+});
+
 
 var run=true;
 
 function am(){
-	//imageGraph.style.rotate+=1;
+	imageGraph.style.rotate-=1;
 	star.style.rotate+=1;
 	col.draw();
 	run&&requestAnimationFrame(am);
