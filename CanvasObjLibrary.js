@@ -181,10 +181,10 @@ class CanvasObjLibrary{
 			const ce=new this.class.MouseEvent(e.type);
 			ce.originEvent=e;
 			(this.stat.onover||this.root).emit(ce);
-		}else if(e instanceof MouseEvent){
+		}else if(e instanceof KeyboardEvent){
 			const ce=new this.class.KeyboardEvent(e.type);
 			ce.originEvent=e;
-			(this.stat.onover||this.root).emit(ce);
+			(this.stat.onfocus||this.root).emit(ce);
 		}
 	}
 	draw(){
@@ -312,6 +312,10 @@ const COL_Class={
 			stopBubble(){
 				this.bubble=false;
 			}
+			get altKey(){return this.originEvent.altKey;}
+			get ctrlKey(){return this.originEvent.ctrlKey;}
+			get metaKey(){return this.originEvent.metaKey;}
+			get shiftKey(){return this.originEvent.shiftKey;}
 		}
 	},
 	MouseEvent:host=>{
@@ -320,13 +324,17 @@ const COL_Class={
 				super(type);
 			}
 			get button(){return this.originEvent.button;}
+			get buttons(){return this.originEvent.buttons;}
 		}
 	},
 	WheelEvent:host=>{
-		return class WheelEvent extends host.class.Event{
+		return class WheelEvent extends host.class.MouseEvent{
 			constructor(type){
 				super(type);
 			}
+			get deltaX(){return this.originEvent.deltaX;}
+			get deltaY(){return this.originEvent.deltaY;}
+			get deltaZ(){return this.originEvent.deltaZ;}
 		}
 	},
 	KeyboardEvent:host=>{
@@ -334,6 +342,10 @@ const COL_Class={
 			constructor(type){
 				super(type);
 			}
+			get charCode(){return this.originEvent.charCode;}
+			get code(){return this.originEvent.code;}
+			get key(){return this.originEvent.key;}
+			get keyCode(){return this.originEvent.keyCode;}
 		}
 	},
 	GraphEventEmitter:host=>{
