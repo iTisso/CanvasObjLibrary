@@ -2,7 +2,7 @@
 
 class Graphlib{
 	constructor(COL){
-		if(COL instanceof CanvasObjectLibrary === false)
+		if(COL instanceof CanvasObjLibrary === false)
 			throw(new TypeError('CanvasObjectLibrary instance required'));
 		this.COL=COL;
 		for(let c in graphs)this[c]=graphs[c](this);
