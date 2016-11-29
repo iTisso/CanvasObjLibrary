@@ -119,12 +119,19 @@ taiko.on('mousemove',e=>{
 		taiko.style.y+=e.movementY;
 	}
 });
-var zxcv=new col.class.TextGraph('  z             x        c             v')
-zxcv.font.fontSize=35;
-zxcv.font.color='#e8d8ba';
-zxcv.style.y=94;
-zxcv.prepare();
-taiko.appendChild(zxcv);
+
+{
+	const textX=[18,150,240,370],texts=['z','x','c','v'];
+	for(let i=4;i--;){
+		const t=new col.class.TextGraph(texts[i]);
+		t.font.fontSize=35;
+		t.font.color='#e8d8ba';
+		t.style.y=94;
+		t.style.x=textX[i];
+		t.prepare();
+		taiko.appendChild(t);
+	}
+}
 
 var keyToEvent={z:'l2',x:'l1',c:'r1',v:'r2'};
 //taiko effects
