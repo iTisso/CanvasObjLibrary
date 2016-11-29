@@ -124,6 +124,7 @@ taiko.on('mousemove',e=>{
 	const textX=[18,150,240,370],texts=['z','x','c','v'];
 	for(let i=4;i--;){
 		const t=new col.class.TextGraph(texts[i]);
+		t.enableEvent=false;
 		t.font.fontSize=35;
 		t.font.color='#e8d8ba';
 		t.style.y=94;
