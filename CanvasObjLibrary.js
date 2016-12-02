@@ -45,17 +45,34 @@ class CanvasObjLibrary{
 					//textBaseline: "middle",//abandoned
 				},
 				style:{
-					x:0,
-					y:0,
-					zoomX:1,
-					zoomY:1,
 					width:1,
 					height:1,
-					rotate:0,
 					hidden:false,
 					opacity:1,
 					clipOverflow:false,
 					backgroundColor:null,
+					composite:null,
+					debugBorderColor:'black',
+					/*_x:0,
+					_y:0,
+					_zoomX:1,
+					_zoomY:1,
+					_rotate:0,
+					_rotatePointX:0,
+					_rotatePointY:0,
+					_positionPointX:0,
+					_positionPointY:0,
+					_zoomPointY:0,
+					_zoomPointY:0,
+					_skewX:1,
+					_skewY:1,
+					_skewPointX:0,
+					_skewPointY:0,*/
+					x:0,
+					y:0,
+					zoomX:1,
+					zoomY:1,
+					rotate:0,
 					rotatePointX:0,
 					rotatePointY:0,
 					positionPointX:0,
@@ -66,8 +83,10 @@ class CanvasObjLibrary{
 					skewY:1,
 					skewPointX:0,
 					skewPointY:0,
-					composite:null,
-					debugBorderColor:'black',
+					/*_positionMatrix:new Float32Array([1,0,0,1,0,0]),
+					_rotateMatrix:new Float32Array([1,0,0,1,0,0]),
+					_zoomMatrix:new Float32Array([1,0,0,1,0,0]),
+					_skewMatrix:null,*/
 				},
 			},
 			stat:{
@@ -89,6 +108,8 @@ class CanvasObjLibrary{
 				graphID:0,
 				onOverGraph:null,
 				toClickGraph:null,
+				matrix1:new Float32Array([1,0,0,0,1,0]),
+				matrix2:new Float32Array([1,0,0,0,1,0]),
 			},
 			
 			root: null,//root Graph
@@ -204,12 +225,19 @@ class CanvasObjLibrary{
 		}
 	}
 	draw(){
-		const ct=this.context;
 		this.debug.count=0;
-		ct.setTransform(1,0,0,1,0,0);
-		this.autoClear&&ct.clearRect(0,0,this.canvas.width,this.canvas.height);
-		this.drawGraph(this.root);
+		this.autoClear&&this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+		this.traverseGraphTree(0);
 		this.debug.switch&&this.drawDebug();
+	}
+	/*
+		traverse mode
+			0	draw graphs and check onover graph
+			1	check onover graph
+	*/
+	traverseGraphTree(mode=0){
+		this.context.setTransform(1,0,0,1,0,0);
+		this.drawGraph(this.root,mode);
 		if(this.tmp.onOverGraph!==this.stat.onover){//new onover graph
 			const oldOnover=this.stat.onover;
 			this.tmp.toClickGraph=null;
@@ -253,37 +281,84 @@ class CanvasObjLibrary{
 		ct.restore();
 	}
 
-	drawGraph(g){
-		const ct=this.context,style=g.style;
-		if(style.hidden)return;
+	drawGraph(g,mode=0){
+		if(g.style.hidden===true)return;
+		const ct=this.context,
+				style=g.style,
+				mp=this._multiplyMatrix;
+		let	M=this.tmp.matrix1,
+			tM=this.tmp.matrix2;
 		this.debug.count++;
 		ct.save();
-		ct.globalCompositeOperation = style.composite;
-		ct.globalAlpha = style.opacity;
+		if(mode===0){
+			ct.globalCompositeOperation = style.composite;
+			ct.globalAlpha = style.opacity;
+		}
 		//position & offset
-		ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
+		M.set([1,0,style.x-style.positionPointX,0,1,style.y-style.positionPointY]);
+		//ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
 		//skew
-		if(style.skewX || style.skewY){
-			const t=style.skewPointX || style.skewPointY;
-			t&&ct.translate(style.skewPointX,style.skewPointY);
-			ct.scale(style.skewX,style.skewY);
-			t&&ct.translate(-style.skewPointX,-style.skewPointY);
+		if(style.skewX!==1 || style.skewY!==1){
+			if(style.skewPointX!==0 || style.skewPointY!==0){
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,style.skewPointX,0,1,style.skewPointY],M);
+				//ct.translate(style.skewPointX,style.skewPointY);
+				[M,tM]=[tM,M];
+				mp(tM,[style.skewX,0,0,0,style.skewY,0],M);
+				//ct.scale(style.skewX,style.skewY);
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,-style.skewPointX,0,1,-style.skewPointY],M);
+				//ct.translate(-style.skewPointX,-style.skewPointY);
+			}else{
+				[M,tM]=[tM,M];
+				mp(tM,[style.skewX,0,0,0,style.skewY,0],M);
+				//ct.scale(style.skewX,style.skewY);
+			}
+			//ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
+			
 		}
 		//rotate
-		if(style.rotate){
-			const t=style.rotatePointX || style.rotatePointY;
-			t&&ct.translate(style.rotatePointX,style.rotatePointY);
-			ct.rotate(style.rotate * 0.0174532925);
-			t&&ct.translate(-style.rotatePointX,-style.rotatePointY);
+		if(style.rotate!==0){
+			const r=style.rotate* 0.0174532925;
+			if(style.rotatePointX!==0 || style.rotatePointY!==0){
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,style.rotatePointX,0,1,style.rotatePointY],M);
+				//ct.translate(style.rotatePointX,style.rotatePointY);
+				[M,tM]=[tM,M];
+				mp(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
+				//ct.rotate(style.rotate * 0.0174532925);
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,-style.rotatePointX,0,1,-style.rotatePointY],M);
+				//ct.translate(-style.rotatePointX,-style.rotatePointY);
+			}else{
+				[M,tM]=[tM,M];
+				mp(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
+			}
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
+			if(style.zoomPointX!==0 || style.zoomPointY!==0){
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,style.zoomPointX,0,1,style.zoomPointY],M);
+				//ct.translate(style.zoomPointX,style.zoomPointY);
+				[M,tM]=[tM,M];
+				mp(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
+				//ct.scale(style.zoomX,style.zoomY);
+				[M,tM]=[tM,M];
+				mp(tM,[1,0,-style.zoomPointX,0,1,-style.zoomPointY],M);
+				//ct.translate(-style.zoomPointX,-style.zoomPointY);
+			}else{
+				[M,tM]=[tM,M];
+				mp(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
+				//ct.scale(style.zoomX,style.zoomY);
+			}/*
 			const t=style.zoomPointX || style.zoomPointY;
 			t&&ct.translate(style.zoomPointX,style.zoomPointX);
 			ct.scale(style.zoomX,style.zoomY);
-			t&&ct.translate(-style.zoomPointX,-style.zoomPointX);
+			t&&ct.translate(-style.zoomPointX,-style.zoomPointX);*/
 		}
-		if(this.debug.switch){
+		ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
+		if(this.debug.switch && mode===0){
 			ct.save();
 			ct.beginPath();
 			ct.globalAlpha=0.5;
@@ -308,12 +383,28 @@ class CanvasObjLibrary{
 			ct.rect(0,0,style.width,style.height);
 			ct.clip();
 		}
-		if(g.drawer)g.drawer(ct);
+		switch(mode){
+			case 0:{if(g.drawer)g.drawer(ct);break;}
+			case 1:{g.checkIfOnOver(true,mode);break;}
+		}
 		if(g.childNodes.length){
 			for(let c of g.childNodes)
-				this.drawGraph(c);
+				this.drawGraph(c,mode);
 		}
 		ct.restore();
+	}
+	/*
+	0 1 2	0 1 2
+	3 4 5	3 4 5
+	0 0 1	0 0 1
+	*/
+	_multiplyMatrix(m1,m2,r) {
+		r[0]=m1[0]*m2[0]+m1[1]*m2[3];
+		r[1]=m1[0]*m2[1]+m1[1]*m2[4];
+		r[2]=m1[0]*m2[2]+m1[1]*m2[5]+m1[2];
+		r[3]=m1[3]*m2[0]+m1[4]*m2[3];
+		r[4]=m1[3]*m2[1]+m1[4]*m2[4];
+		r[5]=m1[3]*m2[2]+m1[4]*m2[5]+m1[5];
 	}
 }
 
@@ -425,6 +516,7 @@ const COL_Class={
 			constructor(inhertFrom){
 				if(inhertFrom && this.inhert(inhertFrom))return;
 				this.__proto__.__proto__=host.default.style;
+				this._calculatableStyleChanged=false;
 			}
 			inhertGraph(graph){//inhert a graph's style
 				if(!(graph instanceof host.class.Graph))
@@ -452,6 +544,41 @@ const COL_Class={
 				this.__proto__=Object.prototype;
 			}
 
+
+			/*set x(v){this._x=v;}
+			get x(){return this._x;}
+			set y(v){this._y=v;}
+			get y(){return this._y;}
+			set zoomX(v){this._zoomX=v;}
+			get zoomX(){return this._zoomX;}
+			set zoomY(v){this._zoomY=v;}
+			get zoomY(){return this._zoomY;}
+			set rotate(v){this._rotate=v;}
+			get rotate(){return this._rotate;}
+			set skewX(v){this._skewX=v;}
+			get skewX(){return this._skewX;}
+			set skewY(v){this._skewY=v;}
+			get skewY(){return this._skewY;}*/
+			/*set rotatePointX(v){this._rotatePointX=v;}
+			get rotatePointX(){return this._rotatePointX;}
+			set rotatePointY(v){this._rotatePointY=v;}
+			get rotatePointY(){return this._rotatePointY;}*/
+			/*set positionPointX(v){this._positionPointX=v;}
+			get positionPointX(){return this._positionPointX;}
+			set positionPointY(v){this._positionPointY=v;}
+			get positionPointY(){return this._positionPointY;}*/
+			/*set zoomPointX(v){this._zoomPointX=v;}
+			get zoomPointX(){return this._zoomPointX;}
+			set zoomPointY(v){this._zoomPointY=v;}
+			get zoomPointY(){return this._zoomPointY;}*/
+			/*set skewPointX(v){this._skewPointX=v;}
+			get skewPointX(){return this._skewPointX;}
+			set skewPointY(v){this._skewPointY=v;}
+			get skewPointY(){return this._skewPointY;}*/
+			/*_markMatrixChanged(){
+				if(!this.propertyIsEnumerable('_transformMatrix'))
+					this._transformMatrix=new Float32Array([1,0,0,1,0,0]);
+			}*/
 			getPoint(name){
 				switch(name){
 					case 'center':{
@@ -522,6 +649,8 @@ const COL_Class={
 				//this.name=name;
 				this.host=host;
 				this.GID=this.host.generateGraphID();
+				this.onoverCheck=true;
+				//this.hitRange=null;
 				Object.defineProperties(this,{
 					style:{value: new host.class.GraphStyle(),configurable:true},
 					childNodes:{value: []},
@@ -606,11 +735,13 @@ const COL_Class={
 				});
 			}
 
-			checkIfOnOver(){
+			checkIfOnOver(runHitRange=true,mode=0){
+				if(this.onoverCheck===false || !this.hitRange)return false;
 				const m=this.host.stat.mouse;
 				if(m.x === null)return false;
 				if(this===this.host.tmp.onOverGraph)return true;
-				if(this.host.debug.switch){
+				runHitRange&&this.hitRange(this.host.context);
+				if(mode===0 && this.host.debug.switch){
 					this.host.context.save();
 					this.host.context.strokeStyle='yellow';
 					this.host.context.stroke();
@@ -641,9 +772,11 @@ const COL_Class={
 			}
 			drawer(ct){
 				//onover point check
+				this.checkIfOnOver(true);
+			}
+			hitRange(ct){
 				ct.beginPath();
 				ct.rect(0,0,this.style.width,this.style.height);
-				this.checkIfOnOver();
 			}
 		}
 	},
@@ -653,7 +786,6 @@ const COL_Class={
 				super();
 				if(image)this.use(image);
 				this.style.debugBorderColor='#0f0';
-				this.enableEvent=true;
 			}
 			use(image){
 				if(image instanceof Image){
@@ -689,13 +821,13 @@ const COL_Class={
 			}
 			drawer(ct){
 				//onover point check
-				ct.beginPath();
+				//ct.beginPath();
 				ct.drawImage(this.image, 0, 0);
-				if(this.enableEvent){
-					ct.beginPath();
-					ct.rect(0,0,this.style.width,this.style.height);
-					this.checkIfOnOver();
-				}
+				this.checkIfOnOver(true);
+			}
+			hitRange(ct){
+				ct.beginPath();
+				ct.rect(0,0,this.style.width,this.style.height);
 			}
 		}
 	},
@@ -719,15 +851,14 @@ const COL_Class={
 		return class TextGraph extends host.class.FunctionGraph{
 			constructor(text=''){
 				super();
-				this.text=text;
-				this.font=Object.create(host.default.font);
+				//this._cache=null;
 				this._fontString='';
-				this.realtimeRender=false;
 				this._renderList=null;
 				this.autoSize=true;
-				this.enableEvent=true;
+				this.font=Object.create(host.default.font);
+				this.realtimeRender=false;
 				this.style.debugBorderColor='#00f';
-				this._cache=null;
+				this.text=text;
 				Object.defineProperty(this,'_cache',{configurable:true});
 			}
 			prepare(){//prepare text details
@@ -782,24 +913,22 @@ const COL_Class={
 				}
 			}
 			drawer(ct){
-				ct.beginPath();
+				//ct.beginPath();
 				if(this.realtimeRender){//realtime render the text
 					//onover point check
-					if(this.enableEvent){
-						ct.rect(0,0,this.style.width,this.style.height);
-						this.checkIfOnOver();
-					}
+					this.checkIfOnOver(true);
 					this.render(ct);
 				}else{//draw the cache
 					if(!this._cache){
 						this.prepare();
 					}
 					ct.drawImage(this._cache, -this.estimatePadding, -this.estimatePadding);
-					if(this.enableEvent){
-						ct.rect(0,0,this.style.width,this.style.height);
-						this.checkIfOnOver();
-					}
+					this.checkIfOnOver(true);
 				}
+			}
+			hitRange(ct){
+				ct.beginPath();
+				ct.rect(0,0,this.style.width,this.style.height);
 			}
 		}
 	},
