@@ -866,51 +866,51 @@ window.CanvasObjLibrary=CanvasObjLibrary;
 //code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 if (typeof Object.assign != 'function')
 Object.assign = function (target) {
-  'use strict';
-  // We must check against these specific cases.
-  if (target === undefined || target === null) {
-    throw new TypeError('Cannot convert undefined or null to object');
-  }
-  var output = Object(target);
-  for (var index = 1; index < arguments.length; index++) {
-    var source = arguments[index];
-    if (source !== undefined && source !== null) {
-      for (var nextKey in source) {
-        if (source.hasOwnProperty(nextKey)) {
-          output[nextKey] = source[nextKey];
-        }
-      }
-    }
-  }
-  return output;
+	'use strict';
+	// We must check against these specific cases.
+	if (target === undefined || target === null) {
+		throw new TypeError('Cannot convert undefined or null to object');
+	}
+	var output = Object(target);
+	for (var index = 1; index < arguments.length; index++) {
+		var source = arguments[index];
+		if (source !== undefined && source !== null) {
+			for (var nextKey in source) {
+				if (source.hasOwnProperty(nextKey)) {
+					output[nextKey] = source[nextKey];
+				}
+			}
+		}
+	}
+	return output;
 };
 
 
 if(!Float32Array.__proto__.from) {
 	let copy_data = [];
-    Float32Array.__proto__.from = function (obj, func, thisObj) {
-        var typedArrayClass = Float32Array.__proto__;
-        if(typeof this !== "function")
-            throw new TypeError("# is not a constructor");
-        if(this.__proto__ !== typedArrayClass)
-        	throw new TypeError("this is not a typed array.");
-        func = func || (elem=>{return elem;});
-        if (typeof func !== "function")
-        	throw new TypeError("specified argument is not a function");
-        obj = Object(obj);
-        if(!obj["length"])
-        	return new this(0);
-        copy_data.length=0;
-        for(let i=0; i<obj.length; i++){
-            copy_data.push(obj[i]);
-        }
-        copy_data = copy_data.map(func, thisObj);
-        const typed_array = new this(copy_data.length);
-        for(let i=0; i<typed_array.length; i++) {
-            typed_array[i] = copy_data[i];
-        }
-        return typed_array;
-    }
+	Float32Array.__proto__.from = function (obj, func, thisObj) {
+		var typedArrayClass = Float32Array.__proto__;
+		if(typeof this !== "function")
+			throw new TypeError("# is not a constructor");
+		if(this.__proto__ !== typedArrayClass)
+			throw new TypeError("this is not a typed array.");
+		func = func || (elem=>{return elem;});
+		if (typeof func !== "function")
+			throw new TypeError("specified argument is not a function");
+		obj = Object(obj);
+		if(!obj["length"])
+			return new this(0);
+		copy_data.length=0;
+		for(let i=0; i<obj.length; i++){
+			copy_data.push(obj[i]);
+		}
+		copy_data = copy_data.map(func, thisObj);
+		const typed_array = new this(copy_data.length);
+		for(let i=0; i<typed_array.length; i++) {
+			typed_array[i] = copy_data[i];
+		}
+		return typed_array;
+	}
 }
 
 
