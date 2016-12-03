@@ -304,7 +304,8 @@ class CanvasObjLibrary{
 				_M[0]=1;_M[1]=0;_M[2]=-style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=-style.rotatePointY;
 				multiplyMatrix(M,_M,tM);
 			}else{
-				multiplyMatrix(M,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],tM);
+				_M[0]=Math.cos(r);_M[1]=-Math.sin(r);_M[2]=0;_M[3]=Math.sin(r);_M[4]=Math.cos(r);_M[5]=0;
+				multiplyMatrix(M,_M,tM);
 			}
 			M.set(tM);
 		}
@@ -523,9 +524,7 @@ const COL_Class={
 					this.rotatePointX = x;
 					this.rotatePointY = y;
 				} else if (arguments.length == 1) {
-					const point=this.getPoint(x);
-					this.rotatePointX = point[0];
-					this.rotatePointY = point[1];
+					[this.rotatePointX,this.rotatePointY]=this.getPoint(x);
 				}
 			}
 			setPositionPoint(x,y){
@@ -533,29 +532,23 @@ const COL_Class={
 					this.positionPointX = x;
 					this.positionPointY = y;
 				} else if (arguments.length == 1) {
-					const point=this.getPoint(x);
-					this.positionPointX = point[0];
-					this.positionPointY = point[1];
+					[this.positionPointX,this.positionPointY]=this.getPoint(x);
 				}
 			}
 			setZoomPoint(x,y){
 				if (arguments.length == 2) {
-					this.zoomPointY = x;
+					this.zoomPointX = x;
 					this.zoomPointY = y;
 				} else if (arguments.length == 1) {
-					const point=this.getPoint(x);
-					this.zoomPointX = point[0];
-					this.zoomPointY = point[1];
+					[this.zoomPointX,this.zoomPointY]=this.getPoint(x);
 				}
 			}
 			setSkewPoint(x,y){
 				if (arguments.length == 2) {
-					this.zoomPointY = x;
-					this.zoomPointY = y;
+					this.skewPointX = x;
+					this.skewPointY = y;
 				} else if (arguments.length == 1) {
-					const point=this.getPoint(x);
-					this.skewPointX = point[0];
-					this.skewPointY = point[1];
+					[this.skewPointX,this.skewPointY]=this.getPoint(x);
 				}
 			}
 		}
