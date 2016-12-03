@@ -277,7 +277,6 @@ class CanvasObjLibrary{
 			style.opacity&&(ct.globalAlpha = style.opacity);
 		}
 		//position & offset
-		//M.set([1,0,style.x-style.positionPointX,0,1,style.y-style.positionPointY]);
 		M[0]=1;M[1]=0;M[2]=style.x-style.positionPointX;
 		M[3]=0;M[4]=1;M[5]=style.y-style.positionPointY;
 		if(style.skewX!==1 || style.skewY!==1){
@@ -287,35 +286,42 @@ class CanvasObjLibrary{
 				_M[0]=style.skewX;_M[2]=0;_M[4]=style.skewY;_M[5]=0;
 				multiplyMatrix(tM,_M,M);
 				_M[0]=1;_M[2]=-style.skewPointX;_M[4]=1;_M[5]=-style.skewPointY;
-				multiplyMatrix(M,[1,0,-style.skewPointX,0,1,-style.skewPointY],tM);
+				multiplyMatrix(M,_M,tM);
 			}else{
 				_M[0]=style.skewX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.skewY;_M[5]=0;
 				multiplyMatrix(M,_M,tM);
 			}
-			[M,tM]=[tM,M];
+			M.set(tM);
 		}
 		//rotate
 		if(style.rotate!==0){
 			const r=style.rotate* 0.0174532925;
 			if(style.rotatePointX!==0 || style.rotatePointY!==0){
-				multiplyMatrix(M,[1,0,style.rotatePointX,0,1,style.rotatePointY],tM);
-				multiplyMatrix(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
-				multiplyMatrix(M,[1,0,-style.rotatePointX,0,1,-style.rotatePointY],tM);
+				_M[0]=1;_M[1]=0;_M[2]=style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=style.rotatePointY;
+				multiplyMatrix(M,_M,tM);
+				_M[0]=Math.cos(r);_M[1]=-Math.sin(r);_M[2]=0;_M[3]=Math.sin(r);_M[4]=Math.cos(r);_M[5]=0;
+				multiplyMatrix(tM,_M,M);
+				_M[0]=1;_M[1]=0;_M[2]=-style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=-style.rotatePointY;
+				multiplyMatrix(M,_M,tM);
 			}else{
 				multiplyMatrix(M,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],tM);
 			}
-			[M,tM]=[tM,M];
+			M.set(tM);
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
 			if(style.zoomPointX!==0 || style.zoomPointY!==0){
-				multiplyMatrix(M,[1,0,style.zoomPointX,0,1,style.zoomPointY],tM);
-				multiplyMatrix(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
-				multiplyMatrix(M,[1,0,-style.zoomPointX,0,1,-style.zoomPointY],tM);
+				_M[0]=1;_M[1]=0;_M[2]=style.zoomPointX;_M[3]=0;_M[4]=1;_M[5]=style.zoomPointY;
+				multiplyMatrix(M,_M,tM);
+				_M[0]=style.zoomX;_M[2]=0;_M[4]=style.zoomY;_M[5]=0;
+				multiplyMatrix(tM,_M,M);
+				_M[0]=1;_M[2]=-style.zoomPointX;_M[4]=1;_M[5]=-style.zoomPointY;
+				multiplyMatrix(M,_M,tM);
 			}else{
-				multiplyMatrix(M,[style.zoomX,0,0,0,style.zoomY,0],tM);
+				_M[0]=style.zoomX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.zoomY;_M[5]=0;
+				multiplyMatrix(M,_M,tM);
 			}
-			[M,tM]=[tM,M];
+			M.set(tM);
 		}
 		ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
 		if(this.debug.switch && mode===0){
