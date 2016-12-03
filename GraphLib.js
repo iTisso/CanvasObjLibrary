@@ -22,17 +22,14 @@ const graphs={
 				this.anticlockwise=false;
 				this.borderColor='#000';
 				this.borderWidth=0;
-				this.enableEvent=false;
+				this.onoverCheck=false;
 			}
 			setRadius(r){
 				this.r=r;
 				this.style.height=this.style.width=2*r;
 			}
 			drawer(ct){
-				ct.beginPath();
-				ct.arc(this.r, this.r, this.r, this.startAngle, this.endAngle, this.anticlockwise);
-				ct.closePath();
-				this.enableEvent&&this.checkIfOnOver();
+				this.hitRange(ct);
 				if(this.color){
 					ct.fillStyle=this.color;
 					ct.fill();
@@ -41,6 +38,12 @@ const graphs={
 					ct.strokeStyle=this.borderColor;
 					ct.stroke();
 				}
+				this.checkIfOnOver(false);
+			}
+			hitRange(ct){
+				ct.beginPath();
+				ct.arc(this.r, this.r, this.r, this.startAngle, this.endAngle, this.anticlockwise);
+				ct.closePath();
 			}
 		}
 	},
@@ -66,20 +69,7 @@ const graphs={
 				super();
 			}
 			drawer(ct){
-				ct.translate(this.r,this.r);
-				ct.rotate(Math.PI/2*3);
-				ct.beginPath();
-				ct.moveTo(this.r, 0);
-				for (var i = 0; i < 9; i++) {
-					ct.rotate(Math.PI / 5);
-					if (i % 2 == 0) {
-						ct.lineTo(this.r*0.3819653, 0);
-					} else {
-						ct.lineTo(this.r, 0);
-					}
-				}
-				ct.closePath();
-				this.enableEvent&&this.checkIfOnOver();
+				this.hitRange(ct);
 				if(this.color){
 					ct.fillStyle=this.color;
 					ct.fill();
@@ -88,6 +78,22 @@ const graphs={
 					ct.strokeStyle=this.borderColor;
 					ct.stroke();
 				}
+				this.checkIfOnOver(false);
+			}
+			hitRange(ct){
+				ct.translate(this.r,this.r);
+				ct.beginPath();
+				ct.moveTo(0,-this.r);
+				ct.lineTo(0.2245139883*this.r,-0.3090169944*this.r);
+				ct.lineTo(0.9510565163*this.r,-0.3090169944*this.r);
+				ct.lineTo(0.36327126*this.r,0.1180339887*this.r);//
+				ct.lineTo(0.5877852523*this.r,0.8090169944*this.r);
+				ct.lineTo(0,0.3819660113*this.r);
+				ct.lineTo(-0.5877852523*this.r,0.8090169944*this.r);
+				ct.lineTo(-0.36327126*this.r,0.1180339887*this.r);
+				ct.lineTo(-0.9510565163*this.r,-0.3090169944*this.r);
+				ct.lineTo(-0.2245139883*this.r,-0.3090169944*this.r);
+				ct.closePath();
 			}
 		}
 	},
@@ -97,10 +103,7 @@ const graphs={
 				super();
 			}
 			drawer(ct){
-				ct.beginPath();
-				ct.rect(0, 0, this.style.width, this.style.height);
-				ct.closePath();
-				this.enableEvent&&this.checkIfOnOver();
+				this.hitRange(ct);
 				if(this.color){
 					ct.fillStyle=this.color;
 					ct.fill();
@@ -109,6 +112,12 @@ const graphs={
 					ct.strokeStyle=this.borderColor;
 					ct.stroke();
 				}
+				this.checkIfOnOver(false);
+			}
+			hitRange(ct){
+				ct.beginPath();
+				ct.rect(0, 0, this.style.width, this.style.height);
+				ct.closePath();
 			}
 		}
 	},

@@ -103,13 +103,15 @@ taiko.drawer=function(ct){
 		ct.bezierCurveTo(425, 218, 427, 27, 207, 26);
 		ct.fill();
 	}
+	this.checkIfOnOver();
+}
+taiko.hitRange=ct=>{
 	ct.beginPath();
 	ct.moveTo(5, 120);
 	ct.lineTo(5, 230);
 	ct.bezierCurveTo(5, 390, 400, 390, 400, 230);
 	ct.lineTo(400, 120);
 	ct.bezierCurveTo(390, -30, 10, -30, 5, 120);
-	this.checkIfOnOver();
 }
 col.root.appendChild(taiko);
 
@@ -124,6 +126,7 @@ taiko.on('mousemove',e=>{
 	const textX=[18,150,240,370],texts=['z','x','c','v'];
 	for(let i=4;i--;){
 		const t=new col.class.TextGraph(texts[i]);
+		t.onoverCheck=false;
 		t.font.fontSize=35;
 		t.font.color='#e8d8ba';
 		t.style.y=94;
@@ -165,7 +168,7 @@ audio.l2.src=audio.r2.src='da.mp3';
 //image
 var imageGraph=new col.class.ImageGraph(),
 	image=new Image();
-image.src='https://io.luojia.me/img/s/2014/04/COL.png';
+image.src='COL.png';
 imageGraph.use(image);
 imageGraph.style.skewX=2
 imageGraph.style.x=imageGraph.style.y=200;
@@ -181,7 +184,7 @@ imageGraph.on('click',function(){
 col.root.appendChild(imageGraph);
 
 var star=new Glib.star();
-star.enableEvent=true;
+star.onoverCheck=true;
 star.setRadius(30);
 star.style.setRotatePoint('center');
 star.style.setZoomPoint('center');
@@ -212,7 +215,7 @@ for(let i=100;i--;){
 var debugButton=new col.class.TextGraph('Debug'),
 	debugOn=new col.class.TextGraph('On'),
 	debugOff=new col.class.TextGraph('Off');
-debugButton.enableEvent=false;
+debugButton.onoverCheck=false;
 debugButton.style.y=610;
 debugOn.style.x=50;
 debugOff.style.x=80;
