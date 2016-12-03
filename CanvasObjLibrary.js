@@ -53,21 +53,6 @@ class CanvasObjLibrary{
 					backgroundColor:null,
 					composite:null,
 					debugBorderColor:'black',
-					/*_x:0,
-					_y:0,
-					_zoomX:1,
-					_zoomY:1,
-					_rotate:0,
-					_rotatePointX:0,
-					_rotatePointY:0,
-					_positionPointX:0,
-					_positionPointY:0,
-					_zoomPointY:0,
-					_zoomPointY:0,
-					_skewX:1,
-					_skewY:1,
-					_skewPointX:0,
-					_skewPointY:0,*/
 					x:0,
 					y:0,
 					zoomX:1,
@@ -83,10 +68,6 @@ class CanvasObjLibrary{
 					skewY:1,
 					skewPointX:0,
 					skewPointY:0,
-					/*_positionMatrix:new Float32Array([1,0,0,1,0,0]),
-					_rotateMatrix:new Float32Array([1,0,0,1,0,0]),
-					_zoomMatrix:new Float32Array([1,0,0,1,0,0]),
-					_skewMatrix:null,*/
 				},
 			},
 			stat:{
@@ -110,6 +91,7 @@ class CanvasObjLibrary{
 				toClickGraph:null,
 				matrix1:new Float32Array([1,0,0,0,1,0]),
 				matrix2:new Float32Array([1,0,0,0,1,0]),
+				matrix3:new Float32Array([1,0,0,0,1,0]),
 			},
 			
 			root: null,//root Graph
@@ -285,77 +267,55 @@ class CanvasObjLibrary{
 		if(g.style.hidden===true)return;
 		const ct=this.context,
 				style=g.style,
-				mp=this._multiplyMatrix;
+				_M=this.tmp.matrix3;
 		let	M=this.tmp.matrix1,
 			tM=this.tmp.matrix2;
 		this.debug.count++;
 		ct.save();
 		if(mode===0){
-			ct.globalCompositeOperation = style.composite;
-			ct.globalAlpha = style.opacity;
+			style.composite&&(ct.globalCompositeOperation = style.composite);
+			style.opacity&&(ct.globalAlpha = style.opacity);
 		}
 		//position & offset
-		M.set([1,0,style.x-style.positionPointX,0,1,style.y-style.positionPointY]);
-		//ct.translate(style.x-style.positionPointX,style.y-style.positionPointY);
-		//skew
+		//M.set([1,0,style.x-style.positionPointX,0,1,style.y-style.positionPointY]);
+		M[0]=1;M[1]=0;M[2]=style.x-style.positionPointX;
+		M[3]=0;M[4]=1;M[5]=style.y-style.positionPointY;
 		if(style.skewX!==1 || style.skewY!==1){
 			if(style.skewPointX!==0 || style.skewPointY!==0){
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,style.skewPointX,0,1,style.skewPointY],M);
-				//ct.translate(style.skewPointX,style.skewPointY);
-				[M,tM]=[tM,M];
-				mp(tM,[style.skewX,0,0,0,style.skewY,0],M);
-				//ct.scale(style.skewX,style.skewY);
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,-style.skewPointX,0,1,-style.skewPointY],M);
-				//ct.translate(-style.skewPointX,-style.skewPointY);
+				_M[0]=1;_M[1]=0;_M[2]=style.skewPointX;_M[3]=0;_M[4]=1;_M[5]=style.skewPointY;
+				multiplyMatrix(M,_M,tM);
+				_M[0]=style.skewX;_M[2]=0;_M[4]=style.skewY;_M[5]=0;
+				multiplyMatrix(tM,_M,M);
+				_M[0]=1;_M[2]=-style.skewPointX;_M[4]=1;_M[5]=-style.skewPointY;
+				multiplyMatrix(M,[1,0,-style.skewPointX,0,1,-style.skewPointY],tM);
 			}else{
-				[M,tM]=[tM,M];
-				mp(tM,[style.skewX,0,0,0,style.skewY,0],M);
-				//ct.scale(style.skewX,style.skewY);
+				_M[0]=style.skewX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.skewY;_M[5]=0;
+				multiplyMatrix(M,_M,tM);
 			}
-			//ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
-			
+			[M,tM]=[tM,M];
 		}
 		//rotate
 		if(style.rotate!==0){
 			const r=style.rotate* 0.0174532925;
 			if(style.rotatePointX!==0 || style.rotatePointY!==0){
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,style.rotatePointX,0,1,style.rotatePointY],M);
-				//ct.translate(style.rotatePointX,style.rotatePointY);
-				[M,tM]=[tM,M];
-				mp(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
-				//ct.rotate(style.rotate * 0.0174532925);
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,-style.rotatePointX,0,1,-style.rotatePointY],M);
-				//ct.translate(-style.rotatePointX,-style.rotatePointY);
+				multiplyMatrix(M,[1,0,style.rotatePointX,0,1,style.rotatePointY],tM);
+				multiplyMatrix(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
+				multiplyMatrix(M,[1,0,-style.rotatePointX,0,1,-style.rotatePointY],tM);
 			}else{
-				[M,tM]=[tM,M];
-				mp(tM,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],M);
+				multiplyMatrix(M,[Math.cos(r),-Math.sin(r),0,Math.sin(r),Math.cos(r),0],tM);
 			}
+			[M,tM]=[tM,M];
 		}
 		//zoom
 		if(style.zoomX!==1 || style.zoomY!==1){
 			if(style.zoomPointX!==0 || style.zoomPointY!==0){
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,style.zoomPointX,0,1,style.zoomPointY],M);
-				//ct.translate(style.zoomPointX,style.zoomPointY);
-				[M,tM]=[tM,M];
-				mp(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
-				//ct.scale(style.zoomX,style.zoomY);
-				[M,tM]=[tM,M];
-				mp(tM,[1,0,-style.zoomPointX,0,1,-style.zoomPointY],M);
-				//ct.translate(-style.zoomPointX,-style.zoomPointY);
+				multiplyMatrix(M,[1,0,style.zoomPointX,0,1,style.zoomPointY],tM);
+				multiplyMatrix(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
+				multiplyMatrix(M,[1,0,-style.zoomPointX,0,1,-style.zoomPointY],tM);
 			}else{
-				[M,tM]=[tM,M];
-				mp(tM,[style.zoomX,0,0,0,style.zoomY,0],M);
-				//ct.scale(style.zoomX,style.zoomY);
-			}/*
-			const t=style.zoomPointX || style.zoomPointY;
-			t&&ct.translate(style.zoomPointX,style.zoomPointX);
-			ct.scale(style.zoomX,style.zoomY);
-			t&&ct.translate(-style.zoomPointX,-style.zoomPointX);*/
+				multiplyMatrix(M,[style.zoomX,0,0,0,style.zoomY,0],tM);
+			}
+			[M,tM]=[tM,M];
 		}
 		ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
 		if(this.debug.switch && mode===0){
@@ -392,19 +352,6 @@ class CanvasObjLibrary{
 				this.drawGraph(c,mode);
 		}
 		ct.restore();
-	}
-	/*
-	0 1 2	0 1 2
-	3 4 5	3 4 5
-	0 0 1	0 0 1
-	*/
-	_multiplyMatrix(m1,m2,r) {
-		r[0]=m1[0]*m2[0]+m1[1]*m2[3];
-		r[1]=m1[0]*m2[1]+m1[1]*m2[4];
-		r[2]=m1[0]*m2[2]+m1[1]*m2[5]+m1[2];
-		r[3]=m1[3]*m2[0]+m1[4]*m2[3];
-		r[4]=m1[3]*m2[1]+m1[4]*m2[4];
-		r[5]=m1[3]*m2[2]+m1[4]*m2[5]+m1[5];
 	}
 }
 
@@ -544,41 +491,6 @@ const COL_Class={
 				this.__proto__=Object.prototype;
 			}
 
-
-			/*set x(v){this._x=v;}
-			get x(){return this._x;}
-			set y(v){this._y=v;}
-			get y(){return this._y;}
-			set zoomX(v){this._zoomX=v;}
-			get zoomX(){return this._zoomX;}
-			set zoomY(v){this._zoomY=v;}
-			get zoomY(){return this._zoomY;}
-			set rotate(v){this._rotate=v;}
-			get rotate(){return this._rotate;}
-			set skewX(v){this._skewX=v;}
-			get skewX(){return this._skewX;}
-			set skewY(v){this._skewY=v;}
-			get skewY(){return this._skewY;}*/
-			/*set rotatePointX(v){this._rotatePointX=v;}
-			get rotatePointX(){return this._rotatePointX;}
-			set rotatePointY(v){this._rotatePointY=v;}
-			get rotatePointY(){return this._rotatePointY;}*/
-			/*set positionPointX(v){this._positionPointX=v;}
-			get positionPointX(){return this._positionPointX;}
-			set positionPointY(v){this._positionPointY=v;}
-			get positionPointY(){return this._positionPointY;}*/
-			/*set zoomPointX(v){this._zoomPointX=v;}
-			get zoomPointX(){return this._zoomPointX;}
-			set zoomPointY(v){this._zoomPointY=v;}
-			get zoomPointY(){return this._zoomPointY;}*/
-			/*set skewPointX(v){this._skewPointX=v;}
-			get skewPointX(){return this._skewPointX;}
-			set skewPointY(v){this._skewPointY=v;}
-			get skewPointY(){return this._skewPointY;}*/
-			/*_markMatrixChanged(){
-				if(!this.propertyIsEnumerable('_transformMatrix'))
-					this._transformMatrix=new Float32Array([1,0,0,1,0,0]);
-			}*/
 			getPoint(name){
 				switch(name){
 					case 'center':{
@@ -650,7 +562,6 @@ const COL_Class={
 				this.host=host;
 				this.GID=this.host.generateGraphID();
 				this.onoverCheck=true;
-				//this.hitRange=null;
 				Object.defineProperties(this,{
 					style:{value: new host.class.GraphStyle(),configurable:true},
 					childNodes:{value: []},
@@ -663,7 +574,6 @@ const COL_Class={
 				shadow.shadowParent=this;
 				Object.defineProperties(shadow,{
 					style:{value: new host.class.GraphStyle(this.style),configurable:true},
-					//childNodes:{value: []},
 					parentNode:{value: undefined,configurable:true}
 				});
 				return shadow;
@@ -932,6 +842,16 @@ const COL_Class={
 			}
 		}
 	},
+}
+
+
+function multiplyMatrix(m1,m2,r) {
+	r[0]=m1[0]*m2[0]+m1[1]*m2[3];
+	r[1]=m1[0]*m2[1]+m1[1]*m2[4];
+	r[2]=m1[0]*m2[2]+m1[1]*m2[5]+m1[2];
+	r[3]=m1[3]*m2[0]+m1[4]*m2[3];
+	r[4]=m1[3]*m2[1]+m1[4]*m2[4];
+	r[5]=m1[3]*m2[2]+m1[4]*m2[5]+m1[5];
 }
 
 window.CanvasObjLibrary=CanvasObjLibrary;
