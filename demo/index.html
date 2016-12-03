@@ -236,6 +236,11 @@ col.stat.canvasOnFocus=true;
 
 var run=true;
 
+canvas.addEventListener('mousemove',e=>{
+	if(run)return;
+	col.traverseGraphTree(1);
+});
+
 function am(){
 	imageGraph.style.rotate-=1;
 	star.style.rotate+=1;
