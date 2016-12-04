@@ -82,7 +82,7 @@ class CanvasObjLibrary{
 				/*The currently mouseover obj*/
 				onover: null,
 				canvasOnFocus: false,
-				canvasOnOver: false,
+				canvasOnover: false,
 
 			},
 			tmp:{
@@ -132,7 +132,7 @@ class CanvasObjLibrary{
 		//add events
 		addEvents(canvas,{
 			mouseout:e=>{
-				this.stat.canvasOnOver=false;
+				this.stat.canvasOnover=false;
 				//clear mouse pos data
 				this.stat.mouse.x=null;
 				this.stat.mouse.y=null;
@@ -142,7 +142,7 @@ class CanvasObjLibrary{
 				this.stat.onover=null;
 			},
 			mouseover:e=>{
-				this.stat.canvasOnOver=true;
+				this.stat.canvasOnover=true;
 			},
 			mousemove:e=>{
 				this.tmp.toClick=false;
@@ -194,8 +194,13 @@ class CanvasObjLibrary{
 		if(e instanceof MouseEvent){
 			this.stat.previousX=this.stat.mouse.x;
 			this.stat.previousY=this.stat.mouse.y;
-			this.stat.mouse.x=e.layerX;
-			this.stat.mouse.y=e.layerY;
+			if(e.type==='mouseout'){
+				this.stat.mouse.x=null;
+				this.stat.mouse.y=null;
+			}else{
+				this.stat.mouse.x=e.layerX;
+				this.stat.mouse.y=e.layerY;
+			}
 			const ce=new this.class.MouseEvent(e.type);
 			ce.originEvent=e;
 			(this.stat.onover||this.root).emit(ce);
@@ -251,7 +256,7 @@ class CanvasObjLibrary{
 		ct.textBaseline = "bottom";
 		ct.globalCompositeOperation = "lighter";
 		ct.fillStyle = "red";
-		ct.fillText("point:" + this.stat.mouse.x + "," + this.stat.mouse.y + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
+		ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
 		ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
 		ct.strokeStyle = "red";
 		ct.globalCompositeOperation = "source-over";
@@ -351,7 +356,7 @@ class CanvasObjLibrary{
 			ct.clip();
 		}
 		switch(mode){
-			case 0:{if(g.drawer)g.drawer(ct);break;}
+			case 0:{g.drawer&&g.drawer(ct);break;}
 			case 1:{g.checkIfOnOver(true,mode);break;}
 		}
 		if(g.childNodes.length){
@@ -506,6 +511,10 @@ const COL_Class={
 				}
 				return [0,0];
 			}
+			position(x,y){
+				this.x=x;
+				this.y=y;
+			}
 			zoom(x,y){
 				if (arguments.length == 1) {
 					this.zoomX = this.zoomY = x;
@@ -515,7 +524,7 @@ const COL_Class={
 					this.zoomY = y;
 				}
 			}
-			setSize(w,h){
+			size(w,h){
 				this.width = w;
 				this.height = h;
 			}
