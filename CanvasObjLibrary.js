@@ -62,7 +62,7 @@ class CanvasObjLibrary{
 					rotatePointY:0,
 					positionPointX:0,
 					positionPointY:0,
-					zoomPointY:0,
+					zoomPointX:0,
 					zoomPointY:0,
 					skewX:1,
 					skewY:1,
@@ -279,7 +279,7 @@ class CanvasObjLibrary{
 		ct.save();
 		if(mode===0){
 			style.composite&&(ct.globalCompositeOperation = style.composite);
-			style.opacity&&(ct.globalAlpha = style.opacity);
+			ct.globalAlpha = style.opacity;
 		}
 		//position & offset
 		M[0]=1;M[1]=0;M[2]=style.x-style.positionPointX;
@@ -590,7 +590,7 @@ const COL_Class={
 			appendChild(graph){
 				if(!(graph instanceof host.class.Graph))
 					throw(new TypeError('graph is not a Graph instance'));
-				if(graph===this)return false;
+				if(graph===this)throw(new Error('can not add myself as a child'));
 				if(graph.parentNode!==this){
 					Object.defineProperty(graph, 'parentNode', {
 					  value: this,
@@ -602,14 +602,14 @@ const COL_Class={
 				this.childNodes.push(graph);
 			}
 			//insert this graph after the graph
-			insertAfert(graph){
+			insertAfter(graph){
 				if(!(graph instanceof host.class.Graph))
 					throw(new TypeError('graph is not a Graph instance'));
-				if(graph===this)return false;
+				if(graph===this)throw(new Error('can not add myself as a child'));
 				let p=graph.parentNode,io,it;
-				if(!p)return false;
+				if(!p)throw(new Error('no parentNode'));
 				it=p.findChild(graph);
-				if(it<0)return false;
+				//if(it<0)return false;
 				if(p!==this.parentNode){
 					Object.defineProperty(this, 'parentNode', {
 					  value: p,
@@ -624,11 +624,11 @@ const COL_Class={
 			insertBefore(graph){
 				if(!(graph instanceof host.class.Graph))
 					throw(new TypeError('graph is not a Graph instance'));
-				if(graph===this)return false;
+				if(graph===this)throw(new Error('can not add myself as a child'));
 				let p=graph.parentNode,io,it;
-				if(!p)return false;
+				if(!p)throw(new Error('no parentNode'));
 				it=p.findChild(graph);
-				if(it<0)return false;
+				//if(it<0)return false;
 				if(p!==this.parentNode){
 					Object.defineProperty(this, 'parentNode', {
 					  value: p,
@@ -784,11 +784,11 @@ const COL_Class={
 					Object.defineProperty(this,'_cache',{value:document.createElement("canvas")});
 				}
 				let font = "";
-				(this.font.fontStyle)&&(font = this.fontStyle);
-				(this.font.fontVariant)&&(font =`${font} ${this.fontVariant}`);
-				(this.font.fontWeight)&&(font =`${font} ${this.fontWeight}`);
+				(this.font.fontStyle)&&(font = this.font.fontStyle);
+				(this.font.fontVariant)&&(font =`${font} ${this.font.fontVariant}`);
+				(this.font.fontWeight)&&(font =`${font} ${this.font.fontWeight}`);
 				font =`${font} ${this.font.fontSize}px`;
-				(this.font.fontFamily)&&(font =`${font} ${this.fontFamily}`);
+				(this.font.fontFamily)&&(font =`${font} ${this.font.fontFamily}`);
 				this._fontString = font;
 
 				if(this.realtimeRender)return;

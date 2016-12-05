@@ -1,6 +1,6 @@
 (function(){
 
-class Graphlib{
+class GraphLib{
 	constructor(COL){
 		if(COL instanceof CanvasObjLibrary === false)
 			throw(new TypeError('CanvasObjectLibrary instance required'));
@@ -123,6 +123,6 @@ const graphs={
 	},
 }
 
-window.Graphlib=Graphlib;
+window.GraphLib=GraphLib;
 })();
 
