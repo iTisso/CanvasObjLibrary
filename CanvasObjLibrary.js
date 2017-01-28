@@ -2,7 +2,7 @@
 MIT LICENSE
 Copyright (c) 2016 iTisso
 https://github.com/iTisso/CanvasObjLibrary
-varsion:2.0 beta
+varsion:2.0
 */
 'use strict';
 (function(){
