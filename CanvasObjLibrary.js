@@ -5,13 +5,7 @@ https://github.com/iTisso/CanvasObjLibrary
 varsion:2.0
 */
 'use strict';
-(function(){
-function addEvents(target,events={}){
-	for(let e in events)target.addEventListener(e,events[e]);
-}
-
-
-//class:CanvasObjLibrary
+(function(){//class:CanvasObjLibrary
 class CanvasObjLibrary{
 	constructor(canvas){
 		if(canvas instanceof HTMLCanvasElement === false)
@@ -852,6 +846,10 @@ const COL_Class={
 	},
 }
 
+
+function addEvents(target,events={}){
+	for(let e in events)target.addEventListener(e,events[e]);
+}
 
 function multiplyMatrix(m1,m2,r) {
 	r[0]=m1[0]*m2[0]+m1[1]*m2[3];
