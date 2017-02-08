@@ -4,8 +4,10 @@ Copyright (c) 2016 iTisso
 https://github.com/iTisso/CanvasObjLibrary
 varsion:2.0
 */
+(function(){
 'use strict';
-(function(){//class:CanvasObjLibrary
+
+//class:CanvasObjLibrary
 class CanvasObjLibrary{
 	constructor(canvas){
 		if(canvas instanceof HTMLCanvasElement === false)
