@@ -2,14 +2,10 @@
 MIT LICENSE
 Copyright (c) 2016 iTisso
 https://github.com/iTisso/CanvasObjLibrary
-varsion:2.0 beta
+varsion:2.0
 */
-'use strict';
 (function(){
-function addEvents(target,events={}){
-	for(let e in events)target.addEventListener(e,events[e]);
-}
-
+'use strict';
 
 //class:CanvasObjLibrary
 class CanvasObjLibrary{
@@ -29,7 +25,7 @@ class CanvasObjLibrary{
 					fontWeight: null,
 					fontVariant: null,
 					color: "#000",
-					lineHeight: 14,
+					lineHeight: null,
 					fontSize: 14,
 					fontFamily: "Arial",
 					strokeWidth: 0,
@@ -39,7 +35,6 @@ class CanvasObjLibrary{
 					shadowOffsetX:0,
 					shadowOffsetY:0,
 					fill:true,
-					lineHeight:18,
 					reverse:false,
 					//vertical:false,//abandoned
 					//textBaseline: "middle",//abandoned
@@ -211,9 +206,12 @@ class CanvasObjLibrary{
 			(this.stat.onfocus||this.root).emit(ce);
 		}
 	}
+	clear(){
+		this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+	}
 	draw(){
 		this.debug.count=0;
-		this.autoClear&&this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+		this.autoClear&&this.clear();
 		this.traverseGraphTree(0);
 		this.debug.switch&&this.drawDebug();
 	}
@@ -852,6 +850,10 @@ const COL_Class={
 	},
 }
 
+
+function addEvents(target,events={}){
+	for(let e in events)target.addEventListener(e,events[e]);
+}
 
 function multiplyMatrix(m1,m2,r) {
 	r[0]=m1[0]*m2[0]+m1[1]*m2[3];
