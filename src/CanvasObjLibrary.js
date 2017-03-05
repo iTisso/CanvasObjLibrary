@@ -828,11 +828,12 @@ varsion:2.0
 					ct.fillStyle = this.font.color;
 					ct.strokeStyle = this.font.strokeColor;
 					ct.shadowBlur = this.font.shadowBlur;
+					ct.shadowColor= this.font.shadowColor;
 					ct.shadowOffsetX = this.font.shadowOffsetX;
 					ct.shadowOffsetY = this.font.shadowOffsetY;
 					for (let i = this._renderList.length;i--;) {
-						this.font.fill&&ct.fillText(this._renderList[i],0, this.font.lineHeight*i);
 						this.font.strokeWidth&&ct.strokeText(this._renderList[i], 0, this.font.lineHeight*i);
+						this.font.fill&&ct.fillText(this._renderList[i],0, this.font.lineHeight*i);
 					}
 				}
 				drawer(ct){
