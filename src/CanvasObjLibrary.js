@@ -110,8 +110,6 @@ varsion:2.0
 					frame:0,
 					FPS:0,
 					_lastFrameTime:Date.now(),
-					_recordOffset:0,
-					_timeRecorder:new Uint32Array(15),//记录5帧绘制时的时间来计算fps
 					on:function(){
 						this.switch=true;
 					},
@@ -253,10 +251,8 @@ varsion:2.0
 		drawDebug(){
 			const ct=this.context,d=this.debug,r=d._timeRecorder,n=Date.now();
 			//fps
-			r[d._recordOffset++]=n-d._lastFrameTime;
+			d.FPS=(1000/(n-d._lastFrameTime)+0.5)|0;
 			d._lastFrameTime=n;
-			if(d._recordOffset===15)d._recordOffset=0;
-			d.FPS=(15000/(r[0]+r[1]+r[2]+r[3]+r[4]+r[5]+r[6]+r[7]+r[8]+r[9]+r[10]+r[11]+r[12]+r[13]+r[14])+0.5)|0;
 			//draw
 			ct.save();
 			ct.beginPath();
