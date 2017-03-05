@@ -107,6 +107,7 @@ varsion:2.0
 				debug:{
 					switch:false,
 					count:0,
+					frame:0,
 					FPS:0,
 					_lastFrameTime:Date.now(),
 					_recordOffset:0,
@@ -220,6 +221,7 @@ varsion:2.0
 		}
 		draw(){
 			this.debug.count=0;
+			this.debug.frame++;
 			this.autoClear&&this.clear();
 			this.traverseGraphTree(0);
 			this.debug.switch&&this.drawDebug();
@@ -263,7 +265,7 @@ varsion:2.0
 			ct.textBaseline = "bottom";
 			ct.globalCompositeOperation = "lighter";
 			ct.fillStyle = "red";
-			ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count, 0, this.canvas.height);
+			ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count+" Frame:"+this.debug.frame, 0, this.canvas.height);
 			ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
 			ct.strokeStyle = "red";
 			ct.globalCompositeOperation = "source-over";
