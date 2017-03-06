@@ -34,6 +34,7 @@ varsion:2.0
 						fontWeight: null,
 						fontVariant: null,
 						color: "#000",
+						textAlign:'start',//left right center start end
 						lineHeight: null,
 						fontSize: 14,
 						fontFamily: "Arial",
@@ -812,7 +813,7 @@ varsion:2.0
 							(tw>w)&&(w=tw);//max
 						}
 						imgobj.width = (this.style.width = w) + this.estimatePadding*2;
-						imgobj.height = (this.style.height = this._renderList.length * lh)+ (lh<this.font.fontSize)?this.font.fontSize*2:0 + this.estimatePadding*2;
+						imgobj.height = (this.style.height = this._renderList.length * lh)+ ((lh<this.font.fontSize)?this.font.fontSize*2:0) + this.estimatePadding*2;
 					} else {
 						imgobj.width = this.style.width;
 						imgobj.height = this.style.height;
@@ -831,9 +832,24 @@ varsion:2.0
 					ct.shadowColor= this.font.shadowColor;
 					ct.shadowOffsetX = this.font.shadowOffsetX;
 					ct.shadowOffsetY = this.font.shadowOffsetY;
+					ct.textAlign = this.font.textAlign;
+					let lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize,
+						x;
+					switch(this.font.textAlign){
+						case 'left':case 'start':{
+							x=0;break;
+						}
+						case 'center':{
+							x=this.style.width/2;break;
+						}
+						case 'right':case 'right':{
+							x=this.style.width;
+						}
+					}
+
 					for (let i = this._renderList.length;i--;) {
-						this.font.strokeWidth&&ct.strokeText(this._renderList[i], 0, this.font.lineHeight*i);
-						this.font.fill&&ct.fillText(this._renderList[i],0, this.font.lineHeight*i);
+						this.font.strokeWidth&&ct.strokeText(this._renderList[i],x,lh*i);
+						this.font.fill&&ct.fillText(this._renderList[i],x, lh*i);
 					}
 				}
 				drawer(ct){
