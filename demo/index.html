@@ -241,6 +241,13 @@ canvas.addEventListener('mousemove',e=>{
 	col.traverseGraphTree(1);
 });
 
+var multiLineText=new col.class.TextGraph('poi\npoipoi\npoipoipoi');
+multiLineText.style.x=810;
+multiLineText.style.y=500;
+multiLineText.font.textAlign='right';
+col.root.appendChild(multiLineText);
+
+
 function am(){
 	imageGraph.style.rotate-=1;
 	star.style.rotate+=1;
