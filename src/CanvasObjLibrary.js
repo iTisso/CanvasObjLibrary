@@ -842,7 +842,7 @@ varsion:2.0
 						case 'center':{
 							x=this.style.width/2;break;
 						}
-						case 'right':case 'right':{
+						case 'right':case 'end':{
 							x=this.style.width;
 						}
 					}
