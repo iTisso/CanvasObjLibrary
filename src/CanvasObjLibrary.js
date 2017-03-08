@@ -706,6 +706,7 @@ const COL_Class={
 			constructor(image){
 				super();
 				if(image)this.use(image);
+				this.useImageBitmap=true;
 				this.style.debugBorderColor='#0f0';
 			}
 			use(image){
@@ -714,9 +715,11 @@ const COL_Class={
 					if (!image.complete) {
 						image.addEventListener('load',e=> {
 							this.resetStyleSize();
+							this._createBitmap();
 						});
 					}else{
 						this.resetStyleSize();
+						this._createBitmap();
 					}
 					return true;
 				}else if(image instanceof HTMLCanvasElement){
@@ -725,6 +728,13 @@ const COL_Class={
 					return true;
 				}
 				throw(new TypeError('Wrong image type'));
+			}
+			_createBitmap(){
+				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
+					createImageBitmap(this.image).then((bitmap)=>{
+						this._bitmap=bitmap;
+					});
+				}
 			}
 			get width(){
 				if(this.image instanceof Image)return this.image.naturalWidth;
@@ -743,7 +753,7 @@ const COL_Class={
 			drawer(ct){
 				//onover point check
 				//ct.beginPath();
-				ct.drawImage(this.image, 0, 0);
+				ct.drawImage((this.useImageBitmap&&this._bitmap)?this._bitmap:this.image, 0, 0);
 				this.checkIfOnOver(true);
 			}
 			hitRange(ct){
@@ -758,12 +768,12 @@ const COL_Class={
 				super();
 				this.image=document.createElement('canvas');
 				this.context=this.image.getContext('2d');
-				this.autoClear=true;
 				this.useImageBitmap=false;
+				this.autoClear=true;
 			}
 			draw(func){
 				if(this.autoClear)this.context.clearRect(0,0,this.width,this.height);
-				func(this.context);
+				func(this.context,this.canvas);
 			}
 			set width(w){this.image.width=w;}
 			set height(h){this.image.height=h;}
@@ -827,10 +837,10 @@ const COL_Class={
 				}
 			}
 			_renderToCache(){
-				this.render(this.cache.ctx2d);
+				this.render(this._cache.ctx2d);
 				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
 					createImageBitmap(this._cache).then((bitmap)=>{
-						this.bitmap=bitmap;
+						this._bitmap=bitmap;
 					});
 				}
 			}
@@ -877,7 +887,7 @@ const COL_Class={
 					if(!this._cache){
 						this.prepare();
 					}
-					ct.drawImage((this.useImageBitmap&&this.bitmap)?this.bitmap:this._cache, -this.estimatePadding, -this.estimatePadding);
+					ct.drawImage((this.useImageBitmap&&this._bitmap)?this._bitmap:this._cache, -this.estimatePadding, -this.estimatePadding);
 					this.checkIfOnOver(true);
 				}
 			}
