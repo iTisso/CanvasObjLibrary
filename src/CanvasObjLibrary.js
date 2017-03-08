@@ -732,6 +732,7 @@ const COL_Class={
 			_createBitmap(){
 				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
 					createImageBitmap(this.image).then((bitmap)=>{
+						if(this._bitmap)this._bitmap.close();
 						this._bitmap=bitmap;
 					});
 				}
@@ -774,6 +775,7 @@ const COL_Class={
 			draw(func){
 				if(this.autoClear)this.context.clearRect(0,0,this.width,this.height);
 				func(this.context,this.canvas);
+				if(this.useImageBitmap)this._createBitmap();
 			}
 			set width(w){this.image.width=w;}
 			set height(h){this.image.height=h;}
@@ -840,6 +842,7 @@ const COL_Class={
 				this.render(this._cache.ctx2d);
 				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
 					createImageBitmap(this._cache).then((bitmap)=>{
+						if(this._bitmap)this._bitmap.close();
 						this._bitmap=bitmap;
 					});
 				}
