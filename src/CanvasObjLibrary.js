@@ -275,9 +275,9 @@ class CanvasObjLibrary{
 		if(g.style.hidden===true)return;
 		const ct=this.context,
 				style=g.style,
-				_M=this.tmp.matrix3;
-		let	M=this.tmp.matrix1,
-			tM=this.tmp.matrix2;
+				_M=this.tmp.matrix3,
+				M=this.tmp.matrix1,
+				tM=this.tmp.matrix2;
 		this.debug.count++;
 		ct.save();
 		if(mode===0){
@@ -811,7 +811,6 @@ const COL_Class={
 				if(this.realtimeRender)return;
 				const imgobj = this._cache,ct = (imgobj.ctx2d||(imgobj.ctx2d=imgobj.getContext("2d")));
 				ct.font = font;
-				//ct.clearRect(0, 0, imgobj.width, imgobj.height);
 				this._renderList = this.text.split(/\n/g);
 				this.estimatePadding=Math.max(
 					this.font.shadowBlur+5+Math.max(Math.abs(this.font.shadowOffsetY),Math.abs(this.font.shadowOffsetX)),
@@ -831,7 +830,7 @@ const COL_Class={
 				}
 				ct.translate(this.estimatePadding, this.estimatePadding);
 				if(async){
-					requestAnimationFrame(()=>{
+					setImmediate(()=>{
 						this._renderToCache();
 					});
 				}else{
