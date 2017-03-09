@@ -12,6 +12,8 @@ if (!window.Promise) {
   window.Promise = Promise;
 }
 
+const defProp=Object.defineProperty;
+
 
 //class:CanvasObjLibrary
 class CanvasObjLibrary{
@@ -21,7 +23,7 @@ class CanvasObjLibrary{
 		const COL=this;
 		Object.assign(this,{
 			/*The main canvas*/
-			canvas: canvas,
+			canvas,
 			/*Canvas' context*/
 			context: canvas.getContext('2d'),
 			default:{
@@ -122,9 +124,8 @@ class CanvasObjLibrary{
 		//init root graph
 		this.root=new this.class.FunctionGraph();
 		this.root.name='root';
-		//this.root.drawer=null;
 		//prevent root's parentNode being modified
-		Object.defineProperty(this.root,'parentNode',{configurable:false});
+		defProp(this.root,'parentNode',{configurable:false});
 
 		//adjust canvas drawing size
 		this.adjustCanvas();
@@ -247,7 +248,7 @@ class CanvasObjLibrary{
 		this.tmp.onOverGraph=null;
 	}
 	drawDebug(){
-		const ct=this.context,d=this.debug,r=d._timeRecorder,n=Date.now();
+		const ct=this.context,d=this.debug,s=this.stat,n=Date.now(),x=this.stat.mouse.x,y=this.stat.mouse.y;
 		//fps
 		d.FPS=(1000/(n-d._lastFrameTime)+0.5)|0;
 		d._lastFrameTime=n;
@@ -259,25 +260,25 @@ class CanvasObjLibrary{
 		ct.textBaseline = "bottom";
 		ct.globalCompositeOperation = "lighter";
 		ct.fillStyle = "red";
-		ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count+" Frame:"+this.debug.frame, 0, this.canvas.height);
-		ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID: "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID: "null"), 0, this.canvas.height - 20);
+		ct.fillText("point:" + String(x) + "," + String(y) + " FPS:" + d.FPS + " Items:" + d.count+" Frame:"+d.frame, 0, this.canvas.height);
+		ct.fillText("onover:" + (s.onover ? s.onover.GID: "null") + " onfocus:" + (s.onfocus ? s.onfocus.GID: "null"), 0, this.canvas.height - 20);
 		ct.strokeStyle = "red";
 		ct.globalCompositeOperation = "source-over";
-		ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
-		ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
-		ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
-		ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
+		ct.moveTo(x, y + 6);
+		ct.lineTo(x, y - 6);
+		ct.moveTo(x - 6, y);
+		ct.lineTo(x + 6, y);
 		ct.stroke();
 		ct.restore();
 	}
 
 	drawGraph(g,mode=0){
 		if(g.style.hidden===true)return;
-		const ct=this.context,
+		const 	ct=this.context,
 				style=g.style,
-				_M=this.tmp.matrix3,
 				M=this.tmp.matrix1,
-				tM=this.tmp.matrix2;
+				tM=this.tmp.matrix2,
+				_M=this.tmp.matrix3;
 		this.debug.count++;
 		ct.save();
 		if(mode===0){
@@ -338,7 +339,7 @@ class CanvasObjLibrary{
 			ct.beginPath();
 			ct.globalAlpha=0.5;
 			ct.globalCompositeOperation = 'source-over';
-			ct.strokeStyle=g.style.debugBorderColor;
+			ct.strokeStyle=style.debugBorderColor;
 			ct.strokeWidth=1.5;
 			ct.strokeRect(0,0,style.width,style.height);
 			ct.strokeWidth=1;
@@ -353,7 +354,7 @@ class CanvasObjLibrary{
 			ct.strokeRect(style.skewPointX-2,style.skewPointX-2,4,4);
 			ct.restore();
 		}
-		if(g.style.clipOverflow){
+		if(style.clipOverflow){
 			ct.beginPath();
 			ct.rect(0,0,style.width,style.height);
 			ct.clip();
@@ -403,9 +404,9 @@ const COL_Class={
 	},
 	MouseEvent:host=>{
 		return class MouseEvent extends host.class.GraphEvent{
-			constructor(type){
+			/*constructor(type){
 				super(type);
-			}
+			}*/
 			get button(){return this.originEvent.button;}
 			get buttons(){return this.originEvent.buttons;}
 			get movementX(){return host.stat.mouse.x-host.stat.previousX;}
@@ -415,9 +416,9 @@ const COL_Class={
 	},
 	WheelEvent:host=>{
 		return class WheelEvent extends host.class.MouseEvent{
-			constructor(type){
+			/*constructor(type){
 				super(type);
-			}
+			}*/
 			get deltaX(){return this.originEvent.deltaX;}
 			get deltaY(){return this.originEvent.deltaY;}
 			get deltaZ(){return this.originEvent.deltaZ;}
@@ -426,9 +427,9 @@ const COL_Class={
 	},
 	KeyboardEvent:host=>{
 		return class KeyboardEvent extends host.class.GraphEvent{
-			constructor(type){
+			/*constructor(type){
 				super(type);
-			}
+			}*/
 			get key(){return this.originEvent.key;}
 			get code(){return this.originEvent.code;}
 			get repeat(){return this.originEvent.repeat;}
@@ -595,7 +596,7 @@ const COL_Class={
 					throw(new TypeError('graph is not a Graph instance'));
 				if(graph===this)throw(new Error('can not add myself as a child'));
 				if(graph.parentNode!==this){
-					Object.defineProperty(graph, 'parentNode', {
+					defProp(graph, 'parentNode', {
 					  value: this,
 					});
 				}else{
@@ -614,7 +615,7 @@ const COL_Class={
 				it=p.findChild(graph);
 				//if(it<0)return false;
 				if(p!==this.parentNode){
-					Object.defineProperty(this, 'parentNode', {
+					defProp(this, 'parentNode', {
 					  value: p,
 					});
 				}else{
@@ -633,7 +634,7 @@ const COL_Class={
 				it=p.findChild(graph);
 				//if(it<0)return false;
 				if(p!==this.parentNode){
-					Object.defineProperty(this, 'parentNode', {
+					defProp(this, 'parentNode', {
 					  value: p,
 					});
 				}else{
@@ -651,7 +652,7 @@ const COL_Class={
 				let i=this.findChild(graph);
 				if(i<0)return;
 				this.childNodes.splice(i,1);
-				Object.defineProperty(this, 'parentNode', {
+				defProp(this, 'parentNode', {
 				  value: undefined,
 				});
 			}
@@ -794,11 +795,11 @@ const COL_Class={
 				this.useImageBitmap=true;
 				this.style.debugBorderColor='#00f';
 				this.text=text;
-				Object.defineProperty(this,'_cache',{configurable:true});
+				defProp(this,'_cache',{configurable:true});
 			}
 			prepare(async=false){//prepare text details
 				if(!this._cache && !this.realtimeRender){
-					Object.defineProperty(this,'_cache',{value:document.createElement("canvas")});
+					defProp(this,'_cache',{value:document.createElement("canvas")});
 				}
 				let font = "";
 				(this.font.fontStyle)&&(font = this.font.fontStyle);
