@@ -617,7 +617,9 @@ varsion:2.0
 */
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -637,9 +639,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-if (!window.Promise) {
-	window.Promise = _promise2.default;
-}
+if (!window.Promise) window.Promise = _promise2.default;
+
+var defProp = Object.defineProperty;
 
 //class:CanvasObjLibrary
 
@@ -752,9 +754,8 @@ var CanvasObjLibrary = function () {
 		} //init root graph
 		this.root = new this.class.FunctionGraph();
 		this.root.name = 'root';
-		//this.root.drawer=null;
 		//prevent root's parentNode being modified
-		Object.defineProperty(this.root, 'parentNode', { configurable: false });
+		defProp(this.root, 'parentNode', { configurable: false });
 
 		//adjust canvas drawing size
 		this.adjustCanvas();
@@ -799,7 +800,7 @@ var CanvasObjLibrary = function () {
 			},
 			wheel: function wheel(e) {
 				var ce = new _this.class.WheelEvent('wheel');
-				ce.originEvent = e;
+				ce.origin = e;
 				(_this.stat.onover || _this.root).emit(ce);
 			}
 		});
@@ -858,12 +859,12 @@ var CanvasObjLibrary = function () {
 					this.stat.mouse.y = e.layerY;
 				}
 				var ce = new this.class.MouseEvent(e.type);
-				ce.originEvent = e;
+				ce.origin = e;
 				(this.stat.onover || this.root).emit(ce);
 			} else if (e instanceof KeyboardEvent) {
 				if (!this.stat.canvasOnFocus) return;
 				var _ce = new this.class.KeyboardEvent(e.type);
-				_ce.originEvent = e;
+				_ce.origin = e;
 				(this.stat.onfocus || this.root).emit(_ce);
 			}
 		}
@@ -916,8 +917,10 @@ var CanvasObjLibrary = function () {
 		value: function drawDebug() {
 			var ct = this.context,
 			    d = this.debug,
-			    r = d._timeRecorder,
-			    n = Date.now();
+			    s = this.stat,
+			    n = Date.now(),
+			    x = this.stat.mouse.x,
+			    y = this.stat.mouse.y;
 			//fps
 			d.FPS = 1000 / (n - d._lastFrameTime) + 0.5 | 0;
 			d._lastFrameTime = n;
@@ -929,14 +932,14 @@ var CanvasObjLibrary = function () {
 			ct.textBaseline = "bottom";
 			ct.globalCompositeOperation = "lighter";
 			ct.fillStyle = "red";
-			ct.fillText("point:" + String(this.stat.mouse.x) + "," + String(this.stat.mouse.y) + " FPS:" + this.debug.FPS + " Items:" + this.debug.count + " Frame:" + this.debug.frame, 0, this.canvas.height);
-			ct.fillText("onover:" + (this.stat.onover ? this.stat.onover.GID : "null") + " onfocus:" + (this.stat.onfocus ? this.stat.onfocus.GID : "null"), 0, this.canvas.height - 20);
+			ct.fillText("point:" + String(x) + "," + String(y) + " FPS:" + d.FPS + " Items:" + d.count + " Frame:" + d.frame, 0, this.canvas.height);
+			ct.fillText("onover:" + (s.onover ? s.onover.GID : "null") + " onfocus:" + (s.onfocus ? s.onfocus.GID : "null"), 0, this.canvas.height - 20);
 			ct.strokeStyle = "red";
 			ct.globalCompositeOperation = "source-over";
-			ct.moveTo(this.stat.mouse.x, this.stat.mouse.y + 6);
-			ct.lineTo(this.stat.mouse.x, this.stat.mouse.y - 6);
-			ct.moveTo(this.stat.mouse.x - 6, this.stat.mouse.y);
-			ct.lineTo(this.stat.mouse.x + 6, this.stat.mouse.y);
+			ct.moveTo(x, y + 6);
+			ct.lineTo(x, y - 6);
+			ct.moveTo(x - 6, y);
+			ct.lineTo(x + 6, y);
 			ct.stroke();
 			ct.restore();
 		}
@@ -948,9 +951,9 @@ var CanvasObjLibrary = function () {
 			if (g.style.hidden === true) return;
 			var ct = this.context,
 			    style = g.style,
+			    M = this.tmp.matrix1,
+			    tM = this.tmp.matrix2,
 			    _M = this.tmp.matrix3;
-			var M = this.tmp.matrix1,
-			    tM = this.tmp.matrix2;
 			this.debug.count++;
 			ct.save();
 			if (mode === 0) {
@@ -1011,7 +1014,7 @@ var CanvasObjLibrary = function () {
 				ct.beginPath();
 				ct.globalAlpha = 0.5;
 				ct.globalCompositeOperation = 'source-over';
-				ct.strokeStyle = g.style.debugBorderColor;
+				ct.strokeStyle = style.debugBorderColor;
 				ct.strokeWidth = 1.5;
 				ct.strokeRect(0, 0, style.width, style.height);
 				ct.strokeWidth = 1;
@@ -1026,7 +1029,7 @@ var CanvasObjLibrary = function () {
 				ct.strokeRect(style.skewPointX - 2, style.skewPointX - 2, 4, 4);
 				ct.restore();
 			}
-			if (g.style.clipOverflow) {
+			if (style.clipOverflow) {
 				ct.beginPath();
 				ct.rect(0, 0, style.width, style.height);
 				ct.clip();
@@ -1113,22 +1116,22 @@ var COL_Class = {
 			}, {
 				key: 'altKey',
 				get: function get() {
-					return this.originEvent.altKey;
+					return this.origin.altKey;
 				}
 			}, {
 				key: 'ctrlKey',
 				get: function get() {
-					return this.originEvent.ctrlKey;
+					return this.origin.ctrlKey;
 				}
 			}, {
 				key: 'metaKey',
 				get: function get() {
-					return this.originEvent.metaKey;
+					return this.origin.metaKey;
 				}
 			}, {
 				key: 'shiftKey',
 				get: function get() {
-					return this.originEvent.shiftKey;
+					return this.origin.shiftKey;
 				}
 			}]);
 
@@ -1139,21 +1142,21 @@ var COL_Class = {
 		return function (_host$class$GraphEven) {
 			_inherits(MouseEvent, _host$class$GraphEven);
 
-			function MouseEvent(type) {
+			function MouseEvent() {
 				_classCallCheck(this, MouseEvent);
 
-				return _possibleConstructorReturn(this, (MouseEvent.__proto__ || Object.getPrototypeOf(MouseEvent)).call(this, type));
+				return _possibleConstructorReturn(this, (MouseEvent.__proto__ || Object.getPrototypeOf(MouseEvent)).apply(this, arguments));
 			}
 
 			_createClass(MouseEvent, [{
 				key: 'button',
 				get: function get() {
-					return this.originEvent.button;
+					return this.origin.button;
 				}
 			}, {
 				key: 'buttons',
 				get: function get() {
-					return this.originEvent.buttons;
+					return this.origin.buttons;
 				}
 			}, {
 				key: 'movementX',
@@ -1174,31 +1177,31 @@ var COL_Class = {
 		return function (_host$class$MouseEven) {
 			_inherits(WheelEvent, _host$class$MouseEven);
 
-			function WheelEvent(type) {
+			function WheelEvent() {
 				_classCallCheck(this, WheelEvent);
 
-				return _possibleConstructorReturn(this, (WheelEvent.__proto__ || Object.getPrototypeOf(WheelEvent)).call(this, type));
+				return _possibleConstructorReturn(this, (WheelEvent.__proto__ || Object.getPrototypeOf(WheelEvent)).apply(this, arguments));
 			}
 
 			_createClass(WheelEvent, [{
 				key: 'deltaX',
 				get: function get() {
-					return this.originEvent.deltaX;
+					return this.origin.deltaX;
 				}
 			}, {
 				key: 'deltaY',
 				get: function get() {
-					return this.originEvent.deltaY;
+					return this.origin.deltaY;
 				}
 			}, {
 				key: 'deltaZ',
 				get: function get() {
-					return this.originEvent.deltaZ;
+					return this.origin.deltaZ;
 				}
 			}, {
 				key: 'deltaMode',
 				get: function get() {
-					return this.originEvent.deltaMode;
+					return this.origin.deltaMode;
 				}
 			}]);
 
@@ -1209,41 +1212,41 @@ var COL_Class = {
 		return function (_host$class$GraphEven2) {
 			_inherits(KeyboardEvent, _host$class$GraphEven2);
 
-			function KeyboardEvent(type) {
+			function KeyboardEvent() {
 				_classCallCheck(this, KeyboardEvent);
 
-				return _possibleConstructorReturn(this, (KeyboardEvent.__proto__ || Object.getPrototypeOf(KeyboardEvent)).call(this, type));
+				return _possibleConstructorReturn(this, (KeyboardEvent.__proto__ || Object.getPrototypeOf(KeyboardEvent)).apply(this, arguments));
 			}
 
 			_createClass(KeyboardEvent, [{
 				key: 'key',
 				get: function get() {
-					return this.originEvent.key;
+					return this.origin.key;
 				}
 			}, {
 				key: 'code',
 				get: function get() {
-					return this.originEvent.code;
+					return this.origin.code;
 				}
 			}, {
 				key: 'repeat',
 				get: function get() {
-					return this.originEvent.repeat;
+					return this.origin.repeat;
 				}
 			}, {
 				key: 'keyCode',
 				get: function get() {
-					return this.originEvent.keyCode;
+					return this.origin.keyCode;
 				}
 			}, {
 				key: 'charCode',
 				get: function get() {
-					return this.originEvent.charCode;
+					return this.origin.charCode;
 				}
 			}, {
 				key: 'location',
 				get: function get() {
-					return this.originEvent.location;
+					return this.origin.location;
 				}
 			}]);
 
@@ -1507,7 +1510,7 @@ var COL_Class = {
 					if (!(graph instanceof host.class.Graph)) throw new TypeError('graph is not a Graph instance');
 					if (graph === this) throw new Error('can not add myself as a child');
 					if (graph.parentNode !== this) {
-						Object.defineProperty(graph, 'parentNode', {
+						defProp(graph, 'parentNode', {
 							value: this
 						});
 					} else {
@@ -1530,7 +1533,7 @@ var COL_Class = {
 					it = p.findChild(graph);
 					//if(it<0)return false;
 					if (p !== this.parentNode) {
-						Object.defineProperty(this, 'parentNode', {
+						defProp(this, 'parentNode', {
 							value: p
 						});
 					} else {
@@ -1553,7 +1556,7 @@ var COL_Class = {
 					it = p.findChild(graph);
 					//if(it<0)return false;
 					if (p !== this.parentNode) {
-						Object.defineProperty(this, 'parentNode', {
+						defProp(this, 'parentNode', {
 							value: p
 						});
 					} else {
@@ -1575,7 +1578,7 @@ var COL_Class = {
 					var i = this.findChild(graph);
 					if (i < 0) return;
 					this.childNodes.splice(i, 1);
-					Object.defineProperty(this, 'parentNode', {
+					defProp(this, 'parentNode', {
 						value: undefined
 					});
 				}
@@ -1658,6 +1661,7 @@ var COL_Class = {
 				var _this8 = _possibleConstructorReturn(this, (ImageGraph.__proto__ || Object.getPrototypeOf(ImageGraph)).call(this));
 
 				if (image) _this8.use(image);
+				_this8.useImageBitmap = true;
 				_this8.style.debugBorderColor = '#0f0';
 				return _this8;
 			}
@@ -1672,9 +1676,11 @@ var COL_Class = {
 						if (!image.complete) {
 							image.addEventListener('load', function (e) {
 								_this9.resetStyleSize();
+								_this9._createBitmap();
 							});
 						} else {
 							this.resetStyleSize();
+							this._createBitmap();
 						}
 						return true;
 					} else if (image instanceof HTMLCanvasElement) {
@@ -1683,6 +1689,19 @@ var COL_Class = {
 						return true;
 					}
 					throw new TypeError('Wrong image type');
+				}
+			}, {
+				key: '_createBitmap',
+				value: function _createBitmap() {
+					var _this10 = this;
+
+					if (this.useImageBitmap && typeof createImageBitmap === 'function') {
+						//use ImageBitmap
+						createImageBitmap(this.image).then(function (bitmap) {
+							if (_this10._bitmap) _this10._bitmap.close();
+							_this10._bitmap = bitmap;
+						});
+					}
 				}
 			}, {
 				key: 'resetStyleSize',
@@ -1695,7 +1714,7 @@ var COL_Class = {
 				value: function drawer(ct) {
 					//onover point check
 					//ct.beginPath();
-					ct.drawImage(this.image, 0, 0);
+					ct.drawImage(this.useImageBitmap && this._bitmap ? this._bitmap : this.image, 0, 0);
 					this.checkIfOnOver(true);
 				}
 			}, {
@@ -1730,20 +1749,21 @@ var COL_Class = {
 			function CanvasGraph() {
 				_classCallCheck(this, CanvasGraph);
 
-				var _this10 = _possibleConstructorReturn(this, (CanvasGraph.__proto__ || Object.getPrototypeOf(CanvasGraph)).call(this));
+				var _this11 = _possibleConstructorReturn(this, (CanvasGraph.__proto__ || Object.getPrototypeOf(CanvasGraph)).call(this));
 
-				_this10.image = document.createElement('canvas');
-				_this10.context = _this10.image.getContext('2d');
-				_this10.autoClear = true;
-				_this10.useImageBitmap = false;
-				return _this10;
+				_this11.image = document.createElement('canvas');
+				_this11.context = _this11.image.getContext('2d');
+				_this11.useImageBitmap = false;
+				_this11.autoClear = true;
+				return _this11;
 			}
 
 			_createClass(CanvasGraph, [{
 				key: 'draw',
 				value: function draw(func) {
 					if (this.autoClear) this.context.clearRect(0, 0, this.width, this.height);
-					func(this.context);
+					func(this.context, this.canvas);
+					if (this.useImageBitmap) this._createBitmap();
 				}
 			}, {
 				key: 'width',
@@ -1770,29 +1790,29 @@ var COL_Class = {
 				_classCallCheck(this, TextGraph);
 
 				//this._cache=null;
-				var _this11 = _possibleConstructorReturn(this, (TextGraph.__proto__ || Object.getPrototypeOf(TextGraph)).call(this));
+				var _this12 = _possibleConstructorReturn(this, (TextGraph.__proto__ || Object.getPrototypeOf(TextGraph)).call(this));
 
-				_this11._fontString = '';
-				_this11._renderList = null;
-				_this11.autoSize = true;
-				_this11.font = Object.create(host.default.font);
-				_this11.realtimeRender = false;
-				_this11.useImageBitmap = true;
-				_this11.style.debugBorderColor = '#00f';
-				_this11.text = text;
-				Object.defineProperty(_this11, '_cache', { configurable: true });
-				return _this11;
+				_this12._fontString = '';
+				_this12._renderList = null;
+				_this12.autoSize = true;
+				_this12.font = Object.create(host.default.font);
+				_this12.realtimeRender = false;
+				_this12.useImageBitmap = true;
+				_this12.style.debugBorderColor = '#00f';
+				_this12.text = text;
+				defProp(_this12, '_cache', { configurable: true });
+				return _this12;
 			}
 
 			_createClass(TextGraph, [{
 				key: 'prepare',
 				value: function prepare() {
-					var _this12 = this;
+					var _this13 = this;
 
 					var async = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 					//prepare text details
 					if (!this._cache && !this.realtimeRender) {
-						Object.defineProperty(this, '_cache', { value: document.createElement("canvas") });
+						defProp(this, '_cache', { value: document.createElement("canvas") });
 					}
 					var font = "";
 					this.font.fontStyle && (font = this.font.fontStyle);
@@ -1806,7 +1826,6 @@ var COL_Class = {
 					var imgobj = this._cache,
 					    ct = imgobj.ctx2d || (imgobj.ctx2d = imgobj.getContext("2d"));
 					ct.font = font;
-					//ct.clearRect(0, 0, imgobj.width, imgobj.height);
 					this._renderList = this.text.split(/\n/g);
 					this.estimatePadding = Math.max(this.font.shadowBlur + 5 + Math.max(Math.abs(this.font.shadowOffsetY), Math.abs(this.font.shadowOffsetX)), this.font.strokeWidth + 3);
 					if (this.autoSize) {
@@ -1825,8 +1844,8 @@ var COL_Class = {
 					}
 					ct.translate(this.estimatePadding, this.estimatePadding);
 					if (async) {
-						requestAnimationFrame(function () {
-							_this12._renderToCache();
+						setImmediate(function () {
+							_this13._renderToCache();
 						});
 					} else {
 						this._renderToCache();
@@ -1835,13 +1854,14 @@ var COL_Class = {
 			}, {
 				key: '_renderToCache',
 				value: function _renderToCache() {
-					var _this13 = this;
+					var _this14 = this;
 
-					this.render(this.cache.ctx2d);
+					this.render(this._cache.ctx2d);
 					if (this.useImageBitmap && typeof createImageBitmap === 'function') {
 						//use ImageBitmap
 						createImageBitmap(this._cache).then(function (bitmap) {
-							_this13.bitmap = bitmap;
+							if (_this14._bitmap) _this14._bitmap.close();
+							_this14._bitmap = bitmap;
 						});
 					}
 				}
@@ -1898,7 +1918,7 @@ var COL_Class = {
 						if (!this._cache) {
 							this.prepare();
 						}
-						ct.drawImage(this.useImageBitmap && this.bitmap ? this.bitmap : this._cache, -this.estimatePadding, -this.estimatePadding);
+						ct.drawImage(this.useImageBitmap && this._bitmap ? this._bitmap : this._cache, -this.estimatePadding, -this.estimatePadding);
 						this.checkIfOnOver(true);
 					}
 				}
@@ -2002,16 +2022,19 @@ if (!Float32Array.__proto__.from) {
 	};
 })();
 
-if (!window.CanvasObjLibrary) window.CanvasObjLibrary = CanvasObjLibrary;
+exports.default = CanvasObjLibrary;
 
-if (typeof define === "function" && define.amd) {
-	console.info('CanvasObjLibrary loaded as a amd module');
-	define(CanvasObjLibrary);
-} else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === "object") {
-	console.info('CanvasObjLibrary loaded as a CommonJS module');
-	module.exports = CanvasObjLibrary;
-}
+},{"../lib/promise/promise.js":1,"../lib/setImmediate/setImmediate.js":2}],5:[function(require,module,exports){
+'use strict';
 
-},{"../lib/promise/promise.js":1,"../lib/setImmediate/setImmediate.js":2}]},{},[4])
+var _CanvasObjLibrary = require('./CanvasObjLibrary.js');
+
+var _CanvasObjLibrary2 = _interopRequireDefault(_CanvasObjLibrary);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+if (!window.CanvasObjLibrary) window.CanvasObjLibrary = _CanvasObjLibrary2.default;
+
+},{"./CanvasObjLibrary.js":4}]},{},[5])
 
 //# sourceMappingURL=CanvasObjLibrary.js.map

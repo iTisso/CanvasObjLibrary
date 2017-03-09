@@ -8,7 +8,7 @@ var buffer = require('vinyl-buffer');
 var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('build', function () {
-	var b = browserify(['CanvasObjLibrary.js'],{
+	var b = browserify(['index.js'],{
 		basedir:'./src',
 		debug: true,
 		transform: [babelify.configure({
@@ -17,14 +17,15 @@ gulp.task('build', function () {
 	});
 
 	return b.bundle()
-		.pipe(source('./CanvasObjLibrary.js'))
+		.pipe(source('./index.js'))
+		.pipe(rename('CanvasObjLibrary.js'))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(sourcemaps.write('./'))
 		.pipe(gulp.dest('./dist'));
 });
 
-gulp.task('min',function(){
+gulp.task('min',['build'],function(){
 		let options = {
 				mangle: true,
 				compress: {
@@ -38,8 +39,10 @@ gulp.task('min',function(){
 						evaluate:true,
 				}
 		};
-		return gulp.src('./dist/*.js')
+		return gulp.src('./dist/CanvasObjLibrary.js')
 		.pipe(rename({extname:'.min.js'}))
 		.pipe(uglify(options))
 		.pipe(gulp.dest('./dist/'));
 });
+
+gulp.task('release',['build','min']);

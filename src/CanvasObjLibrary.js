@@ -8,9 +8,7 @@ varsion:2.0
 import '../lib/setImmediate/setImmediate.js'
 import Promise from '../lib/promise/promise.js'
 
-if (!window.Promise) {
-  window.Promise = Promise;
-}
+if (!window.Promise)window.Promise = Promise;
 
 const defProp=Object.defineProperty;
 
@@ -165,7 +163,7 @@ class CanvasObjLibrary{
 			selectstart:e=>e.preventDefault(),
 			wheel:e=>{
 				const ce=new this.class.WheelEvent('wheel');
-				ce.originEvent=e;
+				ce.origin=e;
 				(this.stat.onover||this.root).emit(ce);
 			},
 		});
@@ -204,12 +202,12 @@ class CanvasObjLibrary{
 				this.stat.mouse.y=e.layerY;
 			}
 			const ce=new this.class.MouseEvent(e.type);
-			ce.originEvent=e;
+			ce.origin=e;
 			(this.stat.onover||this.root).emit(ce);
 		}else if(e instanceof KeyboardEvent){
 			if(!this.stat.canvasOnFocus)return;
 			const ce=new this.class.KeyboardEvent(e.type);
-			ce.originEvent=e;
+			ce.origin=e;
 			(this.stat.onfocus||this.root).emit(ce);
 		}
 	}
@@ -396,19 +394,16 @@ const COL_Class={
 			stopImmediatePropagation(){
 				this.stoped=true;
 			}
-			get altKey(){return this.originEvent.altKey;}
-			get ctrlKey(){return this.originEvent.ctrlKey;}
-			get metaKey(){return this.originEvent.metaKey;}
-			get shiftKey(){return this.originEvent.shiftKey;}
+			get altKey(){return this.origin.altKey;}
+			get ctrlKey(){return this.origin.ctrlKey;}
+			get metaKey(){return this.origin.metaKey;}
+			get shiftKey(){return this.origin.shiftKey;}
 		}
 	},
 	MouseEvent:host=>{
 		return class MouseEvent extends host.class.GraphEvent{
-			/*constructor(type){
-				super(type);
-			}*/
-			get button(){return this.originEvent.button;}
-			get buttons(){return this.originEvent.buttons;}
+			get button(){return this.origin.button;}
+			get buttons(){return this.origin.buttons;}
 			get movementX(){return host.stat.mouse.x-host.stat.previousX;}
 			get movementY(){return host.stat.mouse.y-host.stat.previousY;}
 
@@ -416,26 +411,20 @@ const COL_Class={
 	},
 	WheelEvent:host=>{
 		return class WheelEvent extends host.class.MouseEvent{
-			/*constructor(type){
-				super(type);
-			}*/
-			get deltaX(){return this.originEvent.deltaX;}
-			get deltaY(){return this.originEvent.deltaY;}
-			get deltaZ(){return this.originEvent.deltaZ;}
-			get deltaMode(){return this.originEvent.deltaMode;}
+			get deltaX(){return this.origin.deltaX;}
+			get deltaY(){return this.origin.deltaY;}
+			get deltaZ(){return this.origin.deltaZ;}
+			get deltaMode(){return this.origin.deltaMode;}
 		}
 	},
 	KeyboardEvent:host=>{
 		return class KeyboardEvent extends host.class.GraphEvent{
-			/*constructor(type){
-				super(type);
-			}*/
-			get key(){return this.originEvent.key;}
-			get code(){return this.originEvent.code;}
-			get repeat(){return this.originEvent.repeat;}
-			get keyCode(){return this.originEvent.keyCode;}
-			get charCode(){return this.originEvent.charCode;}
-			get location(){return this.originEvent.location;}
+			get key(){return this.origin.key;}
+			get code(){return this.origin.code;}
+			get repeat(){return this.origin.repeat;}
+			get keyCode(){return this.origin.keyCode;}
+			get charCode(){return this.origin.charCode;}
+			get location(){return this.origin.location;}
 		}
 	},
 	GraphEventEmitter:host=>{
@@ -992,12 +981,4 @@ if(!Float32Array.__proto__.from) {
 	};
 }());
 
-if(!window.CanvasObjLibrary)window.CanvasObjLibrary = CanvasObjLibrary;
-
-if (typeof define === "function" && define.amd) {
-	console.info('CanvasObjLibrary loaded as a amd module');
-    define(CanvasObjLibrary);
-}else if (typeof exports === "object") {
-	console.info('CanvasObjLibrary loaded as a CommonJS module');
-    module.exports = CanvasObjLibrary;
-}
+export default CanvasObjLibrary;
