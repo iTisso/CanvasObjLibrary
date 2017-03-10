@@ -426,189 +426,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"_process":3}],3:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],4:[function(require,module,exports){
+},{"_process":5}],3:[function(require,module,exports){
 /*
 MIT LICENSE
 Copyright (c) 2016 iTisso
@@ -895,20 +713,13 @@ var CanvasObjLibrary = function () {
 
 			this.context.setTransform(1, 0, 0, 1, 0, 0);
 			this.drawGraph(this.root, mode);
-			if (this.tmp.onOverGraph !== this.stat.onover) {
+			var oldOnover = this.stat.onover;
+			if (this.tmp.onOverGraph !== oldOnover) {
 				//new onover graph
-				var oldOnover = this.stat.onover;
 				this.tmp.toClickGraph = null;
 				this.stat.onover = this.tmp.onOverGraph;
-				if (oldOnover) {
-					var ceout = new this.class.MouseEvent('mouseout');
-					oldOnover.emit(ceout);
-				}
-
-				if (this.stat.onover) {
-					var ceover = new this.class.MouseEvent('mouseover');
-					this.stat.onover.emit(ceover);
-				}
+				if (oldOnover) oldOnover.emit(new this.class.MouseEvent('mouseout'));
+				if (this.stat.onover) this.stat.onover.emit(new this.class.MouseEvent('mouseover'));
 			}
 			this.tmp.onOverGraph = null;
 		}
@@ -979,16 +790,17 @@ var CanvasObjLibrary = function () {
 			}
 			//rotate
 			if (style.rotate !== 0) {
-				var r = style.rotate * 0.0174532925;
+				var s = Math.sin(style.rotate * 0.0174532925),
+				    c = Math.cos(style.rotate * 0.0174532925);
 				if (style.rotatePointX !== 0 || style.rotatePointY !== 0) {
 					_M[0] = 1;_M[1] = 0;_M[2] = style.rotatePointX;_M[3] = 0;_M[4] = 1;_M[5] = style.rotatePointY;
 					multiplyMatrix(M, _M, tM);
-					_M[0] = Math.cos(r);_M[1] = -Math.sin(r);_M[2] = 0;_M[3] = Math.sin(r);_M[4] = Math.cos(r);_M[5] = 0;
+					_M[0] = c;_M[1] = -s;_M[2] = 0;_M[3] = s;_M[4] = c;_M[5] = 0;
 					multiplyMatrix(tM, _M, M);
 					_M[0] = 1;_M[1] = 0;_M[2] = -style.rotatePointX;_M[3] = 0;_M[4] = 1;_M[5] = -style.rotatePointY;
 					multiplyMatrix(M, _M, tM);
 				} else {
-					_M[0] = Math.cos(r);_M[1] = -Math.sin(r);_M[2] = 0;_M[3] = Math.sin(r);_M[4] = Math.cos(r);_M[5] = 0;
+					_M[0] = c;_M[1] = -s;_M[2] = 0;_M[3] = s;_M[4] = c;_M[5] = 0;
 					multiplyMatrix(M, _M, tM);
 				}
 				M.set(tM);
@@ -1034,43 +846,14 @@ var CanvasObjLibrary = function () {
 				ct.rect(0, 0, style.width, style.height);
 				ct.clip();
 			}
-			switch (mode) {
-				case 0:
-					{
-						g.drawer && g.drawer(ct);break;
-					}
-				case 1:
-					{
-						g.checkIfOnOver(true, mode);break;
-					}
+			if (mode === 0) {
+				g.drawer && g.drawer(ct);
+			} else if (mode === 1) {
+				g.checkIfOnOver(true, mode);
 			}
-			if (g.childNodes.length) {
-				var _iteratorNormalCompletion = true;
-				var _didIteratorError = false;
-				var _iteratorError = undefined;
-
-				try {
-					for (var _iterator = g.childNodes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-						var c = _step.value;
-
-						this.drawGraph(c, mode);
-					}
-				} catch (err) {
-					_didIteratorError = true;
-					_iteratorError = err;
-				} finally {
-					try {
-						if (!_iteratorNormalCompletion && _iterator.return) {
-							_iterator.return();
-						}
-					} finally {
-						if (_didIteratorError) {
-							throw _iteratorError;
-						}
-					}
-				}
-			}
-			ct.restore();
+			for (var i = 0; i < g.childNodes.length; i++) {
+				this.drawGraph(g.childNodes[i], mode);
+			}ct.restore();
 		}
 	}]);
 
@@ -1275,31 +1058,10 @@ var COL_Class = {
 					if (e.type in this._events) {
 						var hs = this._events[e.type];
 						try {
-							var _iteratorNormalCompletion2 = true;
-							var _didIteratorError2 = false;
-							var _iteratorError2 = undefined;
-
-							try {
-								for (var _iterator2 = hs[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-									var h = _step2.value;
-									h.call(this, e);if (e.stoped) return;
-								}
-							} catch (err) {
-								_didIteratorError2 = true;
-								_iteratorError2 = err;
-							} finally {
-								try {
-									if (!_iteratorNormalCompletion2 && _iterator2.return) {
-										_iterator2.return();
-									}
-								} finally {
-									if (_didIteratorError2) {
-										throw _iteratorError2;
-									}
-								}
+							for (var i = 0; i < hs.length; i++) {
+								hs[i].call(this, e);
+								if (e.stoped) return;
 							}
-
-							;
 						} catch (e) {
 							console.error(e);
 						}
@@ -1975,28 +1737,30 @@ if (typeof Object.assign != 'function') Object.assign = function (target) {
 };
 
 if (!Float32Array.__proto__.from) {
-	var copy_data = [];
-	Float32Array.__proto__.from = function (obj, func, thisObj) {
-		var typedArrayClass = Float32Array.__proto__;
-		if (typeof this !== "function") throw new TypeError("# is not a constructor");
-		if (this.__proto__ !== typedArrayClass) throw new TypeError("this is not a typed array.");
-		func = func || function (elem) {
-			return elem;
+	(function () {
+		var copy_data = [];
+		Float32Array.__proto__.from = function (obj, func, thisObj) {
+			var typedArrayClass = Float32Array.__proto__;
+			if (typeof this !== "function") throw new TypeError("# is not a constructor");
+			if (this.__proto__ !== typedArrayClass) throw new TypeError("this is not a typed array.");
+			func = func || function (elem) {
+				return elem;
+			};
+			if (typeof func !== "function") throw new TypeError("specified argument is not a function");
+			obj = Object(obj);
+			if (!obj["length"]) return new this(0);
+			copy_data.length = 0;
+			for (var i = 0; i < obj.length; i++) {
+				copy_data.push(obj[i]);
+			}
+			copy_data = copy_data.map(func, thisObj);
+			var typed_array = new this(copy_data.length);
+			for (var _i = 0; _i < typed_array.length; _i++) {
+				typed_array[_i] = copy_data[_i];
+			}
+			return typed_array;
 		};
-		if (typeof func !== "function") throw new TypeError("specified argument is not a function");
-		obj = Object(obj);
-		if (!obj["length"]) return new this(0);
-		copy_data.length = 0;
-		for (var i = 0; i < obj.length; i++) {
-			copy_data.push(obj[i]);
-		}
-		copy_data = copy_data.map(func, thisObj);
-		var typed_array = new this(copy_data.length);
-		for (var _i = 0; _i < typed_array.length; _i++) {
-			typed_array[_i] = copy_data[_i];
-		}
-		return typed_array;
-	};
+	})();
 }
 
 (function () {
@@ -2024,7 +1788,7 @@ if (!Float32Array.__proto__.from) {
 
 exports.default = CanvasObjLibrary;
 
-},{"../lib/promise/promise.js":1,"../lib/setImmediate/setImmediate.js":2}],5:[function(require,module,exports){
+},{"../lib/promise/promise.js":1,"../lib/setImmediate/setImmediate.js":2}],4:[function(require,module,exports){
 'use strict';
 
 var _CanvasObjLibrary = require('./CanvasObjLibrary.js');
@@ -2035,6 +1799,188 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 if (!window.CanvasObjLibrary) window.CanvasObjLibrary = _CanvasObjLibrary2.default;
 
-},{"./CanvasObjLibrary.js":4}]},{},[5])
+},{"./CanvasObjLibrary.js":3}],5:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}]},{},[4])
 
 //# sourceMappingURL=CanvasObjLibrary.js.map

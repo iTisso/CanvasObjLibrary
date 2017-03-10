@@ -229,19 +229,12 @@ class CanvasObjLibrary{
 	traverseGraphTree(mode=0){
 		this.context.setTransform(1,0,0,1,0,0);
 		this.drawGraph(this.root,mode);
-		if(this.tmp.onOverGraph!==this.stat.onover){//new onover graph
-			const oldOnover=this.stat.onover;
+		const oldOnover=this.stat.onover;
+		if(this.tmp.onOverGraph!==oldOnover){//new onover graph
 			this.tmp.toClickGraph=null;
 			this.stat.onover=this.tmp.onOverGraph;
-			if(oldOnover){
-				const ceout=new this.class.MouseEvent('mouseout');
-				oldOnover.emit(ceout);
-			}
-
-			if(this.stat.onover){
-				const ceover=new this.class.MouseEvent('mouseover');
-				this.stat.onover.emit(ceover);
-			}
+			if(oldOnover)oldOnover.emit(new this.class.MouseEvent('mouseout'));
+			if(this.stat.onover)this.stat.onover.emit(new this.class.MouseEvent('mouseover'));
 		}
 		this.tmp.onOverGraph=null;
 	}
@@ -298,20 +291,21 @@ class CanvasObjLibrary{
 				_M[0]=style.skewX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.skewY;_M[5]=0;
 				multiplyMatrix(M,_M,tM);
 			}
-			M.set(tM);
+			M.set(tM);	
 		}
 		//rotate
 		if(style.rotate!==0){
-			const r=style.rotate* 0.0174532925;
+			const 	s=Math.sin(style.rotate* 0.0174532925),
+					c=Math.cos(style.rotate* 0.0174532925);
 			if(style.rotatePointX!==0 || style.rotatePointY!==0){
 				_M[0]=1;_M[1]=0;_M[2]=style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=style.rotatePointY;
 				multiplyMatrix(M,_M,tM);
-				_M[0]=Math.cos(r);_M[1]=-Math.sin(r);_M[2]=0;_M[3]=Math.sin(r);_M[4]=Math.cos(r);_M[5]=0;
+				_M[0]=c;_M[1]=-s;_M[2]=0;_M[3]=s;_M[4]=c;_M[5]=0;
 				multiplyMatrix(tM,_M,M);
 				_M[0]=1;_M[1]=0;_M[2]=-style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=-style.rotatePointY;
 				multiplyMatrix(M,_M,tM);
 			}else{
-				_M[0]=Math.cos(r);_M[1]=-Math.sin(r);_M[2]=0;_M[3]=Math.sin(r);_M[4]=Math.cos(r);_M[5]=0;
+				_M[0]=c;_M[1]=-s;_M[2]=0;_M[3]=s;_M[4]=c;_M[5]=0;
 				multiplyMatrix(M,_M,tM);
 			}
 			M.set(tM);
@@ -357,14 +351,13 @@ class CanvasObjLibrary{
 			ct.rect(0,0,style.width,style.height);
 			ct.clip();
 		}
-		switch(mode){
-			case 0:{g.drawer&&g.drawer(ct);break;}
-			case 1:{g.checkIfOnOver(true,mode);break;}
+		if(mode===0){
+			g.drawer&&g.drawer(ct);
+		}else if(mode===1){
+			g.checkIfOnOver(true,mode);
 		}
-		if(g.childNodes.length){
-			for(let c of g.childNodes)
-				this.drawGraph(c,mode);
-		}
+		for(let i=0;i<g.childNodes.length;i++)
+			this.drawGraph(g.childNodes[i],mode);
 		ct.restore();
 	}
 }
@@ -442,7 +435,10 @@ const COL_Class={
 				if(e.type in this._events){
 					const hs=this._events[e.type];
 					try{
-						for(let h of hs){h.call(this,e);if(e.stoped)return;};
+						for(let i=0;i<hs.length;i++){
+							hs[i].call(this,e);
+							if(e.stoped)return;
+						}
 					}catch(e){
 						console.error(e);
 					}
@@ -586,7 +582,7 @@ const COL_Class={
 				if(graph===this)throw(new Error('can not add myself as a child'));
 				if(graph.parentNode!==this){
 					defProp(graph, 'parentNode', {
-					  value: this,
+						value: this,
 					});
 				}else{
 					let i=this.findChild(graph);
