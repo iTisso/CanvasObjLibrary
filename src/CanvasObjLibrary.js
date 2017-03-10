@@ -816,19 +816,17 @@ const COL_Class={
 				}
 				ct.translate(this.estimatePadding, this.estimatePadding);
 				if(async){
-					setImmediate(()=>{
-						this._renderToCache();
-					});
+					setImmediate(this._renderToCache,this);
 				}else{
-					this._renderToCache();
+					this._renderToCache(this);
 				}
 			}
-			_renderToCache(){
-				this.render(this._cache.ctx2d);
-				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
-					createImageBitmap(this._cache).then((bitmap)=>{
-						if(this._bitmap)this._bitmap.close();
-						this._bitmap=bitmap;
+			_renderToCache(t){
+				t.render(t._cache.ctx2d);
+				if(t.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
+					createImageBitmap(t._cache).then((bitmap)=>{
+						if(t._bitmap)t._bitmap.close();
+						t._bitmap=bitmap;
 					});
 				}
 			}

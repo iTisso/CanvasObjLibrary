@@ -1569,8 +1569,6 @@ var COL_Class = {
 			_createClass(TextGraph, [{
 				key: 'prepare',
 				value: function prepare() {
-					var _this13 = this;
-
 					var async = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 					//prepare text details
 					if (!this._cache && !this.realtimeRender) {
@@ -1606,24 +1604,20 @@ var COL_Class = {
 					}
 					ct.translate(this.estimatePadding, this.estimatePadding);
 					if (async) {
-						setImmediate(function () {
-							_this13._renderToCache();
-						});
+						setImmediate(this._renderToCache, this);
 					} else {
-						this._renderToCache();
+						this._renderToCache(this);
 					}
 				}
 			}, {
 				key: '_renderToCache',
-				value: function _renderToCache() {
-					var _this14 = this;
-
-					this.render(this._cache.ctx2d);
-					if (this.useImageBitmap && typeof createImageBitmap === 'function') {
+				value: function _renderToCache(t) {
+					t.render(t._cache.ctx2d);
+					if (t.useImageBitmap && typeof createImageBitmap === 'function') {
 						//use ImageBitmap
-						createImageBitmap(this._cache).then(function (bitmap) {
-							if (_this14._bitmap) _this14._bitmap.close();
-							_this14._bitmap = bitmap;
+						createImageBitmap(t._cache).then(function (bitmap) {
+							if (t._bitmap) t._bitmap.close();
+							t._bitmap = bitmap;
 						});
 					}
 				}
