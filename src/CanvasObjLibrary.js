@@ -780,6 +780,7 @@ const COL_Class={
 				this.useImageBitmap=true;
 				this.style.debugBorderColor='#00f';
 				this.text=text;
+				this._renderToCache=this._renderToCache.bind(this);
 				defProp(this,'_cache',{configurable:true});
 			}
 			prepare(async=false){//prepare text details
@@ -816,17 +817,17 @@ const COL_Class={
 				}
 				ct.translate(this.estimatePadding, this.estimatePadding);
 				if(async){
-					setImmediate(this._renderToCache,this);
+					requestIdleCallback(this._renderToCache);
 				}else{
-					this._renderToCache(this);
+					this._renderToCache();
 				}
 			}
-			_renderToCache(t){
-				t.render(t._cache.ctx2d);
-				if(t.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
-					createImageBitmap(t._cache).then((bitmap)=>{
-						if(t._bitmap)t._bitmap.close();
-						t._bitmap=bitmap;
+			_renderToCache(){
+				this.render(this._cache.ctx2d);
+				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
+					createImageBitmap(this._cache).then((bitmap)=>{
+						if(this._bitmap)this._bitmap.close();
+						this._bitmap=bitmap;
 					});
 				}
 			}
@@ -975,4 +976,7 @@ if(!Float32Array.__proto__.from) {
 	};
 }());
 
+const requestIdleCallback=window.requestIdleCallback||setImmediate;
+
 export default CanvasObjLibrary;
+export {CanvasObjLibrary,requestIdleCallback}
