@@ -438,6 +438,7 @@ varsion:2.0
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+exports.requestIdleCallback = exports.CanvasObjLibrary = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -1562,6 +1563,7 @@ var COL_Class = {
 				_this12.useImageBitmap = true;
 				_this12.style.debugBorderColor = '#00f';
 				_this12.text = text;
+				_this12._renderToCache = _this12._renderToCache.bind(_this12);
 				defProp(_this12, '_cache', { configurable: true });
 				return _this12;
 			}
@@ -1604,20 +1606,22 @@ var COL_Class = {
 					}
 					ct.translate(this.estimatePadding, this.estimatePadding);
 					if (async) {
-						setImmediate(this._renderToCache, this);
+						requestIdleCallback(this._renderToCache);
 					} else {
-						this._renderToCache(this);
+						this._renderToCache();
 					}
 				}
 			}, {
 				key: '_renderToCache',
-				value: function _renderToCache(t) {
-					t.render(t._cache.ctx2d);
-					if (t.useImageBitmap && typeof createImageBitmap === 'function') {
+				value: function _renderToCache() {
+					var _this13 = this;
+
+					this.render(this._cache.ctx2d);
+					if (this.useImageBitmap && typeof createImageBitmap === 'function') {
 						//use ImageBitmap
-						createImageBitmap(t._cache).then(function (bitmap) {
-							if (t._bitmap) t._bitmap.close();
-							t._bitmap = bitmap;
+						createImageBitmap(this._cache).then(function (bitmap) {
+							if (_this13._bitmap) _this13._bitmap.close();
+							_this13._bitmap = bitmap;
 						});
 					}
 				}
@@ -1780,7 +1784,11 @@ if (!Float32Array.__proto__.from) {
 	};
 })();
 
+var requestIdleCallback = window.requestIdleCallback || setImmediate;
+
 exports.default = CanvasObjLibrary;
+exports.CanvasObjLibrary = CanvasObjLibrary;
+exports.requestIdleCallback = requestIdleCallback;
 
 },{"../lib/promise/promise.js":1,"../lib/setImmediate/setImmediate.js":2}],4:[function(require,module,exports){
 'use strict';
