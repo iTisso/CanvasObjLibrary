@@ -1,0 +1,37 @@
+{
+  "name": "canvasobjlibrary",
+  "version": "2.0.0",
+  "description": "draw objects in canvas",
+  "main": " ",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": " "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JiaJiaJiang/CanvasObjLibrary.git"
+  },
+  "keywords": [
+    "canvas"
+  ],
+  "author": "luojia@luojia.me",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JiaJiaJiang/CanvasObjLibrary/issues"
+  },
+  "homepage": "https://github.com/JiaJiaJiang/CanvasObjLibrary#readme",
+  "devDependencies": {
+    "babelify": "^7.3.0",
+    "glup": "^1.0.14",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.4.1",
+    "gulp-uglify": "^2.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  },
+  "dependencies": {
+    "browserify": "^14.1.0"
+  }
+}

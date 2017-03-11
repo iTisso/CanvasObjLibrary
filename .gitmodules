@@ -1,0 +1,6 @@
+[submodule "lib/setImmediate"]
+	path = lib/setImmediate
+	url = https://github.com/YuzuJS/setImmediate.git
+[submodule "lib/promise"]
+	path = lib/promise
+	url = https://github.com/taylorhakes/promise-polyfill.git
