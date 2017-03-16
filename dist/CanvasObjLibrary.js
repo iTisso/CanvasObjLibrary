@@ -769,8 +769,8 @@ var CanvasObjLibrary = function () {
 			this.debug.count++;
 			ct.save();
 			if (mode === 0) {
-				if (style.composite) ct.globalCompositeOperation = style.composite;
-				if (style.opacity !== ct.globalAlpha) ct.globalAlpha = style.opacity;
+				ct.globalCompositeOperation = style.composite;
+				ct.globalAlpha = style.opacity;
 			}
 			//position & offset
 			M[0] = 1;M[1] = 0;M[2] = style.x - style.positionPointX;
