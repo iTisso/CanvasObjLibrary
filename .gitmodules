@@ -4,3 +4,6 @@
 [submodule "lib/promise"]
 	path = lib/promise
 	url = https://github.com/taylorhakes/promise-polyfill.git
+[submodule "lib/Mat"]
+	path = lib/Mat
+	url = git@git.coding.net:luojia/Mat.js.git
