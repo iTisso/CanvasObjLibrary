@@ -82,18 +82,19 @@ const graphs={
 				this.checkIfOnOver(false);
 			}
 			hitRange(ct){
-				ct.translate(this.r,this.r);
+				const r=this.r;
+				ct.translate(r,r);
 				ct.beginPath();
-				ct.moveTo(0,-this.r);
-				ct.lineTo(0.2245139883*this.r,-0.3090169944*this.r);
-				ct.lineTo(0.9510565163*this.r,-0.3090169944*this.r);
-				ct.lineTo(0.36327126*this.r,0.1180339887*this.r);//
-				ct.lineTo(0.5877852523*this.r,0.8090169944*this.r);
-				ct.lineTo(0,0.3819660113*this.r);
-				ct.lineTo(-0.5877852523*this.r,0.8090169944*this.r);
-				ct.lineTo(-0.36327126*this.r,0.1180339887*this.r);
-				ct.lineTo(-0.9510565163*this.r,-0.3090169944*this.r);
-				ct.lineTo(-0.2245139883*this.r,-0.3090169944*this.r);
+				ct.moveTo(0,-r);
+				ct.lineTo(0.2245139883*r,-0.3090169944*r);
+				ct.lineTo(0.9510565163*r,-0.3090169944*r);
+				ct.lineTo(0.36327126*r,0.1180339887*r);//
+				ct.lineTo(0.5877852523*r,0.8090169944*r);
+				ct.lineTo(0,0.3819660113*r);
+				ct.lineTo(-0.5877852523*r,0.8090169944*r);
+				ct.lineTo(-0.36327126*r,0.1180339887*r);
+				ct.lineTo(-0.9510565163*r,-0.3090169944*r);
+				ct.lineTo(-0.2245139883*r,-0.3090169944*r);
 				ct.closePath();
 			}
 		}

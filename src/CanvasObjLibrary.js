@@ -1,12 +1,13 @@
 /*
 MIT LICENSE
-Copyright (c) 2016 iTisso
+Copyright (c) 2017 iTisso
 https://github.com/iTisso/CanvasObjLibrary
-varsion:2.0
+varsion:2.1
 */
 'use strict';
 import '../lib/setImmediate/setImmediate.js'
 import Promise from '../lib/promise/promise.js'
+import Mat from '../lib/Mat/Mat.js'
 
 if (!window.Promise)window.Promise = Promise;
 
@@ -24,6 +25,7 @@ class CanvasObjLibrary{
 			canvas,
 			/*Canvas' context*/
 			context: canvas.getContext('2d'),
+			Matrix:Mat,
 			default:{
 				/*default font*/
 				font:{
@@ -47,6 +49,9 @@ class CanvasObjLibrary{
 					//textBaseline: "middle",//abandoned
 				},
 				style:{
+					POSITIONMATRIX:0x1,
+					ROTATEMATRIX:0x10,
+					ZOOMMATRIX:0x100,
 					width:1,
 					height:1,
 					hidden:false,
@@ -57,19 +62,16 @@ class CanvasObjLibrary{
 					debugBorderColor:'black',
 					x:0,
 					y:0,
+					positionPointX:0,
+					positionPointY:0,
 					zoomX:1,
 					zoomY:1,
+					zoomPointX:0,
+					zoomPointY:0,
 					rotate:0,
 					rotatePointX:0,
 					rotatePointY:0,
-					positionPointX:0,
-					positionPointY:0,
-					zoomPointX:0,
-					zoomPointY:0,
-					skewX:1,
-					skewY:1,
-					skewPointX:0,
-					skewPointY:0,
+					_tempMat:Mat.Identity(3),
 				},
 			},
 			stat:{
@@ -91,9 +93,8 @@ class CanvasObjLibrary{
 				graphID:0,
 				onOverGraph:null,
 				toClickGraph:null,
-				matrix1:new Float32Array([1,0,0,0,1,0]),
-				matrix2:new Float32Array([1,0,0,0,1,0]),
-				matrix3:new Float32Array([1,0,0,0,1,0]),
+				/*matrix2:new Float32Array([1,0,0,0,1,0]),
+				matrix3:new Float32Array([1,0,0,0,1,0]),*/
 			},
 			
 			root: null,//root Graph
@@ -267,9 +268,7 @@ class CanvasObjLibrary{
 		if(g.style.hidden===true)return;
 		const 	ct=this.context,
 				style=g.style,
-				M=this.tmp.matrix1,
-				tM=this.tmp.matrix2,
-				_M=this.tmp.matrix3;
+				M=style._tempMat;
 		this.debug.count++;
 		ct.save();
 		if(mode===0){
@@ -277,54 +276,14 @@ class CanvasObjLibrary{
 			ct.globalAlpha = style.opacity;
 		}
 		//position & offset
-		M[0]=1;M[1]=0;M[2]=style.x-style.positionPointX;
-		M[3]=0;M[4]=1;M[5]=style.y-style.positionPointY;
-		if(style.skewX!==1 || style.skewY!==1){
-			if(style.skewPointX!==0 || style.skewPointY!==0){
-				_M[0]=1;_M[1]=0;_M[2]=style.skewPointX;_M[3]=0;_M[4]=1;_M[5]=style.skewPointY;
-				multiplyMatrix(M,_M,tM);
-				_M[0]=style.skewX;_M[2]=0;_M[4]=style.skewY;_M[5]=0;
-				multiplyMatrix(tM,_M,M);
-				_M[0]=1;_M[2]=-style.skewPointX;_M[4]=1;_M[5]=-style.skewPointY;
-				multiplyMatrix(M,_M,tM);
-			}else{
-				_M[0]=style.skewX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.skewY;_M[5]=0;
-				multiplyMatrix(M,_M,tM);
-			}
-			M.set(tM);	
-		}
-		//rotate
-		if(style.rotate!==0){
-			const 	s=Math.sin(style.rotate* 0.0174532925),
-					c=Math.cos(style.rotate* 0.0174532925);
-			if(style.rotatePointX!==0 || style.rotatePointY!==0){
-				_M[0]=1;_M[1]=0;_M[2]=style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=style.rotatePointY;
-				multiplyMatrix(M,_M,tM);
-				_M[0]=c;_M[1]=-s;_M[2]=0;_M[3]=s;_M[4]=c;_M[5]=0;
-				multiplyMatrix(tM,_M,M);
-				_M[0]=1;_M[1]=0;_M[2]=-style.rotatePointX;_M[3]=0;_M[4]=1;_M[5]=-style.rotatePointY;
-				multiplyMatrix(M,_M,tM);
-			}else{
-				_M[0]=c;_M[1]=-s;_M[2]=0;_M[3]=s;_M[4]=c;_M[5]=0;
-				multiplyMatrix(M,_M,tM);
-			}
-			M.set(tM);
-		}
-		//zoom
-		if(style.zoomX!==1 || style.zoomY!==1){
-			if(style.zoomPointX!==0 || style.zoomPointY!==0){
-				_M[0]=1;_M[1]=0;_M[2]=style.zoomPointX;_M[3]=0;_M[4]=1;_M[5]=style.zoomPointY;
-				multiplyMatrix(M,_M,tM);
-				_M[0]=style.zoomX;_M[2]=0;_M[4]=style.zoomY;_M[5]=0;
-				multiplyMatrix(tM,_M,M);
-				_M[0]=1;_M[2]=-style.zoomPointX;_M[4]=1;_M[5]=-style.zoomPointY;
-				multiplyMatrix(M,_M,tM);
-			}else{
-				_M[0]=style.zoomX;_M[1]=0;_M[2]=0;_M[3]=0;_M[4]=style.zoomY;_M[5]=0;
-				multiplyMatrix(M,_M,tM);
-			}
-			M.set(tM);
-		}
+		M.set(style.positionMatrix);
+		if(style.beforeMatrix)M.rightMultiply(style.beforeMatrix);
+		if((style.rotate%360)!==0)M.rightMultiply(style.rotateMatrix);
+		if(style.zoomX!==1 || style.zoomY!==1)M.rightMultiply(style.zoomMatrix);
+		if(style.afterMatrix)M.rightMultiply(style.afterMatrix);
+		
+		//if(style.zoomX!==1 || style.zoomY!==1)M.leftMultiply(style.zoomMatrix);
+		
 		ct.transform(M[0],M[3],M[1],M[4],M[2],M[5]);
 		if(this.debug.switch && mode===0){
 			ct.save();
@@ -462,9 +421,13 @@ const COL_Class={
 	GraphStyle:host=>{
 		return class GraphStyle{
 			constructor(inhertFrom){
-				if(inhertFrom && this.inhert(inhertFrom))return;
-				this.__proto__.__proto__=host.default.style;
-				this._calculatableStyleChanged=false;
+				if(!(inhertFrom && this.inhert(inhertFrom)))
+					this.__proto__.__proto__=host.default.style;
+				this.positionMatrix=Mat.Identity(3);
+				this.zoomMatrix=Mat.Identity(3);
+				this.rotateMatrix=Mat.Identity(3);
+				this.beforeMatrix=null;
+				this.afterMatrix=null;
 			}
 			inhertGraph(graph){//inhert a graph's style
 				if(!(graph instanceof host.class.Graph))
@@ -500,22 +463,27 @@ const COL_Class={
 				}
 				return [0,0];
 			}
+			size(w,h){
+				this.width = w;
+				this.height = h;
+			}
 			position(x,y){
 				this.x=x;
 				this.y=y;
+				this.calcMatrix(0x1);
 			}
 			zoom(x,y){
 				if (arguments.length == 1) {
 					this.zoomX = this.zoomY = x;
-				}
-				else{
+				}else{
 					this.zoomX = x;
 					this.zoomY = y;
 				}
+				this.calcMatrix(0x100);
 			}
-			size(w,h){
-				this.width = w;
-				this.height = h;
+			setRotate(d){
+				this.rotate=d;
+				this.calcMatrix(0x10);
 			}
 			setRotatePoint(x,y){
 				if (arguments.length == 2) {
@@ -524,6 +492,7 @@ const COL_Class={
 				} else if (arguments.length == 1) {
 					[this.rotatePointX,this.rotatePointY]=this.getPoint(x);
 				}
+				this.calcMatrix(0x10);
 			}
 			setPositionPoint(x,y){
 				if (arguments.length == 2) {
@@ -532,6 +501,7 @@ const COL_Class={
 				} else if (arguments.length == 1) {
 					[this.positionPointX,this.positionPointY]=this.getPoint(x);
 				}
+				this.calcMatrix(0x1);
 			}
 			setZoomPoint(x,y){
 				if (arguments.length == 2) {
@@ -540,13 +510,28 @@ const COL_Class={
 				} else if (arguments.length == 1) {
 					[this.zoomPointX,this.zoomPointY]=this.getPoint(x);
 				}
+				this.calcMatrix(0x100);
 			}
-			setSkewPoint(x,y){
-				if (arguments.length == 2) {
-					this.skewPointX = x;
-					this.skewPointY = y;
-				} else if (arguments.length == 1) {
-					[this.skewPointX,this.skewPointY]=this.getPoint(x);
+			calcMatrix(type){
+				if((type&0x1) === 0x1){//position
+					this.positionMatrix[2]=this.x-this.positionPointX;
+					this.positionMatrix[5]=this.y-this.positionPointY;
+				}
+				if((type&0x10) === 0x10){//rotate
+					const r=this.rotateMatrix,
+							s=Math.sin(this.rotate* 0.0174532925),
+							c=Math.cos(this.rotate* 0.0174532925);
+					r[4]=r[0]=c;
+					r[1]=-(r[3]=s);
+					r[2]=(1-c)*this.rotatePointX+s*this.rotatePointY;
+					r[5]=(1-c)*this.rotatePointY-s*this.rotatePointX;
+				}
+				if((type&0x100) === 0x100){//zoom
+					const r=this.zoomMatrix;
+					r[0]=this.zoomX;
+					r[2]=(1-this.zoomX)*this.zoomPointX;
+					r[4]=this.zoomY;
+					r[5]=(1-this.zoomY)*this.zoomPointY;
 				}
 			}
 		}
@@ -889,15 +874,6 @@ const COL_Class={
 
 function addEvents(target,events={}){
 	for(let e in events)target.addEventListener(e,events[e]);
-}
-
-function multiplyMatrix(m1,m2,r) {
-	r[0]=m1[0]*m2[0]+m1[1]*m2[3];
-	r[1]=m1[0]*m2[1]+m1[1]*m2[4];
-	r[2]=m1[0]*m2[2]+m1[1]*m2[5]+m1[2];
-	r[3]=m1[3]*m2[0]+m1[4]*m2[3];
-	r[4]=m1[3]*m2[1]+m1[4]*m2[4];
-	r[5]=m1[3]*m2[2]+m1[4]*m2[5]+m1[5];
 }
 
 

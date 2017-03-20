@@ -3,7 +3,7 @@
 body{margin: 0px;padding:0px;}
 canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
 </style>
-<script src="../dist/CanvasObjLibrary.min.js"></script>
+<script src="../dist/CanvasObjLibrary.js"></script>
 <script src="../src/GraphLib.js"></script>
 
 
@@ -13,7 +13,8 @@ canvas{position:fixed;height:100%;width:100%;left:0px;top:0px;}
 <script>
 var canvas=document.querySelector("canvas"),
 	col=new CanvasObjLibrary(canvas),
-	Glib=new GraphLib(col);
+	Glib=new GraphLib(col),
+	Mat=col.Matrix;
 col.adjustCanvas();
 
 window.addEventListener('resize',e=>col.adjustCanvas());
@@ -62,10 +63,8 @@ taikoImg.draw(function(ct){
 });
 
 var taiko=new col.class.FunctionGraph();
-taiko.style.x=600;
-taiko.style.y=500;
-taiko.style.width=405;
-taiko.style.height=360;
+taiko.style.position(500,600);
+taiko.style.size(405,360);
 taiko.style.setPositionPoint('center');
 taiko.stat={l1:false,l2:false,r1:false,r2:false,};
 taiko.drawer=function(ct){
@@ -119,6 +118,7 @@ taiko.on('mousemove',e=>{
 	if(e.buttons && e.button===0){
 		taiko.style.x+=e.movementX;
 		taiko.style.y+=e.movementY;
+		taiko.style.calcMatrix(0x1);
 	}
 });
 
@@ -129,8 +129,7 @@ taiko.on('mousemove',e=>{
 		t.onoverCheck=false;
 		t.font.fontSize=35;
 		t.font.color='#e8d8ba';
-		t.style.y=94;
-		t.style.x=textX[i];
+		t.style.position(textX[i],94);
 		t.prepare();
 		taiko.appendChild(t);
 	}
@@ -170,11 +169,16 @@ var imageGraph=new col.class.ImageGraph(),
 	image=new Image();
 image.src='COL.png';
 imageGraph.use(image);
-imageGraph.style.skewX=2
+imageGraph.style.beforeMatrix=Mat.Identity(3)
+								.translate2d(imageGraph.style.width/2,imageGraph.style.height/2)
+								.leftMultiply(Mat(3,3,[2,0,0,0,1,0,0,0,1]))
+								.translate2d(-imageGraph.style.width/2,-imageGraph.style.height/2);
+//imageGraph.style.position(200,200);
 imageGraph.style.x=imageGraph.style.y=200;
 imageGraph.style.positionPointX=imageGraph.style.positionPointY=20;
-imageGraph.style.width=imageGraph.style.height=250;
-imageGraph.style.setSkewPoint('center');
+imageGraph.style.calcMatrix(0x1);
+imageGraph.style.size(250,250);
+//imageGraph.style.setSkewPoint('center');
 imageGraph.style.setRotatePoint('center');
 
 imageGraph.on('click',function(){
@@ -188,16 +192,16 @@ star.onoverCheck=true;
 star.setRadius(30);
 star.style.setRotatePoint('center');
 star.style.setZoomPoint('center');
-star.style.x=600;
-star.style.y=50;
+star.style.position(600,50);
 col.root.appendChild(star);
 star.on('mouseover',function(e){
-	this.style.zoomX=1.5;
-	this.style.zoomY=1.5;
+	this.style.zoom(1.5);
 });
 star.on('mouseout',function(e){
-	delete this.style.zoomX;
-	delete this.style.zoomY;
+	/*delete this.style.zoomX;
+	delete this.style.zoomY;*/
+	this.style.zoom(1);
+	this.style.calcMatrix(0x100);
 });
 star.on('click',function(e){
 	this.delete();
@@ -207,8 +211,7 @@ var shadowStars=[];
 for(let i=100;i--;){
 	let s=star.createShadow();
 	shadowStars.push(s);
-	s.style.x=i%10*60;
-	s.style.y=(i-(i%10))/10*60;
+	s.style.position(i%10*60,(i-(i%10))/10*60);
 	s.insertBefore(taiko);
 }
 
@@ -216,9 +219,9 @@ var debugButton=new col.class.TextGraph('Debug'),
 	debugOn=new col.class.TextGraph('On'),
 	debugOff=new col.class.TextGraph('Off');
 debugButton.onoverCheck=false;
-debugButton.style.y=610;
-debugOn.style.x=50;
-debugOff.style.x=80;
+debugButton.style.position(0,610);
+debugOn.style.position(50,0);
+debugOff.style.position(80,0);
 debugButton.appendChild(debugOn);
 debugButton.appendChild(debugOff);
 
@@ -242,15 +245,15 @@ canvas.addEventListener('mousemove',e=>{
 });
 
 var multiLineText=new col.class.TextGraph('poi\npoipoi\npoipoipoi');
-multiLineText.style.x=810;
-multiLineText.style.y=500;
+multiLineText.style.position(810,500);
 multiLineText.font.textAlign='center';
 col.root.appendChild(multiLineText);
 
 
 function am(){
-	imageGraph.style.rotate-=1;
-	star.style.rotate+=1;
+	imageGraph.style.setRotate(imageGraph.style.rotate-1);
+	star.style.setRotate(star.style.rotate+1);
+	shadowStars.forEach(function(s){s.style.calcMatrix(0x10)});
 	col.draw();
 	run&&requestAnimationFrame(am);
 } 
