@@ -1,8 +1,8 @@
 /*
 MIT LICENSE
-Copyright (c) 2016 iTisso
+Copyright (c) 2017 iTisso
 https://github.com/iTisso/CanvasObjLibrary
-varsion:2.0
+varsion:2.1
 */
 'use strict';
 import '../lib/setImmediate/setImmediate.js'
